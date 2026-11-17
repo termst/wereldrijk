@@ -143,7 +143,10 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
 .vs .side b{font-family:var(--f-disp);font-size:32px;font-weight:700;line-height:1.05}
 #oddsT{font-family:var(--f-disp);font-size:19px;font-weight:700;letter-spacing:.01em}
 .ulist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
-.urow{display:grid;grid-template-columns:22px minmax(74px,auto) minmax(0,1fr) minmax(86px,auto);gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:2px 0}
+.urow{display:grid;grid-template-columns:22px 104px minmax(0,1fr) minmax(86px,auto);gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:2px 0}
+.pq{display:flex;grid-column:3;grid-row:2;margin:-9px 0 6px}.pq button{flex:1;background:none;border:1px solid var(--line2);color:var(--mute);font:600 11.5px/1 var(--f-body);padding:3px 0;border-radius:0;cursor:pointer;font-variant-numeric:tabular-nums}.pq button+button{border-left:0}.pq button:first-child{border-radius:var(--r) 0 0 var(--r)}.pq button:last-child{border-radius:0 var(--r) var(--r) 0}.pq button.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.pqall{display:flex;align-items:center;justify-content:space-between;gap:10px}.pqall .lbl{white-space:nowrap}.pqall .pq{margin:0;flex:0 1 230px}.pqall .pq button{padding:5px 0;font-size:12px}
+@media (hover:hover){.pq button:hover:not(.on){background:var(--panel2);color:var(--ink)}}
 .urow svg{width:20px;height:20px;color:var(--mute)}.urow .un{font-size:14.5px;font-weight:600;white-space:nowrap}.urow b{font-family:var(--f-disp);font-size:19px;font-weight:600;text-align:right;white-space:nowrap}.urow b small{color:var(--mute);font-size:13px;font-weight:500}
 .tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;touch-action:pan-x}.tabs::-webkit-scrollbar{display:none}
 .tab{background:none;border:0;padding:8px 14px 10px;font-family:var(--f-disp);font-weight:600;font-size:17px;letter-spacing:.02em;color:var(--mute);white-space:nowrap}
@@ -287,7 +290,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
   #timer{height:44px;min-width:58px;font-size:15px}
   .setup{height:auto}
   .sheet{max-height:100%}
-  .urow{grid-template-columns:22px 1fr auto;padding:6px 0 0}.urow input{grid-column:1/-1;grid-row:2}
+  .urow{grid-template-columns:22px 1fr auto;padding:6px 0 0}.urow input{grid-column:1/3;grid-row:2}.urow .pq{grid-column:3;grid-row:2;width:168px;margin:0 0 0 6px}.pqall .lbl span{display:none}
   .livebar{bottom:calc(68px + var(--sb))}
 }
 @media (max-height:430px){:root{--bar:38px}#panel{padding-bottom:calc(60px + var(--sb))}.stat small{display:none}#endTurn{height:42px;font-size:16px;padding:0 16px}#zoom .ibtn{width:36px;height:36px}.sheet{padding:10px 12px 12px;gap:8px}.urow{padding:0}#panel .ph{padding:9px 12px 8px}#panel .pb{padding-top:9px;gap:8px}}
@@ -1124,9 +1127,22 @@ function updateHint(){const h=$('#hint');if(!G||G.over||G.pv||BATTLE){h.hidden=t
   if(selN<0){h.hidden=false;h.textContent=apLeft()?'Tik op een land om het aan te vallen':'Bevelen op: tik op Einde beurt';return}h.hidden=true}
 
 let sheet=null;
-function openSheet(html,onMount,wide){closeSheet();sheet=el('div',{class:'scrim'});sheet.innerHTML=`<div class="sheet${wide?' wide':''}" role="dialog">${html}</div>`;sheet.addEventListener('pointerdown',e=>{if(e.target===sheet&&!sheet.lock)closeSheet()});$('#app').appendChild(sheet);onMount&&onMount(sheet);return sheet}
+function openSheet(html,onMount,wide){closeSheet();sheet=el('div',{class:'scrim'});sheet.innerHTML=`<div class="sheet${wide?' wide':''}" role="dialog">${html}</div>`;sheet.addEventListener('pointerdown',e=>{if(e.target===sheet&&!sheet.lock)closeSheet()});$('#app').appendChild(sheet);onMount&&onMount(sheet);if(sheet&&sheet.querySelector('.pq'))pqMount(sheet);return sheet}
 function closeSheet(){if(sheet){sheet.remove();sheet=null}}
-function urow(id,lbl,ic,max,val){return max>0?`<div class="urow">${svgI(ic)}<span class="un">${lbl}</span><input type="range" id="u_${id}" min="0" max="${max}" value="${val}" aria-label="${lbl}"><b class="num" id="u_${id}V"></b></div>`:''}
+function urow(id,lbl,ic,max,val){return max>0?`<div class="urow">${svgI(ic)}<span class="un">${lbl}</span><input type="range" id="u_${id}" min="0" max="${max}" value="${val}" aria-label="${lbl}"><b class="num" id="u_${id}V"></b>${pqBtns('u_'+id)}</div>`:''}
+const PQ=[0,25,50,75,100];
+function pqBtns(f){return `<div class="pq" data-for="${f}">${PQ.map(p=>`<button type="button" data-p="${p}">${p===100?'Max':p+'%'}</button>`).join('')}</div>`}
+function pqAll(lbl){return `<div class="pqall"><div class="lbl" style="margin:0">${lbl}</div>${pqBtns('*')}</div>`}
+function pqVal(e,p){const st=+e.step||1,mx=+e.max;return p>=100?mx:Math.min(mx,Math.round(mx*p/100/st)*st)}
+function pqSync(sh){const ins=[...sh.querySelectorAll('.urow input[type=range]')];
+  ins.forEach(e=>e.style.setProperty('--p',(+e.max?+e.value/+e.max*100:0)+'%'));
+  sh.querySelectorAll('.pq').forEach(g=>{const f=g.dataset.for,t=f==='*'?ins:ins.filter(e=>e.id===f);
+    g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',t.length>0&&t.every(e=>Math.abs(+e.value-pqVal(e,+b.dataset.p))<1e-9)))})}
+function pqMount(sh){
+  sh.addEventListener('click',ev=>{const b=ev.target.closest('.pq button');if(!b)return;const f=b.parentNode.dataset.for,p=+b.dataset.p;
+    const t=f==='*'?[...sh.querySelectorAll('.urow input[type=range]')]:[sh.querySelector('#'+f)];
+    t.forEach(e=>{if(e){e.value=pqVal(e,p);e.dispatchEvent(new Event('input',{bubbles:true}))}});pqSync(sh)});
+  sh.addEventListener('input',()=>pqSync(sh));pqSync(sh)}
 function openAttack(o,c){
   if(!myTurn()||BATTLE)return;if(c==null||!theaters(ME,o).includes(c))c=bestTheater(ME,o);const src=srcCont(ME,o,c),NA=A(ME);if(!apLeft()){toast('Je bevelen voor deze ronde zijn op.','lose');return}
   if((G.N[ME].hitR||{})[o]===G.round){toast(`Je hebt ${esc(natName(o))} deze ronde al aangevallen. Volgende ronde kan het weer.`,'lose');return}
@@ -1137,7 +1153,7 @@ function openAttack(o,c){
    ${!atWar(ME,o)?`<div class="warn">Dit is een oorlogsverklaring.${al.length?` Bondgenoten van ${esc(natName(o))} kunnen meevechten: ${al.slice(0,4).map(c=>esc(natName(c))).join(', ')}.`:''}</div>`:''}
    <div class="note">Front in <b style="color:var(--ink)">${CONTS[c]}</b>. Soldaten en tanks komen uit ${CONTS[src]}; vliegtuigen, schepen en bommen kunnen overal heen.${E.mil?` <b style="color:var(--green)">Hier staat bijna geen leger: dit gaat snel.</b>`:''}</div>
    <div class="vs"><div class="side"><small>Jouw aanvalskracht</small><div class="nm">${esc(natName(ME))}</div><b class="num" id="aN"></b></div><div class="side"><small>Hun kracht aan de grens</small><div class="nm">${esc(natName(o))}</div><b class="num">~${fmtT(E.p)}</b></div></div>
-   <div class="lbl">Wat stuur je? <span style="text-transform:none;letter-spacing:0">(gestuurd / je voorraad)</span></div>
+   ${pqAll('Wat stuur je? <span style="text-transform:none;letter-spacing:0">(gestuurd / voorraad)</span>')}
    <div class="ulist">${urow('sd','Soldaten','helm',mine,Math.round(mine*.7))}${urow('tk','Tanks','tank',mtk,Math.round(mtk*.7))}${urow('jt','Vliegtuigen','jet',K.jt,Math.round(K.jt*.6))}${urow('sh','Schepen','ship',K.sh,naval?K.sh:0)}${urow('bm','Bommen vooraf','bomb',K.bm,0)}</div>
    <div class="row" style="justify-content:space-between;flex-wrap:wrap"><b id="oddsT"></b><span class="note">Wat je niet stuurt, blijft thuis om te verdedigen.</span></div>
    <div class="note">Kracht telt in soldaten: een tank telt als 40, een vliegtuig als 250${naval?', een schip als 300 (over zee)':''}. Vliegtuigen en tanks laten het front sneller opschuiven; vijandelijke vliegtuigen remmen dat af. Bommen vallen vóór de aanval. Je kunt op elk moment stoppen.</div>
@@ -1189,7 +1205,7 @@ function openGive(o,c){
   const money=Math.floor(G.N[ME].m*10)/10;
   openSheet(`<h3>${natFlag(o)} Steun geven aan ${esc(natName(o))}</h3><div class="note">Geef troepen, wapens of geld. Ze vinden je daarna aardiger, en een sterke bondgenoot vecht beter mee.</div>
    ${cs.length>1?`<div class="lbl">Troepen uit</div><div class="chips">${cs.map(x=>`<button class="chip ${x===c?'on':''}" data-gc="${x}">${CONTS[x]} · ${fmtT(NA.a[x])}</button>`).join('')}</div>`:''}
-   <div class="ulist">${urow('sd','Soldaten','helm',NA.a[c],0)}${urow('tk','Tanks','tank',NA.ka[c],0)}${urow('jt','Vliegtuigen','jet',K.jt,0)}${money>=.1?`<div class="urow">${svgI('fact')}<span class="un">Geld</span><input type="range" id="u_mo" min="0" max="${money}" step="0.1" value="0" aria-label="Geld"><b class="num" id="u_moV"></b></div>`:''}</div>
+   <div class="ulist">${urow('sd','Soldaten','helm',NA.a[c],0)}${urow('tk','Tanks','tank',NA.ka[c],0)}${urow('jt','Vliegtuigen','jet',K.jt,0)}${money>=.1?`<div class="urow">${svgI('fact')}<span class="un">Geld</span><input type="range" id="u_mo" min="0" max="${money}" step="0.1" value="0" aria-label="Geld"><b class="num" id="u_moV"></b>${pqBtns('u_mo')}</div>`:''}</div>
    <div class="row"><button class="btn ghost" id="gC">Annuleer</button><button class="btn pri big" style="flex:1" id="gGo">Geven</button></div>`,sh=>{
     const v=id=>{const e=sh.querySelector('#u_'+id);return e?+e.value:0};
     const upd=()=>{sh.querySelectorAll('.urow input').forEach(e=>{sh.querySelector('#'+e.id+'V').innerHTML=e.id==='u_mo'?fmtMoney(+e.value):`${fmtN(+e.value)}<small> / ${fmtN(+e.max)}</small>`});sh.querySelector('#gGo').disabled=v('sd')+v('tk')+v('jt')+v('mo')<=0};
@@ -1209,7 +1225,7 @@ function openMove(from,to){
   openSheet(`<h3>Troepen verplaatsen</h3><div class="note">Soldaten en tanks verdedigen en vallen alleen aan op het continent waar ze staan. Vliegtuigen, schepen en bommen kunnen overal heen.</div>
    <div class="lbl">Van</div><div class="chips">${cs.map(c=>`<button class="chip ${c===from?'on':''}" data-fr="${c}">${CONTS[c]} · ${fmtT(NA.a[c])}</button>`).join('')}</div>
    <div class="lbl">Naar</div><div class="chips">${cs.filter(c=>c!==from).map(c=>`<button class="chip ${c===to?'on':''}" data-to="${c}">${CONTS[c]} · ${fmtT(NA.a[c])}</button>`).join('')}</div>
-   <div class="ulist">${urow('sd','Soldaten','helm',NA.a[from],Math.round(NA.a[from]*.5))}${urow('tk','Tanks','tank',NA.ka[from],Math.round(NA.ka[from]*.5))}</div>
+   ${pqAll('Alles')}<div class="ulist">${urow('sd','Soldaten','helm',NA.a[from],Math.round(NA.a[from]*.5))}${urow('tk','Tanks','tank',NA.ka[from],Math.round(NA.ka[from]*.5))}</div>
    ${NA.a[from]+NA.ka[from]<1?`<div class="note">Er staan geen troepen in ${CONTS[from]}.</div>`:''}
    <div class="note">Kost 1 bevel. De troepen komen meteen aan.</div>
    <div class="row"><button class="btn ghost" id="mC">Annuleer</button><button class="btn pri big" style="flex:1" id="mGo">Verplaatsen</button></div>`,s=>{
