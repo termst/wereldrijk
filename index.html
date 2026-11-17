@@ -1,5 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Wereldrijk</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230c0d0e'/%3E%3Cpath d='M20 25 18 9l9 7 5-9 5 9 9-7-2 16z' fill='%23ecebe6' stroke='%23ecebe6' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='41' r='16' fill='%231d2023' stroke='%23ecebe6' stroke-width='3'/%3E%3Cpath d='M16 41h32M32 25v32' stroke='%23ecebe6' stroke-width='3'/%3E%3C/svg%3E">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
@@ -208,6 +209,35 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
 .tag{color:#c4c6c4;font-size:16px;margin-top:14px;max-width:40ch;line-height:1.4}
 .menuBtns{display:flex;flex-direction:column;gap:8px}
 .menuBtns .btn{padding:13px 14px;font-size:19px;text-align:left;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+/* logo: crowned globe (rijksappel) + wordmark, one SVG so it scales as a unit */
+.brand{margin:0}
+.lg{display:block;width:100%;max-width:340px;height:auto;overflow:visible;animation:lgIn .7s cubic-bezier(.2,.7,.2,1) both}
+#app .lg .lgt{fill:url(#lgT);stroke:none;font-family:var(--f-disp);font-weight:700;font-size:68px}
+#app .lg .lgc{fill:url(#lgT);stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round}
+#app .lg .lgj{fill:var(--ink);stroke:none}
+#app .lg .lgo{fill:url(#lgO);stroke:none}
+#app .lg .lgr{fill:none;stroke:var(--ink);stroke-width:3.2}
+#app .lg .lgb{fill:none;stroke:var(--ink);stroke-width:3.6;stroke-linecap:round}
+#app .lg .lgp{fill:none;stroke:var(--ink);stroke-opacity:.28;stroke-width:1.4}
+#app .lg .lgm{fill:none;stroke:var(--ink);stroke-opacity:.5;stroke-width:1.6;transform-box:fill-box;transform-origin:center;animation:lgSpin 12s ease-in-out infinite}
+#app .lg .lgm:nth-of-type(2){animation-delay:-4s}#app .lg .lgm:nth-of-type(3){animation-delay:-8s}
+@keyframes lgSpin{0%{transform:scaleX(1)}100%{transform:scaleX(-1)}}
+@keyframes lgIn{from{opacity:0;transform:translateY(8px)}}
+@keyframes mIn{from{opacity:0;transform:translateX(-10px)}}
+/* main menu buttons */
+.mbtns{display:flex;flex-direction:column;gap:8px}
+.mbtn{display:grid;grid-template-columns:22px minmax(0,1fr) 14px;align-items:center;gap:13px;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--line2);border-radius:var(--r);background:var(--raise);color:var(--ink);transition:background-color .18s,border-color .18s,transform .12s;animation:mIn .45s cubic-bezier(.2,.7,.2,1) both}
+.mbtn:nth-child(2){animation-delay:.05s}.mbtn:nth-child(3){animation-delay:.1s}.mbtn:nth-child(4){animation-delay:.15s}.mbtn:nth-child(5){animation-delay:.2s}
+.mbtn svg{width:22px;height:22px}
+.mbtn .chev{width:14px;height:14px;opacity:.5;transition:transform .18s,opacity .18s}
+.mbtn span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mbtn b{font-family:var(--f-disp);font-weight:600;font-size:20px;line-height:1.05;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbtn small{font-size:13px;line-height:1.2;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbtn.pri{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}.mbtn.pri small{color:#3d4044}
+.mbtn.ghost{background:transparent;border-color:var(--line);padding-top:9px;padding-bottom:9px}.mbtn.ghost b{font-size:17px;color:#c4c6c4}
+.mbtn:active{transform:translateY(1px)}
+@media (hover:hover){.mbtn:not(.pri):hover{background:var(--panel2);border-color:#5a6068}.mbtn.pri:hover{background:#fff}.mbtn:hover .chev{transform:translateX(3px);opacity:.9}}
+.screen.mscr .menuWrap{box-shadow:24px 0 60px -8px #000a}
 .setup{width:min(1000px,100%);margin:auto;display:grid;grid-template-columns:minmax(0,270px) minmax(0,1fr);gap:22px;height:100%}
 .col{display:flex;flex-direction:column;gap:9px;min-height:0}
 .col h3{margin:0;font-family:var(--f-disp);font-weight:700;font-size:25px;line-height:1.05}
@@ -268,6 +298,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
   .logo{font-size:clamp(52px,17vh,84px)}
   .tag{font-size:14.5px;margin-top:10px}.mmeta{margin-top:12px}
   .menuBtns .btn{padding:10px 12px;font-size:17px}
+  .lg{max-width:min(280px,30vh * 2.5)}
+  .mbtns{gap:6px}.mbtn{padding:8px 12px;gap:11px}.mbtn b{font-size:17px}.mbtn small{font-size:12px}.mbtn.ghost{padding-top:6px;padding-bottom:6px}
 }
 @media (max-width:700px) and (orientation:portrait){
   #top{flex-wrap:wrap}
@@ -285,6 +317,10 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
   .screen:not(.solid){flex-direction:column;align-items:stretch}
   .menuWrap{margin-top:auto;width:auto;min-height:0;justify-content:flex-start;gap:18px;border-right:0;border-top:1px solid var(--line2);padding:20px 18px calc(20px + var(--sb))}
   .logo{font-size:clamp(56px,19vw,84px)}
+  .screen.mscr .menuWrap{box-shadow:0 -24px 50px -8px #000a;gap:14px;padding-top:18px}
+  .lg{max-width:min(270px,72vw)}
+  .mscr .mmeta{margin-top:12px}
+  .mbtns{gap:6px}.mbtn{padding:10px 13px}.mbtn.ghost{padding-top:7px;padding-bottom:7px}
   #warbox{top:calc(var(--bar)*2 + 12px + var(--st));width:min(250px,62vw)}
   #app.pnl #warbox{display:block}
   #timer{height:44px;min-width:58px;font-size:15px}
@@ -293,6 +329,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
   .urow{grid-template-columns:22px 1fr auto;padding:6px 0 0}.urow input{grid-column:1/3;grid-row:2}.urow .pq{grid-column:3;grid-row:2;width:168px;margin:0 0 0 6px}.pqall .lbl span{display:none}
   .livebar{bottom:calc(68px + var(--sb))}
 }
+@media (max-width:700px) and (orientation:portrait) and (max-height:760px){.mscr .tag{display:none}.mbtn small{font-size:12px}.mbtn b{font-size:18px}}
 @media (max-height:430px){:root{--bar:38px}#panel{padding-bottom:calc(60px + var(--sb))}.stat small{display:none}#endTurn{height:42px;font-size:16px;padding:0 16px}#zoom .ibtn{width:36px;height:36px}.sheet{padding:10px 12px 12px;gap:8px}.urow{padding:0}#panel .ph{padding:9px 12px 8px}#panel .pb{padding-top:9px;gap:8px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1482,16 +1519,29 @@ function closeScreen(){if(screen){screen.remove();screen=null}}
 function setMode(m){const a=$('#app');a.classList.toggle('app-menu',m==='menu');a.classList.toggle('app-pick',m==='pick')}
 function previewState(){const s=initialState({mode:'pv',humans:[],maxR:0});s.pv=1;return s}
 function startDrift(){cancelAnimationFrame(drift);if(matchMedia('(prefers-reduced-motion: reduce)').matches){cam.s=minS()*1.3;clampCam();req();return}const t0=performance.now();const tick=()=>{if(!G||!G.pv||PICK)return;const t=(performance.now()-t0)/1000;cam.s=minS()*1.6;cam.x=-(WW*cam.s-VW)*(.5+.42*Math.sin(t/40));cam.y=-(HH*cam.s-VH)*(.38+.12*Math.sin(t/23));clampCam();draw();drift=requestAnimationFrame(tick)};tick()}
+const MI={go:'<path d="M8 5l11 7-11 7z"/>',solo:'<path d="M5 21V4M5 4h13l-2.5 4.5L18 13H5"/>',local:'<rect x="7" y="2.5" width="10" height="19" rx="1.5"/><path d="M10.5 18h3"/>',online:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.4 3.5 3.4 14.5 0 18M12 3c-3.4 3.5-3.4 14.5 0 18"/>',help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.3-.9.8-.9 1.4v.8M12 17v.5"/>'};
+function mBtn(id,ic,t,sub,cls){return `<button class="mbtn ${cls||''}" id="${id}"><svg viewBox="0 0 24 24" aria-hidden="true">${MI[ic]}</svg><span><b>${t}</b>${sub?`<small>${sub}</small>`:''}</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>`}
+function logoSVG(){return `<svg class="lg" viewBox="0 0 300 120" role="img" aria-label="Wereldrijk"><defs>
+<linearGradient id="lgT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f5ef"/><stop offset="1" stop-color="#c9c6bd"/></linearGradient>
+<radialGradient id="lgO" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="#34383d"/><stop offset=".7" stop-color="#1a1d20"/><stop offset="1" stop-color="#101214"/></radialGradient>
+<clipPath id="lgK"><circle cx="40" cy="79" r="36"/></clipPath></defs>
+<path class="lgc" d="M22 42 19.5 18 30 27.5 40 11 50 27.5 60.5 18 58 42Z"/>
+<circle class="lgj" cx="19.5" cy="17" r="3.4"/><circle class="lgj" cx="40" cy="9.5" r="3.6"/><circle class="lgj" cx="60.5" cy="17" r="3.4"/>
+<circle class="lgo" cx="40" cy="79" r="36"/>
+<g clip-path="url(#lgK)"><path class="lgp" d="M2 61h76M2 97h76"/><ellipse class="lgm" cx="40" cy="79" rx="36" ry="36"/><ellipse class="lgm" cx="40" cy="79" rx="36" ry="36"/><ellipse class="lgm" cx="40" cy="79" rx="36" ry="36"/></g>
+<path class="lgb" d="M4.5 79h71"/><circle class="lgr" cx="40" cy="79" r="36"/>
+<text class="lgt" x="98" y="58" textLength="200" lengthAdjust="spacing">WERELD</text>
+<text class="lgt" x="98" y="115" textLength="112" lengthAdjust="spacing">RIJK</text><path class="lgb" d="M224 91.5h72"/></svg>`}
 function showMenu(){
   PICK=null;ME=-1;selN=-1;BATTLE=null;document.querySelectorAll('.livebar').forEach(x=>x.remove());closeSheet();G=previewState();dirty();DIP=null;renderPanel();setMode('menu');resize();startDrift();
   const save=loadSave();
-  const s=setScreen(`<div class="menuWrap"><div><div class="logo">Wereld<br>rijk</div><div class="mmeta"><span>Strategiespel</span><span>${LIVE_N} landen</span></div><div class="tag">Kies een land, laat je bevolking en leger groeien en verover je buren. Alle landen spelen mee en elk land kan de grootste worden.</div></div>
-   <div class="menuBtns">
-    ${save?`<button class="btn pri" id="mCont">Doorgaan <small>${esc(save.G.N[save.ME]?.nm||NAT[save.ME]?.name||'')} · ronde ${save.G.round}</small></button>`:''}
-    <button class="btn ${save?'':'pri'}" id="mSolo">Solo spelen <small>tegen de hele wereld</small></button>
-    <button class="btn" id="mLocal">Samen op 1 telefoon <small>2–4 spelers</small></button>
-    <button class="btn" id="mOnline">Online met vrienden <small>elk op eigen toestel</small></button>
-    <button class="btn ghost" id="mHelp">Hoe werkt het?</button></div></div>`);
+  const s=setScreen(`<div class="menuWrap"><div><h1 class="brand">${logoSVG()}</h1><div class="mmeta"><span>Strategiespel</span><span>${LIVE_N} landen</span></div><div class="tag">Kies een land, laat je bevolking en leger groeien en verover je buren. Alle landen spelen mee en elk land kan de grootste worden.</div></div>
+   <nav class="mbtns" aria-label="Hoofdmenu">
+    ${save?mBtn('mCont','go','Doorgaan',`${esc(save.G.N[save.ME]?.nm||NAT[save.ME]?.name||'')} · ronde ${save.G.round}`,'pri'):''}
+    ${mBtn('mSolo','solo','Solo spelen','Tegen de hele wereld',save?'':'pri')}
+    ${mBtn('mLocal','local','Samen op 1 telefoon','2 tot 4 spelers om de beurt')}
+    ${mBtn('mOnline','online','Online met vrienden','Ieder op een eigen toestel')}
+    ${mBtn('mHelp','help','Hoe werkt het?','','ghost')}</nav></div>`);s.classList.add('mscr');
   if(save)s.querySelector('#mCont').onclick=()=>{G=save.G;ME=save.ME;startPlaying()};
   s.querySelector('#mSolo').onclick=()=>startPick('solo');
   s.querySelector('#mLocal').onclick=()=>startPick('local');
