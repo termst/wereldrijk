@@ -781,16 +781,31 @@ function startTurn(n){
   if(isHuman(n)){N.lastR=got;const rk=rankOf(n);if(rk>(N.rk||0)){addLog(`${natName(n)} is nu een ${RANKS[rk].nm}!`,[n],'ally');N.rkUp=rk}N.rk=Math.max(N.rk||0,rk);N.ap=apMax(n);N.acted=0}
 }
 function aiBuyUnits(n,budget){
-  const N=G.N[n];const order=dip().war[n].size?['tk','jt','bm','tk','sh','jt']:['jt','tk','sh','bm'];
-  for(const id of order){if(budget<=0)break;const u=UI[id];const packs=Math.floor(Math.min(budget,N.m)/u.c);if(packs<1)continue;
-    const got=buyUnit(n,id,Math.min(packs,Math.ceil(unitLeft(n,id)/u.pack)));budget-=got/u.pack*u.c}
+  const N=G.N[n],W=dip().war[n],S=stats();
+  // who are we buying against: all current enemies, or in peace the strongest non-allied neighbour
+  const foes=W.size?[...W]:[...nbrs()[n]].filter(e=>!G.N[e].dead&&!allied(n,e)).sort((a,b)=>S[b].power-S[a].power).slice(0,1);
+  let sd=0,tk=0,jt=0,sh=0,bm=0,sea=0;
+  for(const e of foes){if(G.N[e].dead)continue;const K=kit(e),t=K.tk||0;tk+=t*TK_D;jt+=(K.jt||0)*JT;sh+=(K.sh||0)*SH_D;bm+=K.bm||0;sd+=Math.max(0,(G.N[e].t||0)-t);if(W.size&&isNaval(n,e))sea+=S[e].power}
+  const tot=sd+tk+jt+sh+1;
+  const w={tk:1+.8*sd/tot,                                   // tanks beat infantry
+    jt:.8+1.2*tk/tot+.6*Math.min(1,bm/20),                   // jets answer tanks and shoot down bombs
+    sh:sea>0?.4+Math.min(1.2,sea/(S[n].power+1)):(sh>0?.3+sh/tot:0), // ships only when the war is overseas or the coast is threatened
+    bm:W.size?.5+.4*(sd+tk)/tot:.25};
+  const ids=Object.keys(w).filter(id=>w[id]>0&&unitLeft(n,id)>0).sort((a,b)=>w[b]-w[a]);
+  const sum=ids.reduce((a,id)=>a+w[id],0);if(!sum)return;
+  const pool=Math.min(budget,N.m),m0=N.m;
+  for(const id of ids){const u=UI[id];const packs=Math.floor(pool*w[id]/sum/u.c);if(packs>=1)buyUnit(n,id,Math.min(packs,Math.ceil(unitLeft(n,id)/u.pack)))}
+  // leftovers from rounding go to the best fitting units
+  for(const id of ids){const u=UI[id];const rest=pool-(m0-N.m);const packs=Math.floor(rest/u.c);if(packs>=1)buyUnit(n,id,Math.min(packs,Math.ceil(unitLeft(n,id)/u.pack)))}
 }
 // AI: keep the land army spread over its continents by population, with extra troops where the enemies are.
 function aiArmy(n){const N=A(n),s=stats()[n];const cs=myConts(n);if(!cs.length)return;const h=homeCont(n);
   for(let c=0;c<NC;c++)if(!s.cr[c]&&(N.a[c]||N.ka[c])){N.a[h]+=N.a[c];N.ka[h]+=N.ka[c];N.a[c]=0;N.ka[c]=0}
-  if(cs.length>1){const thr=new Array(NC).fill(0);let tt=0;for(const e of dip().war[n]){const EA=A(e),se=stats()[e];for(const c of cs)if(se.cr[c]){const v=EA.a[c]+EA.ka[c]*TK_D;thr[c]+=v;tt+=v}}
+  if(cs.length>1){const thr=new Array(NC).fill(0);let tt=0;const war=dip().war[n].size>0;for(const e of dip().war[n]){const EA=A(e),se=stats()[e];for(const c of cs)if(se.cr[c]){const v=EA.a[c]+EA.ka[c]*TK_D;thr[c]+=v;tt+=v}}
+    if(!war){const S=stats();for(let r=0;r<NR;r++){if(G.R.o[r]!==n)continue;const c=CONT[r],el=R0[r].el;for(const k in el){const p=G.R.o[+k];if(p===n||G.N[p].dead||allied(n,p))continue;const v=S[p].power*el[k];thr[c]+=v;tt+=v}}}
+    const kb=war?.5:.65;
     const pp=s.pop||1,tot=N.a.reduce((x,y)=>x+y,0),totk=N.ka.reduce((x,y)=>x+y,0);
-    for(const c of cs){const w=.5*s.cp[c]/pp+(tt?.5*thr[c]/tt:.5*s.cp[c]/pp);N.a[c]=Math.round(N.a[c]+(tot*w-N.a[c])*.4);N.ka[c]=Math.round(N.ka[c]+(totk*w-N.ka[c])*.4)}}
+    for(const c of cs){const w=(1-kb)*s.cp[c]/pp+(tt?kb*thr[c]/tt:kb*s.cp[c]/pp);N.a[c]=Math.round(N.a[c]+(tot*w-N.a[c])*.4);N.ka[c]=Math.round(N.ka[c]+(totk*w-N.ka[c])*.4)}}
   fixA(n)}
 function aiTurn(n){
   const N=G.N[n];if(N.dead)return;const enemies=[...dip().war[n]];const K=kit(n);aiArmy(n);
@@ -802,10 +817,17 @@ function aiTurn(n){
     const naval=isNaval(n,e,c);const E=defFront(e,n,naval,c);const need=E.p*defDM(e);
     const myOcc=Object.keys(G.occ).some(k=>G.occ[k][0]===e&&G.R.o[+k]===n);
     const u={tk:Math.round(NA.ka[src]*.7),jt:Math.round(K.jt*.6),sh:naval?Math.round(K.sh*.8):0,bm:0};
-    const send=Math.min(NA.a[src]*.65,Math.max(need/atkMult(n)*2.5,NA.a[src]*.3));
+    // how much of the army on the source continent may leave: less when other enemies stand there
+    let exp=0;for(const e2 of enemies){if(e2===e||G.N[e2].dead)continue;const A2=A(e2);exp+=(A2.a[src]||0)+(A2.ka[src]||0)*TK_D}
+    const here=NA.a[src]+1,maxFrac=clamp(.7-.3*exp/here,.25,.7);
+    // safety margin over the defence: bigger for a sea crossing or a stacked front, smaller against militia or a country already partly occupied
+    const margin=clamp(1.8+(naval?.5:0)+(E.mil?-.25:0)+(E.fs>.6?.2:0)-(myOcc?.3:0),1.3,2.8);
+    const send=Math.min(here*maxFrac,Math.max(need/atkMult(n)*margin,here*.25));
     const myP=(send+unitPow(u,true,naval))*atkMult(n);
     const ew=(G.N[e].we||0)/250,mw=(G.N[n].we||0)/200;
-    if(myP>need*(myOcc?.75:1.1)*(1-ew+mw)&&send>300&&(G.N[n].we||0)<85){
+    const ratio=myP/(need*(myOcc?.75:1)*(1-ew+mw)+1);
+    const pAtk=clamp((ratio-.85)/.4,0,1)*clamp((95-(G.N[n].we||0))/45,0,1);   // odds rise with the power ratio and fall with war weariness
+    if(send>300&&rnd()<pAtk){
       if(K.bm>4&&rnd()<.5)u.bm=Math.round(K.bm*.5);
       runBattle(n,e,send,isHuman(e)?5:6,u,c)}
   }
@@ -818,19 +840,19 @@ function aiDiplomacy(){
     for(const e of [...dip().war[n]]){
       const since=G.round-(G.war[pk(n,e)]||G.round);
       if(isHuman(e)){if(since>=3&&s[n].power<s[e].power*.7&&rnd()<.2&&!G.offers.some(o=>o.type==='peace'&&o.from===n&&o.to===e))G.offers.push({type:'peace',from:n,to:e,r:G.round});continue}
-      if(n<e){const p=.03+(since>6?.07:0);if(rnd()<p)makePeace(n,e)}
+      if(n<e){const p=.03+clamp(since-2,0,6)*.0117;if(rnd()<p)makePeace(n,e)}
     }
-    const ag=NAT[n].ag;if(dip().war[n].size>=(ag>.55?2:1))continue;
-    if(rnd()>(.03+.11*ag)*aggW*Math.min(1,G.round/3))continue;
+    const ag=NAT[n].ag;const loadF=Math.pow(.1+.35*ag,dip().war[n].size); // each extra war is less likely, never impossible
+    if(rnd()>(.03+.11*ag)*aggW*Math.min(1,G.round/3)*loadF)continue;
     let best=null,bs=0;
     for(const t of NB[n]){
       if(G.N[t].dead||allied(n,t)||atWar(n,t))continue;
       let tp=s[t].power+1;for(const c of dip().al[t])if(NB[n].has(c)&&!allied(c,n))tp+=s[c].power*.5;
       let need=(3.0-1.9*ag);const opp=dip().war[t].size>0||(G.N[t].hit||0)>0;
       if(dip().war[t].size>0)need*=.7;if((G.N[t].hit||0)>0)need*=.8;
-      const sc=s[n].power/tp/need;if(sc>1&&sc>bs){bs=sc;best={t,opp}}
+      const sc=s[n].power/tp/need;if(sc>.7&&sc>bs){bs=sc;best={t,opp}}
     }
-    if(best)declareWar(n,best.t,best.opp?'opp':'');
+    if(best&&rnd()<clamp((bs-.7)/.45,0,1))declareWar(n,best.t,best.opp?'opp':'');
   }
   aiThreats();
 }
