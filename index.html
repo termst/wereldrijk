@@ -175,7 +175,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
 .drow .btn{padding:5px 10px;font-size:14px}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .swatches button{width:34px;height:34px;border:0;border-radius:0;padding:0}
-.swatches button.on{outline:2px solid var(--ink);outline-offset:2px}
+.swatches .xtra{display:none}.swatches.open .xtra{display:block}.swatches .more{background:var(--panel,#222);color:var(--ink);border:1px solid var(--ink);font-weight:700;font-size:20px;cursor:pointer}.swatches button.on{outline:2px solid var(--ink);outline-offset:2px}
 .board{width:100%;border-collapse:collapse;font-size:14.5px}
 .board td,.board th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 .board th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);font-weight:600;border-bottom-color:var(--line2)}
@@ -406,7 +406,7 @@ const MODES=[
 MODES.forEach(m=>m.ids=m.list.map(nIdx).filter(i=>i>=0&&natRegions[i].length));
 const RANKS=[{at:0,nm:'Staat'},{at:5,nm:'Koninkrijk'},{at:12,nm:'Rijk'},{at:25,nm:'Keizerrijk'},{at:45,nm:'Wereldmacht'}];
 const PALETTE=['#f0a422','#3d8fe6','#2bb8a3','#9a6be0','#e872b4','#84c74a','#ee7a2e','#c9a077','#35b4e8','#d9d05c',
-  '#cf3a4f','#2a4fb0','#1f7a4d','#ece8da','#8a2346','#5a45c2','#b7e23d','#c4399f','#8b5a2b','#7b8794','#8fe3c0','#f27d72','#7d8a2e','#b9a7f0'];
+  '#cf3a4f','#2a4fb0','#1f7a4d','#ece8da','#8a2346','#5a45c2','#b7e23d','#c4399f','#8b5a2b','#7b8794','#8fe3c0','#f27d72','#7d8a2e','#b9a7f0','#e8c547','#0f8b8d','#ff9e9e'];
 const EMPIRE_NAMES=['Romeinse Rijk','Duitse Keizerrijk','Britse Rijk','Ottomaanse Rijk','Mongoolse Rijk','Perzische Rijk','Heilige Roomse Rijk','Russische Tsarenrijk','Spaanse Wereldrijk','Frankische Rijk','Byzantijnse Rijk','Groot-Nederland','Verenigde Staten van Europa','Hemelse Dynastie'];
 /* One icon language: 24 grid, outline only, square caps (styled by "#app svg" in the stylesheet). */
 const ICON={
@@ -1467,7 +1467,7 @@ function openRijk(tab){
      <div class="lbl">In oorlog met</div><div class="dlist">${[...D.war[n]].map(o=>row(o,can&&ap?`<button class="btn" data-pd="${o}">Vrede vragen</button>`:'')).join('')||'<div class="note">Je bent met niemand in oorlog.</div>'}</div>
      <div class="lbl">Bondgenoten</div><div class="dlist">${[...D.al[n]].map(o=>row(o,'')).join('')||'<div class="note">Nog geen bondgenoten.</div>'}</div>
      <div class="lbl">Handelspartners</div><div class="dlist">${[...D.tr[n]].map(o=>row(o,'')).join('')||'<div class="note">Nog geen handelsverdragen.</div>'}</div>`}
-  if(tab==='name'){body=`<input type="text" id="rnI" maxlength="32" value="${esc(natName(n))}" aria-label="Naam van je rijk"><div class="lbl">Ideeën</div><div class="chips">${EMPIRE_NAMES.map(x=>`<button class="chip" data-n="${esc(x)}">${esc(x)}</button>`).join('')}</div><div class="lbl">Kleur van je land</div><div class="swatches">${PALETTE.map(c=>`<button data-c="${c}" style="background:${c}" class="${N.col===c?'on':''}" aria-label="Kleur"></button>`).join('')}</div><button class="btn pri" id="rnGo" ${can||G.mode!=='online'?'':'disabled'}>Opslaan</button>`}
+  if(tab==='name'){body=`<input type="text" id="rnI" maxlength="32" value="${esc(natName(n))}" aria-label="Naam van je rijk"><div class="lbl">Ideeën</div><div class="chips">${EMPIRE_NAMES.map(x=>`<button class="chip" data-n="${esc(x)}">${esc(x)}</button>`).join('')}</div><div class="lbl">Kleur van je land</div><div class="swatches" id="sw">${PALETTE.map((c,i)=>`<button data-c="${c}" style="background:${c}" class="${N.col===c?'on':''}${i>=17?' xtra':''}" aria-label="Kleur"></button>`).join('').replace('<button data-c="'+PALETTE[17]+'"','<button class="more" id="swMore" aria-label="Meer kleuren" aria-expanded="false">+</button><button data-c="'+PALETTE[17]+'"')}</div><button class="btn pri" id="rnGo" ${can||G.mode!=='online'?'':'disabled'}>Opslaan</button>`}
   openSheet(`<h3>${natFlag(n)} ${esc(natName(n))} <span class="note" style="font-weight:500">${RANKS[rk].nm} · ${ap} ${ap===1?'bevel':'bevelen'} over</span></h3><div class="tabs">${tabs.map(([k,l])=>`<button class="tab ${k===tab?'on':''}" data-tab="${k}">${l}</button>`).join('')}</div>${body}<button class="btn ghost wide" id="rkC">Terug naar de kaart</button>`,sh=>{
     sh.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>openRijk(b.dataset.tab));
     sh.querySelector('#rkC').onclick=closeSheet;
@@ -1477,6 +1477,7 @@ function openRijk(tab){
     sh.querySelectorAll('[data-bc]').forEach(b=>b.onclick=()=>{N.bc=+b.dataset.bc;openRijk('army')});
     sh.querySelectorAll('[data-pd]').forEach(b=>b.onclick=()=>{closeSheet();dipAction('peace',+b.dataset.pd)});
     if(tab==='name'){let col=N.col;sh.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{sh.querySelector('#rnI').value=b.dataset.n});
+      {const sw=sh.querySelector('#sw'),mb=sh.querySelector('#swMore');if(sw&&mb){const t=o=>{sw.classList.toggle('open',o);mb.textContent=o?'−':'+';mb.setAttribute('aria-expanded',o)};mb.onclick=()=>t(!sw.classList.contains('open'));if(PALETTE.indexOf(col)>=17)t(true)}}
       sh.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{col=b.dataset.c;sh.querySelectorAll('[data-c]').forEach(x=>x.classList.toggle('on',x===b))});
       sh.querySelector('#rnGo').onclick=()=>{const v=sh.querySelector('#rnI').value.trim().slice(0,32);const old=natName(n);if(v&&v!==old){N.nm=v;addLog(`${old} heet voortaan ${v}`,[n],'ally')}N.col=col;G.rev++;closeSheet();dirty();afterAction()}}
   },true);
