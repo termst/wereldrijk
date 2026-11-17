@@ -179,11 +179,27 @@ input[type=text]{background:var(--panel2);border:1px solid var(--line);border-ra
 .board td:nth-child(2),.board th:nth-child(2){text-align:left;max-width:190px;overflow:hidden;text-overflow:ellipsis}
 .board tr.me td{color:#ff8a95}
 .tw{overflow-x:auto}
-.news{display:flex;flex-direction:column;gap:5px}
-.news div{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;background:var(--panel2);border-radius:8px;font-size:14px;line-height:1.3;border-left:3px solid transparent}
-.news div.k-war{border-left-color:var(--amber)}.news div.k-peace{border-left-color:var(--green)}.news div.k-ally,.news div.k-trade{border-left-color:var(--cyan)}.news div.k-cap,.news div.k-elim{border-left-color:var(--red)}.news div.me{background:#2a1a1e}
-.news .fl{font-size:18px}
-.news small{color:var(--mute);font-family:var(--f-disp);font-size:11px;margin-left:auto;white-space:nowrap}
+.news{display:flex;flex-direction:column}
+.nfil{display:flex;gap:5px;overflow-x:auto;touch-action:pan-x;padding-bottom:2px}
+.nfil button{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-family:var(--f-disp);font-weight:600;font-size:12.5px;color:var(--mute);white-space:nowrap;display:flex;gap:6px;align-items:center}
+.nfil button i{font-style:normal;font-size:11px;opacity:.7}
+.nfil button.on{background:var(--ink);border-color:var(--ink);color:var(--sea)}
+.nrd{position:sticky;top:-14px;z-index:1;background:var(--panel);font-family:var(--f-disp);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding:12px 0 6px;display:flex;align-items:center;gap:10px}
+.nrd:after{content:"";flex:1;height:1px;background:var(--line)}
+.nrd b{color:var(--brass2)}
+.nit{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding:8px 8px 8px 6px;border-radius:8px;font-size:13.5px;line-height:1.35;color:#c5d2dc;border-left:2px solid transparent}
+.nit+.nit{margin-top:1px}
+.nit .ni{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;background:var(--panel2);color:var(--mute)}
+.nit .ni svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nit b{color:var(--ink);font-weight:600}
+.nit .nc{margin-right:5px;vertical-align:-1px}
+.nit .ns{display:block;font-size:12.5px;color:var(--mute);margin-top:1px;font-variant-numeric:tabular-nums}
+.nit.t-war .ni,.nit.t-bomb .ni{color:var(--amber);background:#ffa53a1c}
+.nit.t-peace .ni{color:var(--green);background:#47d18c1c}
+.nit.t-ally .ni,.nit.t-trade .ni,.nit.t-merge .ni{color:var(--cyan);background:#4cc9f01c}
+.nit.t-elim .ni,.nit.t-hit .ni{color:var(--red);background:#ff3b4e1c}
+.nit.me{background:#e0a63a12;border-left-color:var(--brass)}
+.nit.t-elim b:first-of-type{text-decoration:line-through;text-decoration-color:#ff3b4e99}
 .swatches{display:flex;flex-wrap:wrap;gap:6px}
 .swatches button{width:32px;height:32px;border-radius:7px;border:2px solid transparent}
 .swatches button.on{border-color:#fff}
@@ -1065,7 +1081,14 @@ function beginMyTurn(){if(!G||G.over||ME<0||!myTurn())return;
   if(N.rkUp!=null){const rk=N.rkUp;N.rkUp=null;openSheet(`<div class="lbl">Je land groeit</div><h3 style="font-size:26px">Je bent nu een ${RANKS[rk].nm}!</h3><div class="note" style="font-size:15px;color:var(--ink)">Je krijgt voortaan ${apMax(ME)} bevelen per ronde en 10% meer nieuwe soldaten.</div><button class="btn gold wide" id="rkOk">Geweldig</button>`,s=>s.querySelector('#rkOk').onclick=()=>{closeSheet();showOffers()});}
   else showOffers();
   if(N.lastR)toast(`<b>+${fmtT(N.lastR)}</b> nieuwe soldaten uit je bevolking`,'win')})}
-function newsRow(l){return `<div class="k-${l.k==='hitme'?'cap':l.k}${l.n.includes(ME)?' me':''}">${l.n[0]!=null?natFlag(l.n[0]):''}<span>${esc(l.t)}</span><small>R${l.r}</small></div>`}
+const NICO={war:'<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',bomb:'<circle cx="10" cy="14" r="6"/><path d="m14.5 9.5 3-3M19 2v2M22 6h-2M20.5 3.5l-1 1"/>',atk:'<path d="M4 12h15M13 6l6 6-6 6"/>',peace:'<path d="m5 12 4.5 4.5L19 7"/>',ally:'<circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/>',trade:'<path d="M4 8h15l-3-3M20 16H5l3 3"/>',merge:'<path d="M6 4v4a6 6 0 0 0 6 6v6M18 4v4a6 6 0 0 1-6 6"/>',elim:'<circle cx="12" cy="12" r="8"/><path d="m9 9 6 6M15 9l-6 6"/>',hit:'<path d="M12 4v9M12 18v.5"/>',info:'<circle cx="12" cy="12" r="2"/>'};
+function newsType(l){const t=l.t;if(l.k==='elim'||l.k==='cap')return'elim';if(l.k==='hitme')return'hit';if(/bombardeert/.test(t))return'bomb';if(/ valt .* aan:/.test(t))return'atk';if(/voegen samen/.test(t))return'merge';return NICO[l.k]?l.k:'info'}
+function newsGroup(ty){return ['war','bomb','atk','hit','elim'].includes(ty)?'war':['peace','ally','trade','merge'].includes(ty)?'dip':'oth'}
+function newsRow(l){const ty=newsType(l);let t=esc(l.t);const nm=[...new Set(l.n.filter(n=>n!=null).map(n=>esc(natName(n))))].filter(Boolean).sort((a,b)=>b.length-a.length);
+  if(nm.length)t=t.replace(new RegExp(nm.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g'),'<b>$&</b>');
+  const m=t.match(/^(.*?)(: |! )(.+)$/);const hd=m?m[1]+(m[2]==='! '?'!':''):t,sub=m?m[3]:'';
+  return `<div class="nit t-${ty}${l.n.includes(ME)?' me':''}"><span class="ni"><svg viewBox="0 0 24 24">${NICO[ty]}</svg></span><span>${l.n[0]!=null?natFlag(l.n[0]):''}${hd}${sub?`<span class="ns">${sub}</span>`:''}</span></div>`}
+function newsList(items){let r=null,h='';items.forEach(l=>{if(l.r!==r){r=l.r;h+=`<div class="nrd">Ronde <b>${r}</b></div>`}h+=newsRow(l)});return h||'<div class="note" style="padding:14px 0">Niets in deze categorie.</div>'}
 function showNews(then){
   const N=G.N[ME];const since=N.seen||0;const NB=nbrs()[ME];
   const items=G.log.filter(l=>l.id>since&&(l.n.includes(ME)||l.k==='elim'&&l.n.some(x=>NB.has(x))||l.k==='war'&&l.n.some(x=>NB.has(x))));N.seen=G.lc;
@@ -1131,8 +1154,10 @@ function openBoard(){
   const show=rows.slice(0,12);G.order.forEach(n=>{if(!show.includes(n)&&s[n].regs)show.push(n)});
   openSheet(`<h3>Grootste landen</h3><div class="note">Wie aan het eind het grootste land heeft, wint. ${G.maxR?`Nog ${Math.max(0,G.maxR-G.round+1)} rondes.`:''} Wie 40% van de wereld verovert, wint direct.</div><div class="tw"><table class="board num"><tr><th>#</th><th>Land</th><th>Grootte</th><th>% wereld</th><th>Soldaten</th></tr>
     ${show.map(n=>`<tr class="${n===ME?'me':''}"><td>${rows.indexOf(n)+1}</td><td>${natFlag(n)} ${esc(natName(n))}${G.hum[n]?` <span style="color:var(--mute)">(${esc(G.hum[n].nick)})</span>`:''}</td><td>${fmtKm(s[n].km)}</td><td>${nl(s[n].km/WORLD_KM*100,1)}%</td><td>${fmtT(s[n].troops)}</td></tr>`).join('')}</table></div><button class="btn wide" id="bC">Sluiten</button>`,sh=>sh.querySelector('#bC').onclick=closeSheet,true)}
-$('#newsBtn').onclick=()=>{const items=G.log.filter(l=>['war','peace','ally','elim','trade','hitme'].includes(l.k)||l.n.includes(ME)).slice(-30).reverse();
-  openSheet(`<h3>Wereldnieuws</h3><div class="news">${items.map(newsRow).join('')||'<div class="note">Nog niets gebeurd.</div>'}</div><button class="btn wide" id="lC">Sluiten</button>`,s=>s.querySelector('#lC').onclick=closeSheet,true)};
+$('#newsBtn').onclick=()=>{const all=G.log.filter(l=>['war','peace','ally','elim','trade','hitme'].includes(l.k)||l.n.includes(ME)).slice(-60).reverse();
+  const F={all:['Alles',()=>true],me:['Mijn land',l=>l.n.includes(ME)],war:['Oorlog',l=>newsGroup(newsType(l))==='war'],dip:['Diplomatie',l=>newsGroup(newsType(l))==='dip']};
+  openSheet(`<h3>Wereldnieuws</h3>${all.length?`<div class="nfil">${Object.keys(F).map(k=>`<button data-f="${k}"${k==='all'?' class="on"':''}>${F[k][0]}<i>${all.filter(F[k][1]).length}</i></button>`).join('')}</div>`:''}<div class="news">${all.length?newsList(all):'<div class="note">Nog niets gebeurd.</div>'}</div><button class="btn wide" id="lC">Sluiten</button>`,s=>{s.querySelector('#lC').onclick=closeSheet;
+    s.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{s.querySelectorAll('[data-f]').forEach(x=>x.classList.toggle('on',x===b));s.querySelector('.news').innerHTML=newsList(all.filter(F[b.dataset.f][1]));s.querySelector('.sheet').scrollTop=0})},true)};
 $('#menuBtn').onclick=()=>{if(BATTLE)return;openSheet(`<h3>Menu</h3><div class="menuBtns">
   <button class="btn" id="mmHelp">Hoe werkt het?</button>
   ${G.mode==='online'?`<button class="btn" id="mmSkip">Beurt van ${esc(natName(curNation()))} overslaan</button><div class="note">Spelcode: <b class="code" style="font-size:18px">${esc(G.code||'')}</b></div>`:''}
