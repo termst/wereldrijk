@@ -237,6 +237,15 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
 .mode{display:flex;flex-direction:column;gap:5px;text-align:left;background:none;border:1px solid var(--line2);border-radius:var(--r);padding:11px 13px 12px}
 .mode b{font-family:var(--f-disp);font-weight:700;font-size:21px;line-height:1;letter-spacing:.03em;text-transform:uppercase}
 .mode .note{font-size:13px}
+/* difficulty colours: muted green (easy), muted ochre (medium), muted brick (hard) */
+.diff0{--dc:#7cb994;--dl:#7cb99466;--dbg:#7cb9941f;--dh:#7cb99433}
+.diff1{--dc:#d6a255;--dl:#d6a25566;--dbg:#d6a2551f;--dh:#d6a25533}
+.diff2{--dc:#c97a6e;--dl:#c97a6e66;--dbg:#c97a6e1f;--dh:#c97a6e33}
+.mode.diff0,.mode.diff1,.mode.diff2{border-color:var(--dl);background-color:var(--dbg)}
+.mode.diff0:hover,.mode.diff1:hover,.mode.diff2:hover{background-color:var(--dh)}
+.mode.diff0 b,.mode.diff1 b,.mode.diff2 b{color:var(--dc)}
+.chip.diff0,.chip.diff1,.chip.diff2{border-color:var(--dl);color:var(--dc)}
+.chip.diff0.on,.chip.diff1.on,.chip.diff2.on{background:var(--dc);border-color:var(--dc);color:var(--on-ink)}
 .clist2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .cbtn{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--line2);border-radius:var(--r);padding:8px 9px;font-size:14.5px;font-weight:600;text-align:left;min-width:0}
 .cbtn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1593,10 +1602,10 @@ function renderPick(){
   $('#pkTitle').textContent=P.diff<0?$t('Kies een moeilijkheid','Pick a difficulty'):P.mode==='local'?$t(`Speler ${P.players.length+1}: kies je land`,`Player ${P.players.length+1}: pick your country`):$t('Kies je land','Pick your country');
   $('#pkSub').textContent=P.diff<0?$t('Daarna kies je een land uit die modus','Then you pick a country from that mode'):$t('Tik op een land met een witte rand','Tap a country with a white outline');
   let h='';
-  if(P.diff<0){h+=`<div class="modes">${MODES.map((m,i)=>`<button class="mode" data-m="${i}"><b>${m.nm}</b><span class="note">${m.sub}</span></button>`).join('')}</div>`}
+  if(P.diff<0){h+=`<div class="modes">${MODES.map((m,i)=>`<button class="mode diff${i}" data-m="${i}"><b>${m.nm}</b><span class="note">${m.sub}</span></button>`).join('')}</div>`}
   else{
     const M=MODES[P.diff];
-    if(!P.players.length)h+=`<div class="mtabs">${MODES.map((m,i)=>`<button class="chip ${P.diff===i?'on':''}" data-m="${i}">${m.nm}</button>`).join('')}</div>`;
+    if(!P.players.length)h+=`<div class="mtabs">${MODES.map((m,i)=>`<button class="chip diff${i} ${P.diff===i?'on':''}" data-m="${i}">${m.nm}</button>`).join('')}</div>`;
     else h+=`<div class="lbl">${$t('Modus:','Mode:')} ${M.nm}</div>`;
     h+=countryBtns(M.ids,n,taken);
     if(n>=0){const d=NAT[n];
@@ -1683,7 +1692,7 @@ function enterLobby(code){
     const taken=new Set(NET.players.filter(p=>p.id!==NET.uid&&p.nation>=0).map(p=>p.nation));
     s.querySelector('#lp').innerHTML=NET.players.map((p,i)=>`<div class="pl"><i style="background:${PALETTE[i%PALETTE.length]}"></i><b>${esc(p.nick)}</b>${p.id===g.host?' <span class="note">host</span>':''}<span class="r">${p.nation>=0?esc(baseName(NAT[p.nation])):$t('kiest…','picking…')}</span></div>`).join('');
     const ho=s.querySelector('#hostOpts');
-    ho.innerHTML=`<div class="lbl">${$t('Modus','Mode')}</div><div class="chips">${MODES.map((m,i)=>`<button class="chip ${i===(g.diff??1)?'on':''}" data-d="${i}" ${isHost()?'':'disabled'}>${m.nm}</button>`).join('')}</div>${isHost()?`<div class="lbl">${$t('Rondes','Rounds')}</div><div class="chips">${[20,30,45,0].map(v=>`<button class="chip ${g.maxR===v?'on':''}" data-r="${v}">${v||'∞'}</button>`).join('')}</div><div class="lbl">${$t('Tijd per beurt','Time per turn')}</div><div class="chips">${TLO().map(([v,l])=>`<button class="chip ${(g.tl??90)===v?'on':''}" data-tl="${v}">${l}</button>`).join('')}</div>`:''}`;
+    ho.innerHTML=`<div class="lbl">${$t('Modus','Mode')}</div><div class="chips">${MODES.map((m,i)=>`<button class="chip diff${i} ${i===(g.diff??1)?'on':''}" data-d="${i}" ${isHost()?'':'disabled'}>${m.nm}</button>`).join('')}</div>${isHost()?`<div class="lbl">${$t('Rondes','Rounds')}</div><div class="chips">${[20,30,45,0].map(v=>`<button class="chip ${g.maxR===v?'on':''}" data-r="${v}">${v||'∞'}</button>`).join('')}</div><div class="lbl">${$t('Tijd per beurt','Time per turn')}</div><div class="chips">${TLO().map(([v,l])=>`<button class="chip ${(g.tl??90)===v?'on':''}" data-tl="${v}">${l}</button>`).join('')}</div>`:''}`;
     ho.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>NET.db.doc('games/'+code).update({tl:+b.dataset.tl}).catch(()=>{}));
     ho.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>NET.db.doc('games/'+code).update({diff:+b.dataset.d}).catch(()=>{}));
     ho.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>NET.db.doc('games/'+code).update({maxR:+b.dataset.r}).catch(()=>{}));
