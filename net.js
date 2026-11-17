@@ -8,6 +8,7 @@
  */
 (function () {
   'use strict';
+  const tt = (nl, en) => (typeof $t === 'function' ? $t(nl, en) : nl);
   const BROKERS = [
     'wss://broker.emqx.io:8084/mqtt',
     'wss://broker.hivemq.com:8884/mqtt',
@@ -99,13 +100,13 @@
 
   function publish(path, rec) {
     const cs = live();
-    if (!cs.length) return Promise.reject(new Error('geen verbinding met de server'));
+    if (!cs.length) return Promise.reject(new Error(tt('geen verbinding met de server', 'no connection to the server')));
     const msg = JSON.stringify(rec);
     // Apply locally right away so the writer sees its own change instantly.
     onMessage(topic(path), new TextEncoder().encode(msg));
     return Promise.any(cs.map(c => new Promise((res, rej) =>
       c.publish(topic(path), msg, { qos: 1, retain: true }, e => e ? rej(e) : res())
-    ))).catch(() => { throw new Error('versturen mislukt'); });
+    ))).catch(() => { throw new Error(tt('versturen mislukt', 'sending failed')); });
   }
 
   const snap = path => {
@@ -140,7 +141,7 @@
         await ready();
         let cur = cache.get(path);
         if (!cur || cur.d == null) { await fetchDoc(path); cur = cache.get(path); }
-        if (!cur || cur.d == null) throw new Error('document bestaat niet');
+        if (!cur || cur.d == null) throw new Error(tt('document bestaat niet', 'document does not exist'));
         return publish(path, { v: nextV(path), d: Object.assign({}, cur.d, part) });
       },
       onSnapshot(fn, err) {
