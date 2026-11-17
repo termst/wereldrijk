@@ -523,21 +523,30 @@ function frontShare(def,att){const own=owned(def);if(!own.length)return 1;let f=
 
 /* ================= diplomacy ================= */
 function opinion(a,h){let v=G.op[a+'>'+h];if(v==null)v=allied(a,h)?50:0;if(atWar(a,h))v=Math.min(v,-60);return v}
-function addOp(a,h,d){if(!isHuman(h)||isHuman(a))return;G.op[a+'>'+h]=clamp(opinion(a,h)+d,-100,100)}
+function addOp(a,h,d){if(isHuman(a)||a===h)return;G.op[a+'>'+h]=clamp(opinion(a,h)+d,-100,100)}
+// Odds that ally c joins a war in which t is attacked by a: depends on trust, courage, the attacker's strength, existing wars and trade ties.
+function allyHelpP(c,t,a){const s=stats();
+  let p=.3+opinion(c,t)/250+.25*NAT[c].ag;
+  p-=clamp(s[a].power/(s[c].power+1)-1,0,2)*.08;
+  p-=.1*dip().war[c].size;
+  if(trading(c,a))p-=.1;if(nbrs()[c].has(a))p+=.1;
+  return clamp(p,.1,.95)}
 function declareWar(a,t,why){
   if(a===t||atWar(a,t)||G.N[a].dead||G.N[t].dead)return;
   if(allied(a,t)){delete G.al[pk(a,t)];addLog(`${natName(a)} verbreekt het bondgenootschap met ${natName(t)}!`,[a,t],'war')}
   delete G.tr[pk(a,t)];G.war[pk(a,t)]=G.round;dipDirty();STATS=null;
   addLog(why==='opp'?`${natName(a)} ziet zijn kans schoon en valt het verzwakte ${natName(t)} aan!`:why==='enc'?`${natName(a)} voelt zich omsingeld door ${natName(t)} en valt als eerste aan!`:`${natName(a)} verklaart ${natName(t)} de oorlog!`,[a,t],'war');
-  if(isHuman(a)){for(const c of nbrs()[t])if(c!==a)addOp(c,a,-8)}
+  for(const c of nbrs()[t])if(c!==a)addOp(c,a,isHuman(a)?-8:-3);   // neighbours distrust an aggressor
+  addOp(t,a,-30);for(const c of dip().al[t])if(c!==a)addOp(c,a,-10);  // the victim and its allies remember
   for(const c of [...dip().al[t]]){if(c===a||allied(c,a)||atWar(c,a)||G.N[c].dead)continue;
     if(isHuman(c)){G.offers.push({type:'help',from:t,to:c,vs:a,r:G.round});continue}
-    if(rnd()<.35+.4*NAT[c].ag){G.war[pk(c,a)]=G.round;addLog(`${natName(c)} komt bondgenoot ${natName(t)} te hulp tegen ${natName(a)}!`,[c,a],'war')}}
+    if(rnd()<allyHelpP(c,t,a)){G.war[pk(c,a)]=G.round;addOp(t,c,20);addLog(`${natName(c)} komt bondgenoot ${natName(t)} te hulp tegen ${natName(a)}!`,[c,a],'war')}
+    else addOp(t,c,-15)}
   dipDirty();
 }
 function makePeace(a,b){if(!atWar(a,b))return;delete G.war[pk(a,b)];settleOcc(a,b);dipDirty();addLog(`Vrede tussen ${natName(a)} en ${natName(b)}`,[a,b],'peace')}
-function makeAlliance(a,b){delete G.war[pk(a,b)];G.al[pk(a,b)]=1;dipDirty();addLog(`${natName(a)} en ${natName(b)} sluiten een bondgenootschap`,[a,b],'ally')}
-function makeTrade(a,b){G.tr[pk(a,b)]=1;dipDirty();STATS=null;addLog(`Handelsverdrag tussen ${natName(a)} en ${natName(b)}`,[a,b],'trade')}
+function makeAlliance(a,b){delete G.war[pk(a,b)];G.al[pk(a,b)]=1;dipDirty();if(!isHuman(a)&&!isHuman(b)){addOp(a,b,15);addOp(b,a,15)}addLog(`${natName(a)} en ${natName(b)} sluiten een bondgenootschap`,[a,b],'ally')}
+function makeTrade(a,b){G.tr[pk(a,b)]=1;dipDirty();STATS=null;if(!isHuman(a)&&!isHuman(b)){addOp(a,b,6);addOp(b,a,6)}addLog(`Handelsverdrag tussen ${natName(a)} en ${natName(b)}`,[a,b],'trade')}
 function accept(ai,h,type){
   const op=opinion(ai,h);const s=stats();
   if(type==='ally'){if(atWar(ai,h))return false;const D=dip();for(const e of D.war[h])if(D.al[ai].has(e))return false;
@@ -850,6 +859,7 @@ function aiAlliances(s,NB){
     if(thr>=0&&tp>s[n].power*1.3&&(NB[p].has(thr)||atWar(p,thr)))v+=.8;     // common big neighbour
     if(NB[n].has(p))v+=.3;if(trading(n,p))v+=.4;
     const r=s[p].power/(s[n].power+1);if(r>.4&&r<3)v+=.3;                   // partner that actually matters
+    v+=clamp(opinion(n,p)/100,-1,1)*.6;                                    // trust built up or lost earlier
     return v-(NAT[n].ag-.5)*.5};
   const ids=[];for(let n=0;n<NN;n++)if(!G.N[n].dead&&!isHuman(n))ids.push(n);shuffle(ids);
   for(const n of ids){
@@ -864,6 +874,19 @@ function aiAlliances(s,NB){
     for(const p of [...dip().al[n]]){if(p<n||G.N[p].dead||isHuman(p))continue;
       if(Math.max(score(n,p),score(p,n))<.9&&rnd()<.04){delete G.al[pk(n,p)];dipDirty();addLog(`Het bondgenootschap tussen ${natName(n)} en ${natName(p)} loopt af`,[n,p],'info')}}}
 }
+// NPC trade: every country keeps up to 6 treaties, preferring rich partners, allies and neighbours it trusts.
+function aiTrade(s,NB){
+  const rich=[];for(let n=0;n<NN;n++)if(!G.N[n].dead)rich.push(n);rich.sort((a,b)=>s[b].gdp-s[a].gdp);const top=rich.slice(0,10);
+  const ids=[];for(let n=0;n<NN;n++)if(!G.N[n].dead&&!isHuman(n))ids.push(n);ids.sort(()=>rnd()-.5);
+  for(const n of ids){
+    if(G.N[n].dead||dip().tr[n].size>=6||rnd()>.07)continue;
+    const cand=new Set([...NB[n],...dip().al[n],...top]);let best=-1,bs=-1e9;
+    for(const p of cand){if(p===n||G.N[p].dead||isHuman(p)||atWar(n,p)||trading(n,p)||dip().tr[p].size>=6)continue;
+      if(opinion(n,p)<-15||opinion(p,n)<-15)continue;
+      const v=Math.log10(s[p].gdp+1)+(allied(n,p)?1:0)+(NB[n].has(p)?.5:0)+opinion(n,p)/100;if(v>bs){bs=v;best=p}}
+    if(best>=0)makeTrade(n,best);
+  }
+}
 function aiDiplomacy(){
   const s=stats(),NB=nbrs();const aggW=MODE().agg;
   const ids=[];for(let n=0;n<NN;n++)if(!G.N[n].dead&&!isHuman(n))ids.push(n);shuffle(ids);
@@ -872,7 +895,11 @@ function aiDiplomacy(){
     for(const e of [...dip().war[n]]){
       const since=G.round-(G.war[pk(n,e)]||G.round);
       if(isHuman(e)){if(since>=3&&s[n].power<s[e].power*.7&&rnd()<.2&&!G.offers.some(o=>o.type==='peace'&&o.from===n&&o.to===e))G.offers.push({type:'peace',from:n,to:e,r:G.round});continue}
-      if(n<e){const p=.03+clamp(since-2,0,6)*.0117;if(rnd()<p)makePeace(n,e)}
+      if(n<e&&since>=1){
+        // how badly each side wants out: war weariness, lost land, being the weaker side, a long stalemate, a cautious nature
+        const want=(x,y)=>clamp((G.N[x].we||0)/100*.6+lossFrac(x)*1.0+(s[x].power<s[y].power*.7?.25:0)+since*.02-NAT[x].ag*.15,0,1);
+        const wn=want(n,e),we2=want(e,n);
+        if(rnd()<Math.min(.5,.02+.3*Math.max(wn,we2)+.2*Math.min(wn,we2)))makePeace(n,e)}
     }
     const ag=NAT[n].ag;const loadF=Math.pow(.1+.35*ag,dip().war[n].size); // each extra war is less likely, never impossible
     if(rnd()>(.03+.11*ag)*aggW*Math.min(1,G.round/3)*loadF)continue;
@@ -880,13 +907,14 @@ function aiDiplomacy(){
     for(const t of NB[n]){
       if(G.N[t].dead||allied(n,t)||atWar(n,t))continue;
       let tp=s[t].power+1;for(const c of dip().al[t])if(NB[n].has(c)&&!allied(c,n))tp+=s[c].power*.5;
-      let need=(3.0-1.9*ag);const opp=dip().war[t].size>0||(G.N[t].hit||0)>0;
+      let need=(3.0-1.9*ag);/* grudges raise the odds, friendship lowers them */const opp=dip().war[t].size>0||(G.N[t].hit||0)>0;
       if(dip().war[t].size>0)need*=.7;if((G.N[t].hit||0)>0)need*=.8;
-      const sc=s[n].power/tp/need;if(sc>.7&&sc>bs){bs=sc;best={t,opp}}
+      const sc=s[n].power/tp/need*clamp(1-opinion(n,t)/250,.6,1.4);if(sc>.7&&sc>bs){bs=sc;best={t,opp}}
     }
     if(best&&rnd()<clamp((bs-.7)/.45,0,1))declareWar(n,best.t,best.opp?'opp':'');
   }
   aiAlliances(s,NB);
+  aiTrade(s,NB);
   aiThreats();
 }
 const WIN_SHARE=.35;
