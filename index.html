@@ -832,6 +832,31 @@ function aiTurn(n){
       runBattle(n,e,send,isHuman(e)?5:6,u,c)}
   }
 }
+// NPC pacts: countries ally against a shared enemy or a shared big neighbour, and drift apart when that reason is gone.
+function aiAlliances(s,NB){
+  const score=(n,p)=>{
+    const D=dip();
+    for(const x of [n,...D.al[n]])for(const y of [p,...D.al[p]])if(atWar(x,y))return -9; // never ally with someone at war with your own allies
+    let v=0;
+    if([...D.war[n]].some(e=>D.war[p].has(e)))v+=1.2;                      // common enemy
+    let thr=-1,tp=0;for(const t of NB[n]){if(G.N[t].dead||allied(n,t)||t===p)continue;if(s[t].power>tp){tp=s[t].power;thr=t}}
+    if(thr>=0&&tp>s[n].power*1.3&&(NB[p].has(thr)||atWar(p,thr)))v+=.8;     // common big neighbour
+    if(NB[n].has(p))v+=.3;if(trading(n,p))v+=.4;
+    const r=s[p].power/(s[n].power+1);if(r>.4&&r<3)v+=.3;                   // partner that actually matters
+    return v-(NAT[n].ag-.5)*.5};
+  const ids=[];for(let n=0;n<NN;n++)if(!G.N[n].dead&&!isHuman(n))ids.push(n);ids.sort(()=>rnd()-.5);
+  for(const n of ids){
+    if(G.N[n].dead||dip().al[n].size>=3||rnd()>.04)continue;
+    const cand=new Set(NB[n]);for(const e of dip().war[n])for(const q of dip().war[e])cand.add(q);
+    let best=-1,bs=0;
+    for(const p of cand){if(p===n||G.N[p].dead||isHuman(p)||allied(n,p)||atWar(n,p)||dip().al[p].size>=3)continue;
+      const m=Math.min(score(n,p),score(p,n));if(m>=.9&&m>bs){bs=m;best=p}}
+    if(best>=0&&rnd()<.6)makeAlliance(n,best);
+  }
+  for(const n of ids){if(G.N[n].dead)continue;
+    for(const p of [...dip().al[n]]){if(p<n||G.N[p].dead||isHuman(p))continue;
+      if(Math.max(score(n,p),score(p,n))<.9&&rnd()<.04){delete G.al[pk(n,p)];dipDirty();addLog(`Het bondgenootschap tussen ${natName(n)} en ${natName(p)} loopt af`,[n,p],'info')}}}
+}
 function aiDiplomacy(){
   const s=stats(),NB=nbrs();const aggW=MODE().agg;
   const ids=[];for(let n=0;n<NN;n++)if(!G.N[n].dead&&!isHuman(n))ids.push(n);ids.sort(()=>rnd()-.5);
@@ -854,6 +879,7 @@ function aiDiplomacy(){
     }
     if(best&&rnd()<clamp((bs-.7)/.45,0,1))declareWar(n,best.t,best.opp?'opp':'');
   }
+  aiAlliances(s,NB);
   aiThreats();
 }
 const WIN_SHARE=.35;
