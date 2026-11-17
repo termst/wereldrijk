@@ -507,7 +507,7 @@ const defMult=n=>1+.15*ul(n,'vl');
 const navalRange=n=>{const m=ul(n,'ma');return m?16+12*m:0};
 const curNation=()=>G.order[G.turn];
 function myTurn(){if(!G||G.over||G.pv)return false;if(G.mode==='online')return curNation()===ME;return true}
-function natBaseColor(n){if(G&&G.N[n]&&G.N[n].col)return hexToHsl(G.N[n].col);const h=(n*137.508+20)%360;return [h,27+(n%4)*3,37+(n%3)*5]}
+function natBaseColor(n){if(G&&G.N[n]&&G.N[n].col)return hexToHsl(G.N[n].col);const h=(n*137.508+20)%360;return [h,30+(n*7)%31,36+(n*11)%23]}
 function natColor(n){const c=natBaseColor(n);return `hsl(${c[0]} ${c[1]}% ${c[2]}%)`}
 function addLog(t,ns,k){G.lc=(G.lc||0)+1;G.log.push({id:G.lc,r:G.round,t,n:ns||[],k:k||'info'});if(G.log.length>140)G.log.splice(0,G.log.length-140)}
 function rankOf(n){const k=stats()[n].regs;let r=0;RANKS.forEach((x,i)=>{if(k>=x.at)r=i});return r}
