@@ -405,7 +405,8 @@ const MODES=[
 ];
 MODES.forEach(m=>m.ids=m.list.map(nIdx).filter(i=>i>=0&&natRegions[i].length));
 const RANKS=[{at:0,nm:'Staat'},{at:5,nm:'Koninkrijk'},{at:12,nm:'Rijk'},{at:25,nm:'Keizerrijk'},{at:45,nm:'Wereldmacht'}];
-const PALETTE=['#f0a422','#3d8fe6','#2bb8a3','#9a6be0','#e872b4','#84c74a','#ee7a2e','#c9a077','#35b4e8','#d9d05c'];
+const PALETTE=['#f0a422','#3d8fe6','#2bb8a3','#9a6be0','#e872b4','#84c74a','#ee7a2e','#c9a077','#35b4e8','#d9d05c',
+  '#cf3a4f','#2a4fb0','#1f7a4d','#ece8da','#8a2346','#5a45c2','#b7e23d','#c4399f','#8b5a2b','#7b8794','#8fe3c0','#f27d72','#7d8a2e','#b9a7f0'];
 const EMPIRE_NAMES=['Romeinse Rijk','Duitse Keizerrijk','Britse Rijk','Ottomaanse Rijk','Mongoolse Rijk','Perzische Rijk','Heilige Roomse Rijk','Russische Tsarenrijk','Spaanse Wereldrijk','Frankische Rijk','Byzantijnse Rijk','Groot-Nederland','Verenigde Staten van Europa','Hemelse Dynastie'];
 /* One icon language: 24 grid, outline only, square caps (styled by "#app svg" in the stylesheet). */
 const ICON={
