@@ -2,257 +2,275 @@
 <title>Wereldrijk</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: full-bleed war-room map; slim command bar on top, dossier panel slides in from the right, action dock bottom-right. */
+/* Layout: full-bleed map; one solid command bar on top, a docked sidebar on the right, End turn bottom-right.
+   Look: neutral charcoal, bone ink, hairline rules, 2px corners. Colour belongs to the map and to meaning
+   (red = attack, amber = war, blue = ally, green = gain); the chrome itself stays monochrome. */
 :root{
-  --sea:#08131d; --ink:#eaf0f4; --mute:#8ea3b4; --line:#223a4e;
-  --panel:#0f1b26; --panel2:#152738; --brass:#e0a63a; --brass2:#ffd27a; --red:#ff3b4e; --green:#47d18c; --cyan:#4cc9f0; --amber:#ffa53a;
-  --f-disp:"Chakra Petch","Barlow Semi Condensed",system-ui,sans-serif;
+  --bg:#0c0d0e; --panel:#151719; --panel2:#1d2023; --raise:#272a2e; --line:#2c3035; --line2:#454a51;
+  --ink:#ecebe6; --mute:#9a9d9f; --on-ink:#111314;
+  --red:#d8402f; --red-ink:#ff8a78; --green:#52b27c; --blue:#5b9fe0; --amber:#dea232;
+  --r:2px; --bar:44px;
+  --st:env(safe-area-inset-top,0px); --sr:env(safe-area-inset-right,0px); --sb:env(safe-area-inset-bottom,0px); --sl:env(safe-area-inset-left,0px);
+  --f-disp:"Barlow Condensed","Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
   --f-body:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
   color-scheme:dark;
 }
-html,body{height:100%;margin:0;background:var(--sea);color:var(--ink);font-family:var(--f-body);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+*{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
 button{font-family:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-button:focus-visible,input:focus-visible{outline:2px solid var(--brass2);outline-offset:2px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 #app{position:fixed;inset:0}
+#app svg{fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:square;stroke-linejoin:miter}
 #map{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .num{font-variant-numeric:tabular-nums}
-.fl{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1}
-#top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:6px;padding:6px max(10px,env(safe-area-inset-right,0px)) 6px max(10px,env(safe-area-inset-left,0px));padding-top:calc(6px + env(safe-area-inset-top,0px));background:linear-gradient(#060f17e6,#060f1700);pointer-events:none;z-index:5}
-#top>*{pointer-events:auto}
-.empire{display:flex;align-items:center;gap:7px;background:#0b1722ee;border:1px solid var(--line);border-radius:7px;padding:4px 10px 4px 7px;min-width:0;max-width:30vw;height:38px;box-sizing:border-box}
-.empire .fl{font-size:20px}
-.empire b{font-family:var(--f-disp);font-size:15px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.empire .sw{width:4px;align-self:stretch;border-radius:2px;flex:none}
-.stats{display:flex;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none;touch-action:pan-x}.stats::-webkit-scrollbar{display:none}
-.stat{background:#0b1722ee;border:1px solid var(--line);border-radius:7px;padding:2px 8px;display:flex;flex-direction:column;justify-content:center;line-height:1.05;white-space:nowrap;height:38px;box-sizing:border-box}
-.stat small{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute)}
-.stat span{font-family:var(--f-disp);font-size:14px;font-weight:600}
-.stat.money span{color:var(--brass2)}
-.spacer{flex:1}
-.ibtn{background:#0b1722ee;border:1px solid var(--line);border-radius:7px;height:38px;min-width:38px;padding:0 9px;font-family:var(--f-disp);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;justify-content:center;box-sizing:border-box}
-.ibtn svg{width:18px;height:18px}
-.ibtn.gold{background:linear-gradient(180deg,#f2b84b,#c98a1d);color:#1b1206;border:0}
-.ibtn:active{transform:translateY(1px)}
-#turnTag{font-family:var(--f-disp);font-size:12px;padding:0 9px;height:38px;display:flex;align-items:center;border-radius:7px;background:#0b1722ee;border:1px solid var(--line);white-space:nowrap;box-sizing:border-box}
-#turnTag.mine{border-color:var(--brass);color:var(--brass2)}
+.fl{line-height:1}
+.spacer{flex:1 1 0}
+.nc{display:inline-block;width:.78em;height:.78em;vertical-align:-.04em;box-shadow:inset 0 0 0 1px #0007;flex:none}
+
+/* ---- command bar ---- */
+#top{position:absolute;top:0;left:0;right:0;display:flex;align-items:stretch;padding:var(--st) var(--sr) 0 var(--sl);background:var(--panel);border-bottom:1px solid var(--line);z-index:5}
+.empire{display:flex;align-items:center;gap:10px;background:none;border:0;border-right:1px solid var(--line);padding:0 14px 0 12px;min-width:0;max-width:30vw;height:var(--bar);box-sizing:border-box;text-align:left}
+.empire .sw{width:12px;height:12px;flex:none;box-shadow:inset 0 0 0 1px #0007}
+.empire .nmw{display:flex;flex-direction:column;gap:2px;min-width:0}
+.empire b{font-family:var(--f-disp);font-weight:700;font-size:18px;line-height:1;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empire .rk{font-size:10.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;display:block;line-height:1}
+.stats{display:flex;flex:0 1 auto;min-width:0;height:var(--bar);overflow-x:auto;scrollbar-width:none;touch-action:pan-x}.stats::-webkit-scrollbar{display:none}
+.stat{background:none;border:0;border-right:1px solid var(--line);padding:0 12px;display:flex;flex-direction:column;justify-content:center;gap:3px;line-height:1;white-space:nowrap;box-sizing:border-box}
+.stat small{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.stat span{font-family:var(--f-disp);font-size:17px;font-weight:600}
+button.stat{color:inherit;font:inherit;text-align:left;cursor:pointer}
+.stat.ap span{display:flex;align-items:center;height:17px}
+.stat .kit{display:flex;gap:10px}.stat .kit i{display:flex;align-items:center;gap:4px;font-style:normal}.stat .kit svg{width:15px;height:15px;color:var(--mute);flex:none}
+.apd{display:flex;gap:3px;align-items:center}.apd i{width:9px;height:9px;box-sizing:border-box;border:1px solid var(--line2)}.apd i.on{background:var(--ink);border-color:var(--ink)}
+#turnTag{font-family:var(--f-disp);font-size:16px;font-weight:600;letter-spacing:.02em;padding:0 14px;height:var(--bar);display:flex;align-items:center;white-space:nowrap;box-sizing:border-box;color:var(--mute)}
+#turnTag.mine{color:var(--ink)}
+.ibtn{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);height:40px;min-width:40px;padding:0 10px;font-family:var(--f-disp);font-size:16px;font-weight:600;letter-spacing:.02em;display:flex;align-items:center;gap:7px;justify-content:center;box-sizing:border-box}
+.ibtn svg{width:20px;height:20px;flex:none}
+#top .ibtn,#pickbar .ibtn{background:none;border:0;border-left:1px solid var(--line);border-radius:0;height:var(--bar);min-width:var(--bar);padding:0 13px}
 .app-pick #top,.app-pick #dock,.app-pick #panel,.app-menu #top,.app-menu #dock,.app-menu #zoom,.app-menu #hint,.app-pick #hint{display:none!important}
-#dock{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;z-index:7;align-items:flex-end}
-#endTurn{background:linear-gradient(180deg,#f2b84b,#c98a1d);color:#1b1206;border:0;border-radius:9px;height:50px;padding:0 20px;font-family:var(--f-disp);font-weight:700;font-size:17px;letter-spacing:.06em;box-shadow:0 4px 0 #7a520f,0 8px 18px #0008}
-#endTurn:active{transform:translateY(3px);box-shadow:0 1px 0 #7a520f}
-#endTurn[disabled]{filter:grayscale(1) brightness(.6)}
-#zoom{position:absolute;left:max(10px,env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:5}
-#zoom .ibtn{width:40px;height:40px;font-size:20px;padding:0}
-#hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));background:#0b1722ee;border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--mute);z-index:4;max-width:44vw;text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#panel{position:absolute;top:calc(52px + env(safe-area-inset-top,0px));right:max(8px,env(safe-area-inset-right,0px));bottom:calc(68px + env(safe-area-inset-bottom,0px));width:min(320px,44vw);background:var(--panel);border:1px solid var(--line);border-radius:12px;z-index:6;display:flex;flex-direction:column;box-shadow:0 10px 30px #000a;transform:translateX(calc(100% + 30px));transition:transform .22s ease;overflow:hidden}
+
+/* ---- map controls ---- */
+#dock{position:absolute;right:max(10px,var(--sr));bottom:calc(10px + var(--sb));display:flex;gap:8px;z-index:7;align-items:flex-end}
+#endTurn{background:var(--ink);color:var(--on-ink);border:0;border-radius:var(--r);height:48px;padding:0 22px;font-family:var(--f-disp);font-weight:700;font-size:18px;letter-spacing:.08em;text-transform:uppercase}
+#endTurn[disabled]{background:var(--raise);color:var(--mute)}
+#zoom{position:absolute;left:max(10px,var(--sl));bottom:calc(10px + var(--sb));display:flex;flex-direction:column;z-index:5}
+#zoom .ibtn{width:40px;height:40px;padding:0}
+#zoom .ibtn+.ibtn{border-top:0}
+#hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--sb));background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:7px 14px;font-size:14px;color:var(--mute);z-index:4;max-width:44vw;text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- country sidebar ---- */
+#panel{position:absolute;top:calc(var(--bar) + 1px + var(--st));right:0;bottom:0;width:calc(min(320px,44vw) + var(--sr));padding:0 var(--sr) calc(68px + var(--sb)) 0;background:var(--panel);border-left:1px solid var(--line);z-index:6;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .18s ease-out;overflow:hidden;box-sizing:border-box}
 #panel.open{transform:none}
-#panel .ph{padding:10px 12px 9px;border-bottom:1px solid var(--line);display:flex;gap:9px;align-items:flex-start;background:linear-gradient(90deg,color-mix(in srgb,var(--hc,#223a4e) 30%,transparent),transparent 75%)}
-#panel .ph .fl{font-size:28px}
-#panel .ph h2{margin:0;font-family:var(--f-disp);font-size:18px;line-height:1.1;text-wrap:balance}
-#panel .ph .own{font-size:12.5px;color:var(--mute);display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap}
-.rel{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;padding:2px 6px;border-radius:4px;font-weight:700}
-.rel.mine{background:#ff3b4e2a;color:#ff8a95}.rel.ally{background:#4cc9f02a;color:#8fdcf5}.rel.war{background:#ffa53a2a;color:#ffc27a}.rel.trade{background:#47d18c2a;color:#8ee8b8}.rel.neutral{background:#ffffff14;color:var(--mute)}
-#panel .x{margin-left:auto;background:none;border:0;color:var(--mute);font-size:24px;line-height:1;padding:0 4px}
-#panel .pb{overflow-y:auto;padding:10px 12px 12px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch;touch-action:pan-y}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.kv{background:var(--panel2);border-radius:7px;padding:5px 8px;display:flex;flex-direction:column;line-height:1.15;min-width:0}
-.kv small{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute)}
-.kv b{font-family:var(--f-disp);font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin-top:2px;display:flex;justify-content:space-between;gap:8px}
+#panel .ph{padding:13px 14px 12px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+#panel .ph .fl{font-size:27px}
+#panel .ph h2{margin:0;font-family:var(--f-disp);font-weight:700;font-size:25px;line-height:1;letter-spacing:.02em;text-transform:uppercase;text-wrap:balance}
+#panel .ph .own{font-size:13px;color:var(--mute);display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+.rel{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;display:inline-flex;align-items:center;gap:6px;color:var(--mute)}
+.rel::before{content:"";width:7px;height:7px;background:currentColor;flex:none}
+.rel.mine{color:var(--ink)}.rel.ally{color:var(--blue)}.rel.war{color:var(--amber)}.rel.trade{color:var(--green)}
+#panel .x{margin:-4px -6px 0 auto;width:32px;height:32px;display:grid;place-items:center;background:none;border:0;color:var(--mute);padding:0;flex:none}
+#panel .x svg{width:20px;height:20px}
+#panel .pb{overflow-y:auto;padding:13px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:11px;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+
+/* ---- shared pieces ---- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;padding:1px}
+.kv{outline:1px solid var(--line);padding:7px 10px 8px;display:flex;flex-direction:column;gap:3px;line-height:1;min-width:0}
+.kv small{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.kv b{font-family:var(--f-disp);font-size:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbl,.sec{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.sec{margin-top:2px;display:flex;justify-content:space-between;gap:8px}
 .row{display:flex;gap:8px;align-items:center}
-input[type=range]{flex:1;accent-color:var(--brass);height:30px;min-width:0}
-.btn{border:0;border-radius:8px;padding:9px 12px;font-family:var(--f-disp);font-weight:700;font-size:14px;letter-spacing:.04em;background:#23405a;color:var(--ink)}
-.btn.gold{background:linear-gradient(180deg,#f2b84b,#c98a1d);color:#1b1206}
-.btn.red{background:linear-gradient(180deg,#ff5a68,#c42737);color:#fff}
-.btn.green{background:linear-gradient(180deg,#53dc97,#249a5e);color:#04170c}
-.btn.blue{background:linear-gradient(180deg,#5fd0f4,#2186b0);color:#04121a}
-.btn.ghost{background:transparent;border:1px solid var(--line)}
-.btn[disabled]{opacity:.4}
+.note{font-size:13.5px;color:var(--mute);line-height:1.4}
+.note b{color:var(--ink);font-weight:600}
+.err{color:var(--red-ink);font-size:13.5px}
+.warn{border:1px solid var(--amber);border-radius:var(--r);color:#f0c477;padding:8px 10px;font-size:13.5px;line-height:1.35}
+.btn{border:1px solid var(--line2);border-radius:var(--r);padding:9px 12px;font-family:var(--f-disp);font-weight:600;font-size:16px;line-height:1.15;letter-spacing:.02em;background:var(--raise);color:var(--ink)}
+.btn.pri{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.ghost{background:transparent}
+.btn[disabled]{opacity:.38}
 .btn.wide{width:100%}
-.btn.big{padding:12px;font-size:16px}
-.note{font-size:12.5px;color:var(--mute);line-height:1.35}
-.tgtlist{display:flex;flex-direction:column;gap:4px}
-.tgt{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 8px;text-align:left;font-size:13px;min-width:0}
-.tgt .fl{font-size:16px}
-.tgt .k{margin-left:auto;font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:2px 5px;border-radius:3px;flex:none}
-.k.land{background:#ff3b4e33;color:#ff8f99}.k.sea,.k.naval{background:#4cc9f033;color:#8fdcf5}.k.air{background:#ffa53a33;color:#ffc27a}.k.move{background:#47d18c33;color:#8ee8b8}
+.btn.big{padding:12px 14px;font-size:18px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.btn small{font-family:var(--f-body);font-weight:500;font-size:13px;opacity:.75;letter-spacing:0;text-transform:none}
+.btn:active:not([disabled]),.ibtn:active,#endTurn:active:not([disabled]){transform:translateY(1px)}
+@media (hover:hover){.btn:hover:not([disabled]):not(.ghost),#endTurn:hover:not([disabled]){filter:brightness(1.1)}.btn.ghost:hover:not([disabled]),.ibtn:hover,button.stat:hover,.empire:hover,.chip:hover:not(.on):not([disabled]),.cbtn:hover:not(.on):not([disabled]),.mode:hover{background-color:var(--panel2)}.tab:hover,.nfil button:hover:not(.on){color:var(--ink)}}
 .dipbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.dipbtns .btn{font-size:12.5px;padding:8px 6px}
-.opbar{height:6px;border-radius:4px;background:#ffffff12;position:relative;overflow:hidden}
+.dipbtns .btn{font-size:15px;padding:9px 6px}
+.opbar{height:4px;background:var(--line);position:relative}
 .opbar i{position:absolute;top:0;bottom:0}
-.scrim{position:absolute;inset:0;background:#02070bcc;z-index:20;display:flex;align-items:center;justify-content:center;padding:calc(10px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;width:min(480px,100%);max-height:100%;overflow-y:auto;box-shadow:0 20px 60px #000c;display:flex;flex-direction:column;gap:10px;touch-action:pan-y;box-sizing:border-box}
+.opbar::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--mute)}
+.kitrow{display:flex;gap:6px 16px;flex-wrap:wrap}.kitrow span{display:flex;align-items:center;gap:5px;font-size:13px}.kitrow svg{width:16px;height:16px;color:var(--mute)}.kitrow b{font-family:var(--f-disp);font-size:16px;font-weight:600}.kitrow small{color:var(--mute);font-size:12px}
+input[type=text]{background:var(--bg);border:1px solid var(--line2);border-radius:var(--r);padding:10px 11px;color:var(--ink);font:inherit;font-size:16px;width:100%;box-sizing:border-box;-webkit-user-select:text;user-select:text}
+input[type=text]::placeholder{color:#70747a}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:34px;min-width:0;margin:0;background:none;cursor:pointer;--p:0%}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--ink) var(--p),var(--line2) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:22px;margin-top:-10px;background:var(--ink);border:0;border-radius:1px}
+input[type=range]::-moz-range-track{height:2px;background:var(--line2)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--ink)}
+input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink);border:0;border-radius:1px}
+
+/* ---- dialogs ---- */
+.scrim{position:absolute;inset:0;background:#060707cc;z-index:40;display:flex;align-items:center;justify-content:center;padding:calc(10px + var(--st)) max(16px,var(--sr)) calc(10px + var(--sb)) max(16px,var(--sl))}
+.sheet{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px 18px;width:min(480px,100%);max-height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:12px;touch-action:pan-y;box-sizing:border-box}
 .sheet.wide{width:min(820px,100%)}
 .sheet>*{flex-shrink:0}
-.sheet h3{margin:0;font-family:var(--f-disp);font-size:20px;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
-.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
-.vs .side{background:var(--panel2);border-radius:9px;padding:8px 10px;min-width:0}
-.vs .side small{display:block;font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vs .side b{font-family:var(--f-disp);font-size:22px}
-.vs .side .nm{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vs .mid{font-family:var(--f-disp);font-size:14px;color:var(--mute)}
-.odds{height:8px;border-radius:5px;background:#3a1717;overflow:hidden}.odds i{display:block;height:100%;background:linear-gradient(90deg,#c62f2f,#47d18c)}
-.warn{background:#ffa53a1c;border:1px solid #ffa53a55;color:#ffd3a0;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.35}
-.srcs{display:flex;flex-wrap:wrap;gap:4px}
-.srcs span{background:var(--panel2);border-radius:5px;padding:3px 7px;font-size:12px;color:var(--mute)}
-.srcs span b{color:var(--ink)}
-.bfield{position:relative;height:64px;border-radius:10px;overflow:hidden;background:#0a141d;border:1px solid var(--line)}
-.bfield .a,.bfield .d{position:absolute;top:0;bottom:0;transition:width .26s ease}
-.bfield .a{left:0}.bfield .d{right:0}
-.bfield .front{position:absolute;top:-4px;bottom:-4px;width:4px;background:#fff;box-shadow:0 0 14px 4px #ffd27a;transition:left .26s ease;transform:translateX(-2px)}
-.bfield .boom{position:absolute;width:10px;height:10px;border-radius:50%;background:#ffd27a;box-shadow:0 0 12px 6px #ff7a1a;animation:boom .5s ease-out forwards;pointer-events:none}
-@keyframes boom{to{transform:scale(3);opacity:0}}
-.bnums{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:8px}
-.bnums b{font-family:var(--f-disp);font-size:28px;line-height:1}
-.bnums .r{text-align:right}
-.bround{font-family:var(--f-disp);color:var(--mute);font-size:13px;text-align:center}
-.shake{animation:shake .25s}
-@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
-.stamp{font-family:var(--f-disp);font-weight:700;font-size:30px;letter-spacing:.08em;text-align:center;padding:2px 0;animation:stamp .35s cubic-bezier(.2,1.6,.4,1)}
-@keyframes stamp{from{transform:scale(1.8);opacity:0}}
-.stamp.win{color:var(--green)}.stamp.lose{color:var(--red)}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);padding-bottom:8px;overflow-x:auto;touch-action:pan-x}
-.tab{background:none;border:0;border-radius:7px;padding:7px 12px;font-family:var(--f-disp);font-weight:600;font-size:14px;color:var(--mute);white-space:nowrap}
-.tab.on{background:var(--panel2);color:var(--brass2)}
-.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:7px}
-.up{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;display:flex;flex-direction:column;gap:5px;min-width:0}
-.up .t{display:flex;align-items:center;gap:8px}
-.up svg{width:26px;height:26px;color:var(--brass2);flex:none}
-.up b{font-family:var(--f-disp);font-size:14.5px;line-height:1.1}
-.up .lv{font-size:11px;color:var(--mute)}
-.up .d{font-size:12px;color:var(--mute);line-height:1.3;flex:1}
-.up .btn{padding:7px 8px;font-size:13px}
-.pips{display:flex;gap:2px;flex-wrap:wrap}.pips i{width:9px;height:4px;border-radius:2px;background:#2c4357}.pips i.on{background:var(--brass2)}
-.opt{display:flex;flex-direction:column;gap:6px;background:var(--panel2);border-radius:10px;padding:10px}
-.opt b{font-family:var(--f-disp)}
-.chips{display:flex;flex-wrap:wrap;gap:5px}
-.chip{border:1px solid var(--line);background:var(--panel2);border-radius:20px;padding:6px 11px;font-size:13px;font-weight:600}
-.chip.on{background:var(--brass);color:#1b1206;border-color:var(--brass)}
-.dlist{display:flex;flex-direction:column;gap:5px}
-.drow{display:flex;align-items:center;gap:8px;background:var(--panel2);border-radius:8px;padding:6px 9px;font-size:14px}
-.drow .fl{font-size:18px}.drow .r{margin-left:auto;display:flex;gap:5px}
-.drow .btn{padding:5px 9px;font-size:12px}
-.screen{position:absolute;inset:0;z-index:30;background:linear-gradient(90deg,#050c12f2 0%,#050c12cc 45%,#050c1240 100%);display:flex;padding:calc(14px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;box-sizing:border-box}
-.screen.solid{background:radial-gradient(1200px 600px at 70% 20%,#16324a 0%,#0a1520 55%,#060c12 100%)}
-.menuWrap{margin:auto 0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:center;width:min(860px,100%)}
-.logo{font-family:var(--f-disp);font-weight:700;font-size:clamp(40px,8vw,84px);line-height:.9;letter-spacing:.04em;background:linear-gradient(180deg,#ffe6ad,#e0a63a 60%,#8a5a12);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #0008)}
-.tag{color:#c3d0da;font-size:16px;margin-top:10px;max-width:40ch;line-height:1.35}
-.menuBtns{display:flex;flex-direction:column;gap:9px}
-.menuBtns .btn{padding:13px 16px;font-size:16px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.menuBtns .btn small{font-family:var(--f-body);font-weight:500;font-size:12.5px;opacity:.75;letter-spacing:0}
-.setup{width:min(1000px,100%);margin:auto;display:grid;grid-template-columns:minmax(0,270px) minmax(0,1fr);gap:14px;height:100%}
-.col{display:flex;flex-direction:column;gap:8px;min-height:0}
-.col h3{margin:0;font-family:var(--f-disp);font-size:20px}
-.clist{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;align-content:start;touch-action:pan-y;padding-right:4px}
-.cc{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 9px;text-align:left;display:flex;flex-direction:column;gap:3px}
-.cc b{font-family:var(--f-disp);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cc .m{display:grid;grid-template-columns:1fr 1fr;gap:1px 8px;font-size:11.5px;color:var(--mute)}
-.cc .m span b{font-family:var(--f-body);font-size:11.5px;color:var(--ink);font-weight:600}
-.cc.sel{border-color:var(--brass2);background:#2a2412}
-.cc[disabled]{opacity:.35}
-.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute)}
-input[type=text]{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--ink);font:inherit;font-size:16px;width:100%;box-sizing:border-box;-webkit-user-select:text;user-select:text}
-.plist{display:flex;flex-direction:column;gap:5px}
-.pl{display:flex;align-items:center;gap:8px;background:var(--panel2);border-radius:7px;padding:6px 9px;font-size:14px}
-.pl i{width:10px;height:10px;border-radius:2px}
-.pl .r{margin-left:auto;color:var(--mute);font-size:12.5px}
-.code{font-family:var(--f-disp);font-size:30px;letter-spacing:.2em;color:var(--brass2)}
-.err{color:#ff8f8f;font-size:13px}
-#pickbar{position:absolute;top:0;left:0;right:0;z-index:8;display:none;align-items:center;gap:8px;padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));padding-top:calc(8px + env(safe-area-inset-top,0px));background:linear-gradient(#060f17f0,#060f1700)}
-.app-pick #pickbar{display:flex}
-#pickbar h2{margin:0;font-family:var(--f-disp);font-size:20px;letter-spacing:.03em}
-#pickbar .note{font-size:13px}
-#pickcard{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(320px,48vw);z-index:8;display:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 14px 40px #000b;flex-direction:column;gap:8px;max-height:calc(100% - 80px);overflow-y:auto;box-sizing:border-box;touch-action:pan-y}
-.app-pick #pickcard{display:flex}
-#pickcard .hd{display:flex;gap:10px;align-items:center}
-#pickcard .hd .fl{font-size:36px}
-#pickcard h3{margin:0;font-family:var(--f-disp);font-size:22px;line-height:1.05}
-#toasts{position:absolute;top:calc(54px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;z-index:19;pointer-events:none;width:min(460px,64vw)}
-.toast{background:#0b1722f4;border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:8px;padding:8px 12px;font-size:14px;box-shadow:0 6px 20px #0009;animation:tin .25s ease}
-.toast.win{border-left-color:var(--green)}.toast.lose{border-left-color:var(--red)}.toast.war{border-left-color:var(--amber)}
-.toast b{font-family:var(--f-disp)}
-@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
-.board{width:100%;border-collapse:collapse;font-size:13.5px}
-.board td,.board th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
-.board th{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:600}
+.sheet h3{margin:0;font-family:var(--f-disp);font-weight:700;font-size:25px;line-height:1.05;letter-spacing:.01em;display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap}
+.sheet h3 svg{width:22px;height:22px;align-self:center}
+.sheet h3 .note{font-family:var(--f-body);letter-spacing:0}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:1px;padding:1px}
+.vs .side{outline:1px solid var(--line);padding:9px 12px 10px;min-width:0}
+.vs .side small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs .side .nm{font-weight:600;font-size:14.5px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs .side b{font-family:var(--f-disp);font-size:32px;font-weight:700;line-height:1.05}
+#oddsT{font-family:var(--f-disp);font-size:19px;font-weight:700;letter-spacing:.01em}
+.ulist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.urow{display:grid;grid-template-columns:22px minmax(74px,auto) minmax(0,1fr) minmax(86px,auto);gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:2px 0}
+.urow svg{width:20px;height:20px;color:var(--mute)}.urow .un{font-size:14.5px;font-weight:600;white-space:nowrap}.urow b{font-family:var(--f-disp);font-size:19px;font-weight:600;text-align:right;white-space:nowrap}.urow b small{color:var(--mute);font-size:13px;font-weight:500}
+.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;touch-action:pan-x}.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:0;padding:8px 14px 10px;font-family:var(--f-disp);font-weight:600;font-size:17px;letter-spacing:.02em;color:var(--mute);white-space:nowrap}
+.tab:first-child{padding-left:0}
+.tab.on{color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:1px;padding:1px}
+.up{outline:1px solid var(--line);padding:11px 12px 12px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.up .t{display:flex;align-items:center;gap:10px}
+.up svg{width:26px;height:26px;flex:none}
+.up b{font-family:var(--f-disp);font-size:19px;font-weight:700;line-height:1.05;letter-spacing:.01em}
+.up .lv{font-size:12.5px;color:var(--mute)}
+.up .d{font-size:13px;color:var(--mute);line-height:1.35;flex:1}
+.up .btn{padding:7px 8px;font-size:15px}
+.pips{display:flex;gap:2px}.pips i{flex:1;max-width:14px;height:4px;background:var(--line)}.pips i.on{background:var(--ink)}
+.opt{display:flex;flex-direction:column;gap:8px}
+.opt b{font-family:var(--f-disp);font-size:19px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line2);background:none;border-radius:var(--r);padding:6px 11px;font-size:14px;font-weight:600}
+.chip.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.chip[disabled]:not(.on){opacity:.45}
+.mtabs{display:flex}.mtabs .chip{flex:1;text-align:center;padding:7px 4px;border-radius:0}.mtabs .chip+.chip{border-left:0}
+.dlist{display:flex;flex-direction:column}
+.drow{display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line);padding:8px 0;font-size:15px}
+.drow:first-child{border-top:1px solid var(--line)}
+.drow .r{margin-left:auto;display:flex;gap:5px}
+.drow .btn{padding:5px 10px;font-size:14px}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.swatches button{width:34px;height:34px;border:0;border-radius:0;padding:0}
+.swatches button.on{outline:2px solid var(--ink);outline-offset:2px}
+.board{width:100%;border-collapse:collapse;font-size:14.5px}
+.board td,.board th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.board th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);font-weight:600;border-bottom-color:var(--line2)}
 .board td:nth-child(2),.board th:nth-child(2){text-align:left;max-width:190px;overflow:hidden;text-overflow:ellipsis}
-.board tr.me td{color:#ff8a95}
+.board tr.me td{background:var(--panel2);font-weight:700}
 .tw{overflow-x:auto}
 .news{display:flex;flex-direction:column}
-.nfil{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--panel2);border-radius:9px;padding:3px}
-.nfil button{background:none;border:0;border-radius:7px;padding:7px 2px;font-family:var(--f-disp);font-weight:600;font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nfil button.on{background:var(--panel);color:var(--ink)}
-.nrd{font-family:var(--f-disp);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);padding:14px 0 6px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.nfil{display:grid;grid-template-columns:repeat(4,1fr)}
+.nfil button{background:none;border:1px solid var(--line2);border-left-width:0;border-radius:0;padding:8px 2px;font-family:var(--f-disp);font-weight:600;font-size:15px;letter-spacing:.02em;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nfil button:first-child{border-left-width:1px}
+.nfil button.on{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.nrd{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);padding:16px 0 6px;border-bottom:1px solid var(--line);margin-bottom:4px}
 .nrd:first-child{padding-top:2px}
-.nit{display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:start;padding:7px 0 7px 10px;font-size:14px;line-height:1.35;border-left:2px solid transparent}
-.nit svg{width:18px;height:18px;margin-top:1px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--mute)}
-.nit b{font-weight:600}
+.nit{display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:start;padding:7px 0;font-size:14.5px;line-height:1.35;color:#c4c6c4}
+.nit svg{width:18px;height:18px;margin-top:1px;color:var(--mute)}
+.nit b{font-weight:600;color:var(--ink)}
 .nit .nc{margin-right:6px}
-.nit .ns{display:block;font-size:12.5px;color:var(--mute);margin-top:1px;font-variant-numeric:tabular-nums}
-.nit.t-war svg,.nit.t-bomb svg{color:var(--amber)}.nit.t-peace svg{color:var(--green)}.nit.t-ally svg,.nit.t-trade svg,.nit.t-merge svg{color:var(--cyan)}.nit.t-elim svg,.nit.t-hit svg{color:var(--red)}
-.nit.me{border-left-color:var(--brass)}
-.swatches{display:flex;flex-wrap:wrap;gap:6px}
-.swatches button{width:32px;height:32px;border-radius:7px;border:2px solid transparent}
-.swatches button.on{border-color:#fff}
-#rotate{position:absolute;inset:0;z-index:100;background:var(--sea);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
-#rotate .ph{width:70px;height:110px;border:4px solid var(--brass2);border-radius:12px;animation:rot 2s ease-in-out infinite}
-@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
-@media (max-height:430px){.stat small{display:none}.stat{padding:4px 8px}}
-@media (max-width:760px){.menuWrap{grid-template-columns:1fr;gap:14px}.setup{grid-template-columns:1fr}}
-@media (max-width:900px){#sPopW{display:none}}
-.nc{display:inline-block;width:.78em;height:.78em;border-radius:3px;vertical-align:-.04em;box-shadow:inset 0 0 0 1.5px #0006;flex:none}
-.apd{display:flex;gap:3px;align-items:center}.apd i{width:9px;height:9px;border-radius:50%;background:#2c4357}.apd i.on{background:var(--brass2);box-shadow:0 0 6px #ffd27a88}
-.stat.ap span{display:flex;align-items:center;gap:6px}
-.empire .rk{font-size:10.5px;color:var(--brass2);text-transform:uppercase;letter-spacing:.08em;display:block;line-height:1}
-.empire .nmw{display:flex;flex-direction:column;min-width:0;line-height:1.1}
-.modes{display:flex;flex-direction:column;gap:7px}
-.mode{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
-.mode b{font-family:var(--f-disp);font-size:17px}.mode.on{border-color:var(--brass2);background:#2a2412}
-.mode .note{font-size:12px}
-.mtabs{display:flex;gap:4px}.mtabs .chip{flex:1;text-align:center;padding:6px 4px}
-.clist2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.cbtn{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13.5px;font-weight:600;text-align:left;min-width:0}
+.nit .ns{display:block;font-size:13px;color:var(--mute);margin-top:1px;font-variant-numeric:tabular-nums}
+.nit.t-war svg,.nit.t-bomb svg{color:var(--amber)}.nit.t-peace svg{color:var(--green)}.nit.t-ally svg,.nit.t-trade svg,.nit.t-merge svg{color:var(--blue)}.nit.t-elim svg,.nit.t-hit svg{color:var(--red-ink)}
+.nit.me{color:var(--ink)}
+
+/* ---- full screens: menu, online, lobby, handoff ---- */
+.screen{position:absolute;inset:0;z-index:30;display:flex;align-items:flex-start;background:#0a0b0c66;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;box-sizing:border-box}
+.screen.solid{align-items:stretch;background:var(--bg);padding:calc(14px + var(--st)) max(16px,var(--sr)) calc(14px + var(--sb)) max(16px,var(--sl))}
+.menuWrap{display:flex;flex-direction:column;justify-content:center;gap:24px;flex:none;width:min(420px,100%);min-height:100%;box-sizing:border-box;background:var(--panel);border-right:1px solid var(--line);padding:calc(24px + var(--st)) 26px calc(24px + var(--sb)) max(26px,var(--sl))}
+.menuWrap>*{min-width:0}
+.logo{font-family:var(--f-disp);font-weight:700;font-size:clamp(64px,14vh,108px);line-height:.84;letter-spacing:.005em;text-transform:uppercase;color:var(--ink)}
+.logo.sm{font-size:clamp(44px,9vh,60px)}
+.mmeta{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:7px 0;margin-top:16px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mute)}
+.tag{color:#c4c6c4;font-size:16px;margin-top:14px;max-width:40ch;line-height:1.4}
+.menuBtns{display:flex;flex-direction:column;gap:8px}
+.menuBtns .btn{padding:13px 14px;font-size:19px;text-align:left;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.setup{width:min(1000px,100%);margin:auto;display:grid;grid-template-columns:minmax(0,270px) minmax(0,1fr);gap:22px;height:100%}
+.col{display:flex;flex-direction:column;gap:9px;min-height:0}
+.col h3{margin:0;font-family:var(--f-disp);font-weight:700;font-size:25px;line-height:1.05}
+.plist{display:flex;flex-direction:column}
+.pl{display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line);padding:8px 0;font-size:15px}
+.pl:first-child{border-top:1px solid var(--line)}
+.pl i{width:10px;height:10px;flex:none}
+.pl .r{margin-left:auto;color:var(--mute);font-size:13.5px}
+.code{font-family:var(--f-disp);font-weight:700;font-size:44px;line-height:1;letter-spacing:.16em;color:var(--ink)}
+.handoff{margin:auto;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+
+/* ---- country pick ---- */
+#pickbar{position:absolute;top:0;left:0;right:0;z-index:8;display:none;align-items:center;gap:12px;padding:var(--st) var(--sr) 0 var(--sl);background:var(--panel);border-bottom:1px solid var(--line)}
+.app-pick #pickbar{display:flex}
+#pickbar #pkBack{border-left:0;border-right:1px solid var(--line)}
+#pickbar h2{margin:0;font-family:var(--f-disp);font-weight:700;font-size:20px;line-height:1;letter-spacing:.02em}
+#pickbar .note{font-size:13px;line-height:1.2;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pickcard{position:absolute;top:calc(var(--bar) + 1px + var(--st));right:0;bottom:0;width:calc(min(320px,48vw) + var(--sr));z-index:8;display:none;background:var(--panel);border-left:1px solid var(--line);padding:14px calc(14px + var(--sr)) calc(14px + var(--sb)) 14px;flex-direction:column;gap:10px;overflow-y:auto;box-sizing:border-box;touch-action:pan-y}
+.app-pick #pickcard{display:flex}
+.modes{display:flex;flex-direction:column;gap:8px}
+.mode{display:flex;flex-direction:column;gap:5px;text-align:left;background:none;border:1px solid var(--line2);border-radius:var(--r);padding:11px 13px 12px}
+.mode b{font-family:var(--f-disp);font-weight:700;font-size:21px;line-height:1;letter-spacing:.03em;text-transform:uppercase}
+.mode .note{font-size:13px}
+.clist2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cbtn{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--line2);border-radius:var(--r);padding:8px 9px;font-size:14.5px;font-weight:600;text-align:left;min-width:0}
 .cbtn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cbtn.on{border-color:var(--brass2);background:#2a2412}.cbtn[disabled]{opacity:.35}
-.livebar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(720px,calc(100% - 32px));z-index:15;background:#0b1722f4;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px #000c;display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;padding:10px 12px;box-sizing:border-box}
-.livebar .lb-side{display:flex;flex-direction:column;line-height:1.05;min-width:64px}.livebar .lb-side.r{text-align:right}
-.livebar .lb-side small{font-size:11px;color:var(--mute);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
-.livebar .lb-side b{font-family:var(--f-disp);font-size:22px}
-.livebar .lb-mid{display:flex;flex-direction:column;gap:4px;min-width:0;text-align:center}
-.lb-tug{height:10px;border-radius:6px;background:#ffc04d;overflow:hidden}.lb-tug i{display:block;height:100%;background:#ff2b45;transition:width .5s ease}
-.lb-msg{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lb-score{font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.livebar .btn{padding:10px 16px}
-@media (max-width:600px){.livebar{grid-template-columns:auto 1fr auto;}.livebar .btn{grid-column:1/-1}}
-button.stat{color:inherit;font:inherit;text-align:left;cursor:pointer}
-.stat .kit{display:flex;gap:8px;font-size:13px}.stat .kit i{display:flex;align-items:center;gap:2px;font-style:normal}.stat .kit svg{width:14px;height:14px;color:var(--brass2);flex:none}
-.kitrow{display:flex;gap:5px;flex-wrap:wrap}.kitrow span{display:flex;align-items:center;gap:4px;background:var(--panel2);border-radius:6px;padding:3px 7px;font-size:12.5px}.kitrow svg{width:15px;height:15px;color:var(--brass2)}.kitrow b{font-family:var(--f-disp);font-size:13px}.kitrow small{color:var(--mute);font-size:11px}
-.ulist{display:flex;flex-direction:column;gap:4px}
-.urow{display:grid;grid-template-columns:22px minmax(74px,auto) minmax(0,1fr) minmax(86px,auto);gap:8px;align-items:center;background:var(--panel2);border-radius:8px;padding:1px 10px}
-.urow svg{width:20px;height:20px;color:var(--brass2)}.urow .un{font-size:13.5px;font-weight:600;white-space:nowrap}.urow b{font-family:var(--f-disp);font-size:15px;text-align:right;white-space:nowrap}.urow b small{color:var(--mute);font-size:11px;font-weight:500}
-.btn small{font-weight:500;opacity:.8;letter-spacing:0}
+.cbtn.on{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}.cbtn[disabled]{opacity:.35}
+
+/* ---- toasts, live battle ---- */
+#toasts{position:absolute;top:calc(var(--bar) + 10px + var(--st));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:4px;z-index:19;pointer-events:none;width:min(460px,64vw)}
+.toast{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:9px 12px 9px 30px;font-size:14.5px;line-height:1.3;animation:tin .18s ease-out}
+.toast::before{content:"";position:absolute;left:12px;top:14px;width:8px;height:8px;background:var(--mute)}
+.toast.win::before{background:var(--green)}.toast.lose::before{background:var(--red)}.toast.war::before{background:var(--amber)}
+.toast b{font-weight:700}
+@keyframes tin{from{opacity:0;transform:translateY(-6px)}}
+.livebar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + var(--sb));width:min(720px,calc(100% - 32px));z-index:15;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;padding:10px 12px;box-sizing:border-box}
+.livebar .lb-side{display:flex;flex-direction:column;gap:3px;line-height:1;min-width:64px}.livebar .lb-side.r{text-align:right}
+.livebar .lb-side small{font-size:12px;color:var(--mute);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.livebar .lb-side b{font-family:var(--f-disp);font-size:28px;font-weight:700}
+.livebar .lb-mid{display:flex;flex-direction:column;gap:5px;min-width:0;text-align:center}
+.lb-tug{height:8px;background:var(--line2);overflow:hidden}.lb-tug i{display:block;height:100%;box-sizing:border-box;background:var(--ink);border-right:2px solid var(--panel);transition:width .5s ease}
+.lb-msg{font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-msg b{font-family:var(--f-disp);font-size:20px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.lb-score{font-size:12.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.livebar .btn{padding:10px 18px}
+@media (max-width:600px){.livebar{grid-template-columns:auto 1fr auto}.livebar .btn{grid-column:1/-1}}
+
+#rotate{position:absolute;inset:0;z-index:100;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+#rotate .ph{width:70px;height:110px;border:2px solid var(--ink);border-radius:4px;animation:rot 2s ease-in-out infinite}
+@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+
+/* ---- responsive ---- */
+@media (max-width:900px){#sPopW{display:none}}
+@media (max-width:760px){.setup{grid-template-columns:1fr}}
+@media (max-height:520px) and (min-width:600px){
+  .menuWrap{flex-direction:row;align-items:center;gap:30px;width:min(700px,100%)}
+  .menuWrap>*{flex:1 1 0}
+  .logo{font-size:clamp(52px,17vh,84px)}
+  .tag{font-size:14.5px;margin-top:10px}.mmeta{margin-top:12px}
+  .menuBtns .btn{padding:10px 12px;font-size:17px}
+}
 @media (max-width:700px) and (orientation:portrait){
-  #top{flex-wrap:wrap;row-gap:5px}
+  #top{flex-wrap:wrap}
   .empire{max-width:none;flex:1 1 0}
-  #turnTag{font-size:11px;padding:0 7px}
+  #turnTag{font-size:14px;padding:0 10px}
   .spacer{display:none}
-  .stats{order:9;flex:1 1 100%}
+  .stats{order:9;flex:1 1 100%;border-top:1px solid var(--line)}
   #sPopW{display:flex!important}
-  #panel{top:auto;left:8px;right:8px;width:auto;bottom:calc(68px + env(safe-area-inset-bottom,0px));max-height:56vh;transform:translateY(calc(100% + 90px))}
+  #panel{top:auto;left:0;right:0;width:auto;padding-right:0;max-height:64vh;border-left:0;border-top:1px solid var(--line2);transform:translateY(100%)}
   #panel.open{transform:none}
-  #toasts{top:calc(98px + env(safe-area-inset-top,0px));width:calc(100% - 24px)}
-  #hint{bottom:calc(70px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 32px);font-size:12.5px}
-  #pickcard{left:10px;right:10px;width:auto;max-height:54vh}
-  #pickbar h2{font-size:17px}
-  .screen{background:linear-gradient(180deg,#050c12f2 0%,#050c12d9 60%,#050c1280 100%)}
-  .menuWrap{margin:auto}
+  #toasts{top:calc(var(--bar)*2 + 12px + var(--st));width:calc(100% - 24px)}
+  #hint{bottom:calc(70px + var(--sb));max-width:calc(100vw - 32px);font-size:13.5px}
+  #pickcard{top:auto;left:0;right:0;width:auto;max-height:54vh;border-left:0;border-top:1px solid var(--line2);padding:14px 14px calc(14px + var(--sb))}
+  #pickbar h2{font-size:18px}
+  .screen:not(.solid){flex-direction:column;align-items:stretch}
+  .menuWrap{margin-top:auto;width:auto;min-height:0;justify-content:flex-start;gap:18px;border-right:0;border-top:1px solid var(--line2);padding:20px 18px calc(20px + var(--sb))}
+  .logo{font-size:clamp(56px,19vw,84px)}
   .setup{height:auto}
   .sheet{max-height:100%}
-  .urow{grid-template-columns:22px 1fr auto;padding:4px 10px}.urow input{grid-column:1/-1;grid-row:2}
-  .livebar{bottom:calc(68px + env(safe-area-inset-bottom,0px))}
+  .urow{grid-template-columns:22px 1fr auto;padding:6px 0 0}.urow input{grid-column:1/-1;grid-row:2}
+  .livebar{bottom:calc(68px + var(--sb))}
 }
-@media (max-height:430px){#top{padding-top:calc(4px + env(safe-area-inset-top,0px));padding-bottom:4px}.ibtn,.stat,.empire,#turnTag{height:34px}#panel{top:calc(44px + env(safe-area-inset-top,0px));bottom:calc(60px + env(safe-area-inset-bottom,0px))}#endTurn{height:44px;font-size:15px;padding:0 14px}#zoom .ibtn{width:36px;height:36px}.sheet{padding:10px 12px;gap:8px}.urow{padding:0 10px}}
+@media (max-height:430px){:root{--bar:38px}#panel{padding-bottom:calc(60px + var(--sb))}.stat small{display:none}#endTurn{height:42px;font-size:16px;padding:0 16px}#zoom .ibtn{width:36px;height:36px}.sheet{padding:10px 12px 12px;gap:8px}.urow{padding:0}#panel .ph{padding:9px 12px 8px}#panel .pb{padding-top:9px;gap:8px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -270,20 +288,20 @@ button.stat{color:inherit;font:inherit;text-align:left;cursor:pointer}
     </div>
     <div class="spacer"></div>
     <span id="turnTag">Ronde 1</span>
-    <button class="ibtn gold" id="rijkBtn" aria-label="Mijn rijk: kopen, beleid, diplomatie"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v2H3zm0-2 2-10 4.5 4L12 4l2.5 6L19 6l2 10z"/></svg>Rijk</button>
-    <button class="ibtn" id="boardBtn" aria-label="Ranglijst"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z"/></svg></button>
-    <button class="ibtn" id="newsBtn" aria-label="Wereldnieuws"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h13v14a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V4zm15 4h2v10a2 2 0 0 1-2 2zM6 7v4h5V7zm7 0v2h2V7zm0 3v1h2v-1zM6 13v1h9v-1zm0 3v1h9v-1z"/></svg></button>
-    <button class="ibtn" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></button>
+    <button class="ibtn" id="rijkBtn" aria-label="Mijn rijk: kopen, beleid, diplomatie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l5 4 4-6 4 6 5-4-1 9H4zM4 19.5h16"/></svg>Rijk</button>
+    <button class="ibtn" id="boardBtn" aria-label="Ranglijst"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h4v10H4zM10 4h4v16h-4zM16 13h4v7h-4z"/></svg></button>
+    <button class="ibtn" id="newsBtn" aria-label="Wereldnieuws"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h13v16H4zM17 9h3v11h-3M7 8h7M7 12h7M7 16h4"/></svg></button>
+    <button class="ibtn" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </div>
-  <div id="pickbar"><button class="ibtn" id="pkBack" aria-label="Terug">←</button><div style="min-width:0"><h2 id="pkTitle">Kies je land</h2><div class="note" id="pkSub">Tik op een land op de kaart</div></div><div class="spacer"></div><button class="ibtn" id="pkOpts"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h10v2H3zm14 0h4v2h-4zm-2-2h2v6h-2zM3 11h4v2H3zm8 0h10v2H11zm-2-2h2v6H9zM3 17h10v2H3zm14 0h4v2h-4zm-2-2h2v6h-2z"/></svg>Opties</button></div>
+  <div id="pickbar"><button class="ibtn" id="pkBack" aria-label="Terug"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg></button><div style="min-width:0"><h2 id="pkTitle">Kies je land</h2><div class="note" id="pkSub">Tik op een land op de kaart</div></div><div class="spacer"></div><button class="ibtn" id="pkOpts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M15 5v4M4 17h3M11 17h9M9 15v4"/></svg>Opties</button></div>
   <div id="pickcard"></div>
   <div id="zoom">
-    <button class="ibtn" id="zIn" aria-label="Inzoomen">+</button>
-    <button class="ibtn" id="zOut" aria-label="Uitzoomen">−</button>
-    <button class="ibtn" id="zHome" aria-label="Naar mijn rijk"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5"/></svg></button>
+    <button class="ibtn" id="zIn" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button class="ibtn" id="zOut" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+    <button class="ibtn" id="zHome" aria-label="Naar mijn rijk"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button>
   </div>
   <div id="hint">Tik op een land om aan te vallen</div>
-  <div id="dock"><button id="endTurn">EINDE BEURT</button></div>
+  <div id="dock"><button id="endTurn">Einde beurt</button></div>
   <aside id="panel"></aside>
   <div id="toasts"></div>
   <div id="rotate"><div class="ph"></div><div style="font-family:var(--f-disp);font-size:22px">Draai je telefoon</div><div class="note">Wereldrijk speel je liggend.</div></div>
@@ -340,19 +358,21 @@ const MODES=[
 ];
 MODES.forEach(m=>m.ids=m.list.map(nIdx).filter(i=>i>=0&&natRegions[i].length));
 const RANKS=[{at:0,nm:'Staat'},{at:5,nm:'Koninkrijk'},{at:12,nm:'Rijk'},{at:25,nm:'Keizerrijk'},{at:45,nm:'Wereldmacht'}];
-const PALETTE=['#ffb31a','#2f9bff','#25d0b5','#a66cff','#ff7ac6','#8be04a','#ff7a1a','#d4a373','#00c2ff','#e8e05a'];
+const PALETTE=['#f0a422','#3d8fe6','#2bb8a3','#9a6be0','#e872b4','#84c74a','#ee7a2e','#c9a077','#35b4e8','#d9d05c'];
 const EMPIRE_NAMES=['Romeinse Rijk','Duitse Keizerrijk','Britse Rijk','Ottomaanse Rijk','Mongoolse Rijk','Perzische Rijk','Heilige Roomse Rijk','Russische Tsarenrijk','Spaanse Wereldrijk','Frankische Rijk','Byzantijnse Rijk','Groot-Nederland','Verenigde Staten van Europa','Hemelse Dynastie'];
+/* One icon language: 24 grid, outline only, square caps (styled by "#app svg" in the stylesheet). */
 const ICON={
- house:'<path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z"/>',
- fact:'<path d="M2 21V10l6 4V10l6 4V4h4l1 6v11z"/>',
- helm:'<path d="M12 3C7 3 4 6.5 4 11v2h16v-2c0-4.5-3-8-8-8M2 15h20v3H2z"/>',
- fort:'<path d="M3 21V8h3v3h3V8h2v3h2V8h2v3h3V8h3v13h-7v-5a2 2 0 0 0-4 0v5z"/>',
- edu:'<path d="M12 3 1 9l11 6 9-4.9V17h2V9zM5 13.2v4L12 21l7-3.8v-4L12 17z"/>',
- tank:'<path d="M2 14h20v2a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3zm4-4h9l1.2 3H4.8zm8 .6h8v1.5h-8z"/>',
- jet:'<path d="M12 2c.9 0 1.4 1.4 1.4 3v4.4L21 14v2l-7.6-2.4V18l2.5 2v1.5L12 20.6l-3.9.9V20l2.5-2v-4.4L3 16v-2l7.6-4.6V5c0-1.6.5-3 1.4-3z"/>',
- ship:'<path d="M2 15h20l-3.5 5h-13zm4-1v-3h5V8h2v3h4l1 3zm5-10h2v3h-2z"/>',
- bomb:'<path d="M10 7.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zm4.3-.6 1.8-1.8 1.8 1.8-1.8 1.8zM19 1.5l.8 1.7 1.7.8-1.7.8L19 6.5l-.8-1.7-1.7-.8 1.7-.8z"/>',
- anchor:'<path d="M11 2h2v3h3v2h-3v11.9c3-.4 5.4-2.6 6-5.4l-2 .5 3-4 2 4.5-2-.6C19.2 17.6 16 21 12 21s-7.2-3.4-8-7.1l-2 .6 2-4.5 3 4-2-.5c.6 2.8 3 5 6 5.4V7H8V5h3z"/>',
+ house:'<path d="M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-5h4v5"/>',
+ fact:'<path d="M3 20V10l6 4v-4l6 4V5h4v15z"/>',
+ helm:'<path d="M5 14v-2a7 7 0 0 1 14 0v2M3 14h18v3H3z"/>',
+ fort:'<path d="M4 20V6h3v3h3.5V6h3v3H17V6h3v14zM10 20v-5h4v5"/>',
+ edu:'<path d="M9 3h6M10 3v6L4.5 20h15L14 9V3M7 15h10"/>',
+ tank:'<path d="M2 14h20l-2.5 5h-15zM7 14v-4h8v4M15 12h6"/>',
+ jet:'<path d="M12 3l2 7 7 5v2l-7-2-.5 4 2.5 2v1H8v-1l2.5-2-.5-4-7 2v-2l7-5z"/>',
+ ship:'<path d="M2 15h20l-3 5H5zM8 15v-4h6v4M11 11V5M16 15v-2h3"/>',
+ bomb:'<path d="M12 21Q7 16 8 11.5 9 8 12 8q3 0 4 3.5 1 4.5-4 9.5zM10 8V4h4v4M8 4h8"/>',
+ anchor:'<circle cx="12" cy="5" r="2"/><path d="M12 7v13M8 11h8M5 13a7 7 0 0 0 14 0"/>',
+ close:'<path d="M6 6l12 12M18 6L6 18"/>',
 };
 const UPG=[
  {id:'hu',nm:'Woningbouw',ic:'house',c:.03,max:10,d:'Meer inwoners: +0,6% groei per ronde. Meer inwoners geven meer soldaten en geld.'},
@@ -426,7 +446,7 @@ const defMult=n=>1+.15*ul(n,'vl');
 const navalRange=n=>{const m=ul(n,'ma');return m?16+12*m:0};
 const curNation=()=>G.order[G.turn];
 function myTurn(){if(!G||G.over||G.pv)return false;if(G.mode==='online')return curNation()===ME;return true}
-function natBaseColor(n){if(G&&G.N[n]&&G.N[n].col)return hexToHsl(G.N[n].col);const h=(n*137.508+20)%360;return [h,32+(n%4)*3,40+(n%3)*5]}
+function natBaseColor(n){if(G&&G.N[n]&&G.N[n].col)return hexToHsl(G.N[n].col);const h=(n*137.508+20)%360;return [h,27+(n%4)*3,37+(n%3)*5]}
 function natColor(n){const c=natBaseColor(n);return `hsl(${c[0]} ${c[1]}% ${c[2]}%)`}
 function addLog(t,ns,k){G.lc=(G.lc||0)+1;G.log.push({id:G.lc,r:G.round,t,n:ns||[],k:k||'info'});if(G.log.length>140)G.log.splice(0,G.log.length-140)}
 function rankOf(n){const k=stats()[n].regs;let r=0;RANKS.forEach((x,i)=>{if(k>=x.at)r=i});return r}
@@ -727,7 +747,7 @@ let DPR=1,VW=0,VH=0;const cam={s:1,x:0,y:0};
 let selN=-1,needDraw=false,flashes=[],regCol=[],natLabels=[],BATTLE=null;
 let borderPath=null,meOut=null,allyOut=null,warOut=null,pickOut=null,selOut=null;
 const glow=document.createElement('canvas');
-(function(){const p=24;glow.width=WW+2*p;glow.height=HH+2*p;const g=glow.getContext('2d');g.translate(p,p);g.shadowColor='rgba(80,190,255,.5)';g.shadowBlur=16;g.fillStyle='#0f2738';for(const r of R0)g.fill(r.path);g.shadowBlur=4;g.shadowColor='rgba(150,220,255,.45)';for(const r of R0)g.fill(r.path);glow.pad=p})();
+(function(){const p=24;glow.width=WW+2*p;glow.height=HH+2*p;const g=glow.getContext('2d');g.translate(p,p);g.shadowColor='rgba(170,185,200,.2)';g.shadowBlur=14;g.fillStyle='#16191c';for(const r of R0)g.fill(r.path);glow.pad=p})();
 function resize(){DPR=Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);clampCam();req()}
 function minS(){return VH>VW*1.15?Math.max(VW/WW,VH/HH*.62):Math.max(VW/WW,VH/HH)}
 function clampCam(){cam.s=clamp(cam.s,minS(),40);const mw=WW*cam.s,mh=HH*cam.s;cam.x=mw<=VW?(VW-mw)/2:clamp(cam.x,VW-mw,0);cam.y=mh<=VH?(VH-mh)/2:clamp(cam.y,VH-mh,0)}
@@ -751,9 +771,9 @@ function draw(){
   if(bordersDirty)buildBorders();if(labelsDirty)buildNatLabels();if(colorsDirty)buildColors();
   const s=cam.s,now=performance.now();
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  const gr=ctx.createRadialGradient(VW*.5,VH*.4,0,VW*.5,VH*.4,Math.max(VW,VH)*.8);gr.addColorStop(0,'#0e2131');gr.addColorStop(1,'#060f17');ctx.fillStyle=gr;ctx.fillRect(0,0,VW,VH);
+  const gr=ctx.createRadialGradient(VW*.5,VH*.4,0,VW*.5,VH*.4,Math.max(VW,VH)*.8);gr.addColorStop(0,'#121518');gr.addColorStop(1,'#0b0c0e');ctx.fillStyle=gr;ctx.fillRect(0,0,VW,VH);
   ctx.setTransform(DPR*s,0,0,DPR*s,DPR*cam.x,DPR*cam.y);
-  ctx.strokeStyle='rgba(120,175,215,.07)';ctx.lineWidth=1/s;ctx.stroke(gratPath);
+  ctx.strokeStyle='rgba(255,255,255,.045)';ctx.lineWidth=1/s;ctx.stroke(gratPath);
   ctx.drawImage(glow,-glow.pad,-glow.pad);
   const vx0=-cam.x/s,vy0=-cam.y/s,vx1=vx0+VW/s,vy1=vy0+VH/s;
   const vis=[];for(const r of R0){const b=r.bb;if(b[2]<vx0||b[0]>vx1||b[3]<vy0||b[1]>vy1)continue;vis.push(r)}
@@ -764,23 +784,24 @@ function draw(){
   drawOcc(s,vx0,vy0,vx1,vy1);flashes=flashes.filter(f=>now-f.t0<f.d);
   for(const f of flashes){if(now<f.t0)continue;const k=(now-f.t0)/f.d;const a=(1-k)*(.5+.5*Math.sin(k*Math.PI*6));ctx.fillStyle=`rgba(${f.c},${a*.85})`;ctx.fill(R0[f.r].path,'evenodd')}
   ctx.lineJoin='round';ctx.lineCap='round';
-  ctx.strokeStyle='rgba(170,220,245,.34)';ctx.lineWidth=.9/s;ctx.stroke(coastPath);
-  ctx.strokeStyle='rgba(4,8,12,.9)';ctx.lineWidth=1.7/s;ctx.stroke(borderPath);
-  if(pickOut){ctx.strokeStyle='rgba(255,210,122,.9)';ctx.lineWidth=2/s;ctx.stroke(pickOut)}
-  if(warOut){ctx.setLineDash([5/s,4/s]);ctx.strokeStyle='rgba(255,165,58,.95)';ctx.lineWidth=1.8/s;ctx.stroke(warOut);ctx.setLineDash([])}
-  if(allyOut){if(!PICK)ctx.setLineDash([6/s,4/s]);ctx.strokeStyle='rgba(90,205,250,.95)';ctx.lineWidth=(PICK?2.6:1.8)/s;ctx.stroke(allyOut);ctx.setLineDash([])}
+  ctx.strokeStyle='rgba(236,235,230,.28)';ctx.lineWidth=.9/s;ctx.stroke(coastPath);
+  ctx.strokeStyle='rgba(10,11,12,.9)';ctx.lineWidth=1.7/s;ctx.stroke(borderPath);
+  if(pickOut){ctx.strokeStyle='rgba(236,235,230,.95)';ctx.lineWidth=2/s;ctx.stroke(pickOut)}
+  if(warOut){ctx.setLineDash([5/s,4/s]);ctx.strokeStyle='rgba(222,162,50,.95)';ctx.lineWidth=1.8/s;ctx.stroke(warOut);ctx.setLineDash([])}
+  if(allyOut){if(!PICK)ctx.setLineDash([6/s,4/s]);ctx.strokeStyle='rgba(91,159,224,.95)';ctx.lineWidth=(PICK?2.6:1.8)/s;ctx.stroke(allyOut);ctx.setLineDash([])}
   if(selOut){const pulse=.6+.4*Math.sin(now/220);ctx.strokeStyle=`rgba(255,255,255,${pulse})`;ctx.lineWidth=2.4/s;ctx.stroke(selOut)}
-  if(meOut){ctx.strokeStyle='rgba(255,40,60,.3)';ctx.lineWidth=9/s;ctx.stroke(meOut);ctx.strokeStyle='rgba(255,40,60,.55)';ctx.lineWidth=5/s;ctx.stroke(meOut);ctx.strokeStyle='#ff2b45';ctx.lineWidth=2.6/s;ctx.stroke(meOut);ctx.strokeStyle='rgba(255,225,230,.85)';ctx.lineWidth=.8/s;ctx.stroke(meOut)}
+  if(meOut){ctx.strokeStyle='rgba(10,11,12,.85)';ctx.lineWidth=5.5/s;ctx.stroke(meOut);ctx.strokeStyle='#ff4a36';ctx.lineWidth=2.6/s;ctx.stroke(meOut)}
   ctx.setTransform(DPR,0,0,DPR,0,0);ctx.textAlign='center';ctx.textBaseline='middle';
   const placed=[];const f=focusN();
   for(const L of natLabels){const w=L.w*s;const important=L.n===f||L.n===selN||isHuman(L.n)||(ps&&ps.has(L.n))||(!G.pv&&f>=0&&atWar(f,L.n))||(BATTLE&&(L.n===BATTLE.def));if(w<60&&!(important&&w>8))continue;if(ps&&!important)continue;
-    const nm=natName(L.n).toUpperCase();const fs=clamp(w/Math.max(6,nm.length)*1.05,10,important?28:22);const x=L.x*s+cam.x,y=L.y*s+cam.y;if(x<-200||x>VW+200||y<-50||y>VH+50)continue;
+    const nm=natName(L.n).toUpperCase();const fs=clamp(w/Math.max(6,nm.length)*1.3,11,important?28:22);const x=L.x*s+cam.x,y=L.y*s+cam.y;if(x<-200||x>VW+200||y<-50||y>VH+50)continue;
     const showT=!G.pv&&(important||s>3);
-    ctx.font=`700 ${fs}px "Chakra Petch",sans-serif`;const tw=ctx.measureText(nm).width;
+    ctx.font=`700 ${fs}px "Barlow Condensed","Arial Narrow",sans-serif`;ctx.letterSpacing=(fs*.05).toFixed(1)+'px';const tw=ctx.measureText(nm).width;
     const box=[x-tw/2-4,y-fs/2,x+tw/2+4,y+fs/2+(showT?18:0)];if(placed.some(b=>b[0]<box[2]&&box[0]<b[2]&&b[1]<box[3]&&box[1]<b[3]))continue;placed.push(box);
     ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.55)';ctx.fillStyle=important?'#fff':'rgba(235,240,244,.75)';ctx.strokeText(nm,x,y);ctx.fillText(nm,x,y);
-    if(showT){const t=G.N[L.n].t<1?'geen leger':fmtT(G.N[L.n].t)+' soldaten';ctx.font='600 12px "Barlow Semi Condensed",sans-serif';const w2=ctx.measureText(t).width+14;const mine=L.n===ME;
-      ctx.fillStyle=mine?'rgba(70,8,16,.9)':'rgba(8,14,20,.82)';rr(x-w2/2,y+fs*.55,w2,18,9);ctx.fill();ctx.strokeStyle=mine?'#ff2b45':'rgba(255,255,255,.3)';ctx.lineWidth=1.2;ctx.stroke();ctx.fillStyle='#eef3f6';ctx.fillText(t,x,y+fs*.55+9.5)}}
+    if(showT){const t=G.N[L.n].t<1?'geen leger':fmtT(G.N[L.n].t)+' soldaten';ctx.letterSpacing='0px';ctx.font='600 12px "Barlow Semi Condensed",sans-serif';const w2=ctx.measureText(t).width+14;const mine=L.n===ME;
+      ctx.fillStyle=mine?'rgba(64,14,9,.92)':'rgba(14,15,17,.86)';rr(x-w2/2,y+fs*.55,w2,18,2);ctx.fill();ctx.strokeStyle=mine?'#ff4a36':'rgba(255,255,255,.28)';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#ecebe6';ctx.fillText(t,x,y+fs*.55+9.5)}}
+  ctx.letterSpacing='0px';
   if(selOut||flashes.length||OCC_ANIM)req();
 }
 function contactPt(r,o){let sx=0,sy=0,c=0;const R=R0[r];for(const {pts,e} of R.rings){let k=0;for(let j=0;j<e.length;j+=2){const nb=e[j],cnt=e[j+1];if(nb>=0&&G.R.o[nb]===o){for(let q=0;q<=cnt;q+=Math.max(1,cnt>>2)){sx+=pts[(k+q)*2];sy+=pts[(k+q)*2+1];c++}}k+=cnt}}
@@ -898,7 +919,7 @@ addEventListener('resize',resize);
 /* ================= in-game UI ================= */
 function onTap(x,y){
   if(!G||BATTLE)return;const r=regionAt(x,y);
-  if(PICK){if(r<0)return;const n=G.R.o[r];const ps=pickSet();if(!ps){toast('Kies eerst een moeilijkheid');return}if(!ps.has(n)){toast(`${esc(NAT[n].name)} kun je niet kiezen in ${MODES[PICK.diff].nm}. Kies een land met een gouden rand.`);return}PICK.cur=n;bordersDirty=true;renderPick();req();return}
+  if(PICK){if(r<0)return;const n=G.R.o[r];const ps=pickSet();if(!ps){toast('Kies eerst een moeilijkheid');return}if(!ps.has(n)){toast(`${esc(NAT[n].name)} kun je niet kiezen in ${MODES[PICK.diff].nm}. Kies een land met een witte rand.`);return}PICK.cur=n;bordersDirty=true;renderPick();req();return}
   if(G.pv)return;
   selectNation(r>=0?G.R.o[r]:-1);
 }
@@ -906,18 +927,17 @@ function selectNation(n){selN=n;bordersDirty=true;renderPanel();req()}
 function useAP(){const N=G.N[ME];if((N.ap||0)<=0){toast('Je bevelen voor deze ronde zijn op. Beëindig je beurt.','lose');return false}N.ap--;N.acted=1;return true}
 const apLeft=()=>ME>=0?(G.N[ME].ap||0):0;
 function relOf(o){if(o===ME)return ['mine','Jouw land'];if(ME<0)return ['neutral','Neutraal'];if(atWar(ME,o))return ['war','In oorlog'];if(allied(ME,o))return ['ally','Bondgenoot'];if(trading(ME,o))return ['trade','Handelspartner'];return ['neutral','Neutraal']}
-function chanceLabel(r){return r>3?['Je wint snel terrein','var(--green)']:r>1.5?['Je wint langzaam terrein','#9fe0b8']:r>.8?['Zware strijd','var(--brass2)']:['Je verliest waarschijnlijk','#ff8f8f']}
-const svgI=ic=>`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${ICON[ic]}</svg>`;
+function chanceLabel(r){return r>3?['Je wint snel terrein','var(--green)']:r>1.5?['Je wint langzaam terrein','var(--green)']:r>.8?['Zware strijd','var(--amber)']:['Je verliest waarschijnlijk','var(--red-ink)']}
+const svgI=ic=>`<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[ic]}</svg>`;
 const fmtN=v=>{v=Math.max(0,Math.round(v));return v>=1e4?fmtT(v):nl(v)};
 function kitChips(n){const K=kit(n);return `<div class="kitrow">${['tk','jt','sh','bm'].map(id=>`<span title="${UI[id].nm}">${svgI(UI[id].ic)}<b class="num">${fmtN(K[id])}</b><small>${UI[id].sh}</small></span>`).join('')}</div>`}
 function renderPanel(){
   const P=$('#panel');if(selN<0||!G||G.pv||G.N[selN].dead){P.classList.remove('open');updateHint();return}
   const o=selN,st=stats()[o];const can=myTurn();const [rc,rl]=relOf(o);const ap=apLeft();
-  P.style.setProperty('--hc',natColor(o));
-  let h=`<div class="ph"><span class="fl">${natFlag(o)}</span><div style="min-width:0"><h2>${esc(natName(o))}</h2><div class="own"><span class="rel ${rc}">${rl}</span>${G.hum[o]&&o!==ME?'speler '+esc(G.hum[o].nick):''}</div></div><button class="x" id="pClose" aria-label="Sluiten">×</button></div><div class="pb">`;
+    let h=`<div class="ph"><span class="fl">${natFlag(o)}</span><div style="min-width:0"><h2>${esc(natName(o))}</h2><div class="own"><span class="rel ${rc}">${rl}</span>${G.hum[o]&&o!==ME?'speler '+esc(G.hum[o].nick):''}</div></div><button class="x" id="pClose" aria-label="Sluiten">${svgI('close')}</button></div><div class="pb">`;
   h+=`<div class="grid2"><div class="kv"><small>Soldaten</small><b class="num">${fmtT(st.troops)}</b></div><div class="kv"><small>Inwoners</small><b class="num">${fmtPop(st.pop)}</b></div><div class="kv"><small>Grootte</small><b class="num">${fmtKm(st.km)}</b></div><div class="kv"><small>Economie</small><b class="num">${fmtMoney(st.gdp)}</b></div></div>`+kitChips(o);
   if(G.N[o].last)h+=`<div class="warn">${esc(natName(o))} vecht tot het bittere einde: +30% verdediging.</div>`;
-  if(o===ME){h+=`<div class="dipbtns"><button class="btn gold" id="rkB">Bouwen</button><button class="btn" id="rkA">Leger &amp; wapens</button></div><div class="note">Tik op een buurland om het aan te vallen of om samen te werken.</div>`}
+  if(o===ME){h+=`<div class="dipbtns"><button class="btn" id="rkB">Bouwen</button><button class="btn" id="rkA">Leger &amp; wapens</button></div><div class="note">Tik op een buurland om het aan te vallen of om samen te werken.</div>`}
   else if(can&&ME>=0){
     const reach=canReach(ME,o),war=atWar(ME,o);
     if(allied(ME,o))h+=`<div class="note">Dit is je bondgenoot.</div>`;
@@ -925,13 +945,13 @@ function renderPanel(){
     else{const naval=isNaval(ME,o);const E=defFront(o,ME,naval);const K=kit(ME);
       const myP=(G.N[ME].t*.7+unitPow({tk:K.tk*.7,jt:K.jt*.6,sh:naval?K.sh:0},true,naval))*atkMult(ME);
       const [cl,cc]=chanceLabel(myP/(E.p*defDM(o)+1));const done=(G.N[ME].hitR||{})[o]===G.round;
-      h+=`<button class="btn red big wide" id="attB" ${ap&&!done?'':'disabled'}>${done?'Deze ronde al aangevallen':'AANVALLEN'}</button><div class="note">Aan jouw grens: ongeveer <b style="color:var(--ink)">${fmtT(E.s)}</b> soldaten${E.tk>=1?`, ${fmtN(E.tk)} tanks`:''}${E.jt>=1?`, ${fmtN(E.jt)} vliegtuigen`:''}. Met 70% van je leger: <b style="color:${cc}">${cl}</b>.${naval?' Dit is een aanval over zee: neem schepen mee.':''}</div>`;
+      h+=`<button class="btn red big wide" id="attB" ${ap&&!done?'':'disabled'}>${done?'Deze ronde al aangevallen':'Aanvallen'}</button><div class="note">Aan jouw grens: ongeveer <b>${fmtT(E.s)}</b> soldaten${E.tk>=1?`, ${fmtN(E.tk)} tanks`:''}${E.jt>=1?`, ${fmtN(E.jt)} vliegtuigen`:''}. Met 70% van je leger: <b style="color:${cc}">${cl}</b>.${naval?' Dit is een aanval over zee: neem schepen mee.':''}</div>`;
       if(K.bm>0)h+=`<button class="btn wide" id="bombB" ${ap?'':'disabled'}>Bombarderen <small>· ${fmtN(K.bm)} bommen</small></button>`}
     if(!isHuman(o)){const op=opinion(o,ME);h+=`<div class="sec"><span>Mening over jou</span><span>${op>40?'vriendelijk':op>5?'positief':op>-20?'neutraal':op>-60?'wantrouwig':'vijandig'}</span></div><div class="opbar"><i style="${op>=0?`left:50%;width:${op/2}%;background:var(--green)`:`left:${50+op/2}%;width:${-op/2}%;background:var(--red)`}"></i></div>`}
     const dis=ap?'':'disabled';h+='<div class="dipbtns">';
-    if(war){h+=`<button class="btn green" data-dip="peace" ${dis}>Vrede voorstellen</button>`;if(!isHuman(o))h+=`<button class="btn" data-dip="surr" ${dis}>Overgave eisen</button>`}
+    if(war){h+=`<button class="btn" data-dip="peace" ${dis}>Vrede voorstellen</button>`;if(!isHuman(o))h+=`<button class="btn" data-dip="surr" ${dis}>Overgave eisen</button>`}
     else if(allied(ME,o))h+=`<button class="btn ghost" data-dip="breakAl" ${dis}>Bondgenoot­schap opzeggen</button>`;
-    else h+=`<button class="btn blue" data-dip="ally" ${dis}>Bondgenoot­schap</button>`;
+    else h+=`<button class="btn" data-dip="ally" ${dis}>Bondgenoot­schap</button>`;
     if(!war&&!trading(ME,o))h+=`<button class="btn" data-dip="trade" ${dis}>Handel (+5% geld)</button>`;
     h+='</div><div class="note">Aanvallen, bombarderen en voorstellen kosten 1 bevel.</div>';
     const wars=[...dip().war[o]].filter(x=>x!==ME);if(wars.length)h+=`<div class="note">Ook in oorlog met: ${wars.slice(0,4).map(x=>esc(natName(x))).join(', ')}</div>`;
@@ -977,14 +997,14 @@ function openAttack(o){
   const al=[...dip().al[o]].filter(c=>c!==ME&&!allied(c,ME));
   openSheet(`<h3>${natFlag(ME)} ${esc(natName(ME))} valt ${esc(natName(o))} aan</h3>
    ${!atWar(ME,o)?`<div class="warn">Dit is een oorlogsverklaring.${al.length?` Bondgenoten van ${esc(natName(o))} kunnen meevechten: ${al.slice(0,4).map(c=>esc(natName(c))).join(', ')}.`:''}</div>`:''}
-   <div class="vs"><div class="side"><small>Jouw aanvalskracht</small><div class="nm">${esc(natName(ME))}</div><b class="num" id="aN"></b></div><div class="mid">VS</div><div class="side"><small>Hun kracht aan de grens</small><div class="nm">${esc(natName(o))}</div><b class="num">~${fmtT(E.p)}</b></div></div>
+   <div class="vs"><div class="side"><small>Jouw aanvalskracht</small><div class="nm">${esc(natName(ME))}</div><b class="num" id="aN"></b></div><div class="side"><small>Hun kracht aan de grens</small><div class="nm">${esc(natName(o))}</div><b class="num">~${fmtT(E.p)}</b></div></div>
    <div class="lbl">Wat stuur je? <span style="text-transform:none;letter-spacing:0">(gestuurd / je voorraad)</span></div>
    <div class="ulist">${urow('sd','Soldaten','helm',mine,Math.round(mine*.7))}${urow('tk','Tanks','tank',K.tk,Math.round(K.tk*.7))}${urow('jt','Vliegtuigen','jet',K.jt,Math.round(K.jt*.6))}${urow('sh','Schepen','ship',K.sh,naval?K.sh:0)}${urow('bm','Bommen vooraf','bomb',K.bm,0)}</div>
-   <div class="row" style="justify-content:space-between;flex-wrap:wrap"><b id="oddsT" style="font-family:var(--f-disp);font-size:16px"></b><span class="note">Wat je niet stuurt, blijft thuis om te verdedigen.</span></div>
+   <div class="row" style="justify-content:space-between;flex-wrap:wrap"><b id="oddsT"></b><span class="note">Wat je niet stuurt, blijft thuis om te verdedigen.</span></div>
    <div class="note">Kracht telt in soldaten: een tank telt als 40, een vliegtuig als 250${naval?', een schip als 300 (over zee)':''}. Bommen vallen vóór de aanval. Het front schuift over de hele grens tegelijk op. Je kunt op elk moment stoppen.</div>
-   <div class="row"><button class="btn ghost" id="aC">Annuleer</button><button class="btn red big" style="flex:1" id="aGo">TEN AANVAL!</button></div>`,s=>{
+   <div class="row"><button class="btn ghost" id="aC">Annuleer</button><button class="btn red big" style="flex:1" id="aGo">Ten aanval</button></div>`,s=>{
     const v=id=>{const e=s.querySelector('#u_'+id);return e?+e.value:0};
-    const upd=()=>{s.querySelectorAll('.urow input').forEach(e=>{s.querySelector('#'+e.id+'V').innerHTML=`${fmtN(+e.value)}<small> / ${fmtN(+e.max)}</small>`});
+    const upd=()=>{s.querySelectorAll('.urow input').forEach(e=>{e.style.setProperty('--p',(+e.max?+e.value/+e.max*100:0)+'%');s.querySelector('#'+e.id+'V').innerHTML=`${fmtN(+e.value)}<small> / ${fmtN(+e.max)}</small>`});
       const p=v('sd')+unitPow({tk:v('tk'),jt:v('jt'),sh:v('sh')},true,naval);const bk=Math.min(G.N[o].t,v('bm')*190/defMult(o))*E.fs;
       s.querySelector('#aN').textContent=fmtT(p);const [cl,cc]=chanceLabel(p*am/(Math.max(1,E.p-bk)*dm+1));const t=s.querySelector('#oddsT');t.textContent=cl;t.style.color=cc;
       s.querySelector('#aGo').disabled=p<10};
@@ -997,8 +1017,8 @@ function openBomb(o){
   openSheet(`<h3>${svgI('bomb')} ${esc(natName(o))} bombarderen</h3>${!atWar(ME,o)?'<div class="warn">Dit is een oorlogsverklaring.</div>':''}
    <div class="ulist">${urow('bm','Bommen','bomb',K.bm,Math.max(1,Math.round(K.bm*.5)))}</div>
    <div class="note">Hun luchtmacht (${fmtN(kit(o).jt)} vliegtuigen) schiet een deel neer. Elke bom die raakt doodt ongeveer 200 soldaten, vernielt tanks en schaadt de economie aan het front. De buren vinden het niet leuk.</div>
-   <div class="row"><button class="btn ghost" id="bC">Annuleer</button><button class="btn red big" style="flex:1" id="bGo">BOMBARDEREN</button></div>`,s=>{
-    const R_=s.querySelector('#u_bm');const upd=()=>{s.querySelector('#u_bmV').innerHTML=`${fmtN(+R_.value)}<small> / ${fmtN(K.bm)}</small>`;s.querySelector('#bGo').disabled=+R_.value<1};R_.oninput=upd;upd();
+   <div class="row"><button class="btn ghost" id="bC">Annuleer</button><button class="btn red big" style="flex:1" id="bGo">Bombarderen</button></div>`,s=>{
+    const R_=s.querySelector('#u_bm');const upd=()=>{R_.style.setProperty('--p',(+R_.max?+R_.value/+R_.max*100:0)+'%');s.querySelector('#u_bmV').innerHTML=`${fmtN(+R_.value)}<small> / ${fmtN(K.bm)}</small>`;s.querySelector('#bGo').disabled=+R_.value<1};R_.oninput=upd;upd();
     s.querySelector('#bC').onclick=closeSheet;
     s.querySelector('#bGo').onclick=()=>{const n=Math.min(K.bm,+R_.value);if(n<1||!useAP())return;closeSheet();if(!atWar(ME,o))declareWar(ME,o);K.bm-=n;
       const r=bombStrike(ME,o,n);const t=performance.now();r.regs.forEach((x,i)=>flashes.push({r:x,t0:t+i*140,d:1700,c:'255,140,40'}));if(r.regs.length)focusBox(bboxOf(r.regs),0,6);
@@ -1011,10 +1031,10 @@ function liveBattle(o,send,u){
   if(B.bomb){const t=performance.now();B.bomb.regs.forEach((x,i)=>flashes.push({r:x,t0:t+i*120,d:1500,c:'255,140,40'}));toast(`<b>Bombardement:</b> ${B.bomb.hits} van ${B.bomb.n} raak, ${fmtT(B.bomb.kill)} soldaten uitgeschakeld.`,'win')}
   const border=[];for(let r=0;r<NR;r++){const ow=G.R.o[r];if((ow===ME||ow===o)&&R0[r].nb.some(j=>{const x=G.R.o[j];return (x===ME||x===o)&&x!==ow}))border.push(r)}
   focusBox(bboxOf(border.length?border:owned(o)),0,8,40);
-  const bar=el('div',{class:'livebar'});bar.innerHTML=`<div class="lb-side"><small>${esc(natName(ME))}</small><b class="num" id="lbA"></b></div>
-    <div class="lb-mid"><div class="lb-tug"><i id="lbT"></i></div><div class="lb-msg" id="lbM">Je troepen trekken de grens over…</div><div class="lb-score" id="lbS"></div></div>
-    <div class="lb-side r"><small>${esc(natName(o))}</small><b class="num" id="lbD"></b></div>
-    <button class="btn red big" id="lbStop">STOP</button>`;
+  const bar=el('div',{class:'livebar'});bar.innerHTML=`<div class="lb-side"><small>${natFlag(ME)} ${esc(natName(ME))}</small><b class="num" id="lbA"></b></div>
+    <div class="lb-mid"><div class="lb-tug" style="background:${natColor(o)}"><i id="lbT" style="background-color:${natColor(ME)}"></i></div><div class="lb-msg" id="lbM">Je troepen trekken de grens over…</div><div class="lb-score" id="lbS"></div></div>
+    <div class="lb-side r"><small>${natFlag(o)} ${esc(natName(o))}</small><b class="num" id="lbD"></b></div>
+    <button class="btn red big" id="lbStop">Stop</button>`;
   $('#app').appendChild(bar);
   const upd=()=>{const E=defFront(B.def,B.att,B.naval);bar.querySelector('#lbA').textContent=fmtT(attPow(B));bar.querySelector('#lbD').textContent=fmtT(E.p);const sa=attPow(B)*B.am,sd=E.p*defDM(B.def);bar.querySelector('#lbT').style.width=clamp(sa/(sa+sd+1)*100,4,96)+'%';
     const un=[B.tk?B.tk+' tanks':'',B.jt?B.jt+' vliegt.':'',B.sh?B.sh+' schepen':''].filter(Boolean).join(' · ');
@@ -1023,11 +1043,11 @@ function liveBattle(o,send,u){
   let timer=0;
   const finish=(stopped)=>{clearTimeout(timer);endBattle(B,stopped);BATTLE=null;
     const g=B.km.g,l=B.km.l;const good=B.surr==='cap'||B.end==='elim'||g>l+500;
-    const head=B.surr==='cap'?'CAPITULATIE!':B.end==='elim'?'LAND VEROVERD!':g>l+500?'TERREIN GEWONNEN':l>g+500?'TERUGGEDRONGEN':'HET FRONT HOUDT STAND';
-    bar.querySelector('#lbM').innerHTML=`<b style="font-family:var(--f-disp);font-size:18px;color:${good?'var(--green)':l>g+500?'var(--red)':'var(--brass2)'}">${head}</b>`;
+    const head=B.surr==='cap'?'Capitulatie':B.end==='elim'?'Land veroverd':g>l+500?'Terrein gewonnen':l>g+500?'Teruggedrongen':'Het front houdt stand';
+    bar.querySelector('#lbM').innerHTML=`<b style="color:${good?'var(--green)':l>g+500?'var(--red-ink)':'var(--ink)'}">${head}</b>`;
     const ul=unitLossTxt(B.lost);
     bar.querySelector('#lbS').textContent=`${B.surr==='cap'?natName(o)+' geeft zich over: al hun land is van jou. ':B.surr==='last'?natName(o)+' weigert zich over te geven en vecht tot het bittere einde. ':''}${B.end==='retreat'?'Je leger trekt zich terug. ':B.end==='stop'?'Je hebt de aanval gestopt. ':''}Jij verloor ${fmtT(B.aLoss)} soldaten${ul?' en '+ul:''}, zij ${fmtT(B.dLoss)}${B.kill.tk?' en '+B.kill.tk+' tanks':''}.`;
-    const b=bar.querySelector('#lbStop');b.textContent='KLAAR';b.className='btn gold big';b.onclick=()=>{bar.remove();toastRecent();afterAction();updateHint()};
+    const b=bar.querySelector('#lbStop');b.textContent='Klaar';b.className='btn pri big';b.onclick=()=>{bar.remove();toastRecent();afterAction();updateHint()};
     afterAction(true);
   };
   const tick=()=>{if(!BATTLE)return;const fl=B.flipped.length,ll=B.lostR.length;stepBattle(B);
@@ -1049,17 +1069,17 @@ function updateHud(){
   const mx=apMax(n),ap=G.N[n].ap||0;$('#sAp').innerHTML=`<span class="apd">${Array.from({length:mx},(_,i)=>`<i class="${i<ap?'on':''}"></i>`).join('')}</span>`;
   const tag=$('#turnTag');const mt=myTurn();tag.className=mt?'mine':'';
   tag.textContent=`Ronde ${Math.min(G.round,G.maxR||G.round)}${G.maxR?'/'+G.maxR:''}`+(G.order.length>1?` · ${mt?'jouw beurt':natName(curNation())}`:'');
-  const eb=$('#endTurn');eb.disabled=!mt||!!BATTLE;eb.textContent=G.over?'SPEL VOORBIJ':'EINDE BEURT';
+  const eb=$('#endTurn');eb.disabled=!mt||!!BATTLE;eb.textContent=G.over?'Spel voorbij':'Einde beurt';
   updateHint();
 }
 function canAct(){const N=G.N[ME];if(!N.ap)return false;if(UPG.some((u,i)=>N.u[i]<u.max&&upCost(ME,i)<=N.m))return true;for(const c of nbrs()[ME])if(!allied(ME,c))return true;return false}
 $('#endTurn').onclick=()=>{
   if(!myTurn()||BATTLE)return;const N=G.N[ME];
   if(!N.acted&&canAct()){toast('Geef eerst minstens één bevel: val een land aan of bouw iets.','lose');return}
-  if(N.ap>0&&canAct()){openSheet(`<h3>Beurt beëindigen?</h3><div class="note" style="font-size:15px;color:var(--ink)">Je hebt nog ${N.ap} ${N.ap===1?'bevel':'bevelen'} over. Die vervallen als je nu stopt.</div><div class="row"><button class="btn ghost" id="eC">Verder spelen</button><button class="btn gold" style="flex:1" id="eGo">Einde beurt</button></div>`,s=>{s.querySelector('#eC').onclick=closeSheet;s.querySelector('#eGo').onclick=()=>{closeSheet();doEndTurn()}});return}
+  if(N.ap>0&&canAct()){openSheet(`<h3>Beurt beëindigen?</h3><div class="note" style="font-size:15px;color:var(--ink)">Je hebt nog ${N.ap} ${N.ap===1?'bevel':'bevelen'} over. Die vervallen als je nu stopt.</div><div class="row"><button class="btn ghost" id="eC">Verder spelen</button><button class="btn pri" style="flex:1" id="eGo">Einde beurt</button></div>`,s=>{s.querySelector('#eC').onclick=closeSheet;s.querySelector('#eGo').onclick=()=>{closeSheet();doEndTurn()}});return}
   doEndTurn()};
 function doEndTurn(){
-  selectNation(-1);const eb=$('#endTurn');eb.textContent='DE WERELD BEWEEGT…';eb.disabled=true;
+  selectNation(-1);const eb=$('#endTurn');eb.textContent='De wereld beweegt…';eb.disabled=true;
   setTimeout(()=>{endTurn();
     if(G.mode==='local'){ME=curNation();dirty()}
     if(G.mode==='online')pushOnline(true,true);
@@ -1070,10 +1090,10 @@ function beginMyTurn(){if(!G||G.over||ME<0||!myTurn())return;
   const lost=(G.fx||[]).filter(r=>G.R.o[r]!==ME||(G.occ[r]&&G.occ[r][0]!==ME));G.fx=[];
   if(lost.length){const t=performance.now();lost.forEach((r,i)=>flashes.push({r,t0:t+i*200,d:2800,c:'255,200,80'}));focusBox(bboxOf(lost),0,6);req()}
   showNews(()=>{const N=G.N[ME];
-  if(N.rkUp!=null){const rk=N.rkUp;N.rkUp=null;openSheet(`<div class="lbl">Je land groeit</div><h3 style="font-size:26px">Je bent nu een ${RANKS[rk].nm}!</h3><div class="note" style="font-size:15px;color:var(--ink)">Je krijgt voortaan ${apMax(ME)} bevelen per ronde en 10% meer nieuwe soldaten.</div><button class="btn gold wide" id="rkOk">Geweldig</button>`,s=>s.querySelector('#rkOk').onclick=()=>{closeSheet();showOffers()});}
+  if(N.rkUp!=null){const rk=N.rkUp;N.rkUp=null;openSheet(`<div class="lbl">Je land groeit</div><h3 style="font-size:26px">Je bent nu een ${RANKS[rk].nm}!</h3><div class="note" style="font-size:15px;color:var(--ink)">Je krijgt voortaan ${apMax(ME)} bevelen per ronde en 10% meer nieuwe soldaten.</div><button class="btn pri wide" id="rkOk">Verder</button>`,s=>s.querySelector('#rkOk').onclick=()=>{closeSheet();showOffers()});}
   else showOffers();
   if(N.lastR)toast(`<b>+${fmtT(N.lastR)}</b> nieuwe soldaten uit je bevolking`,'win')})}
-const NICO={war:'<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',bomb:'<circle cx="10" cy="14" r="6"/><path d="m14.5 9.5 3-3M19 2v2M22 6h-2M20.5 3.5l-1 1"/>',atk:'<path d="M4 12h15M13 6l6 6-6 6"/>',peace:'<path d="m5 12 4.5 4.5L19 7"/>',ally:'<circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/>',trade:'<path d="M4 8h15l-3-3M20 16H5l3 3"/>',merge:'<path d="M6 4v4a6 6 0 0 0 6 6v6M18 4v4a6 6 0 0 1-6 6"/>',elim:'<circle cx="12" cy="12" r="8"/><path d="m9 9 6 6M15 9l-6 6"/>',hit:'<path d="M12 4v9M12 18v.5"/>',info:'<circle cx="12" cy="12" r="2"/>'};
+const NICO={war:'<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',bomb:ICON.bomb,atk:'<path d="M4 12h15M13 6l6 6-6 6"/>',peace:'<path d="m5 12 4.5 4.5L19 7"/>',ally:'<circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/>',trade:'<path d="M4 8h15l-3-3M20 16H5l3 3"/>',merge:'<path d="M6 4v4a6 6 0 0 0 6 6v6M18 4v4a6 6 0 0 1-6 6"/>',elim:'<circle cx="12" cy="12" r="8"/><path d="m9 9 6 6M15 9l-6 6"/>',hit:'<path d="M12 4v9M12 18v.5"/>',info:'<circle cx="12" cy="12" r="2"/>'};
 function newsType(l){const t=l.t;if(l.k==='elim'||l.k==='cap')return'elim';if(l.k==='hitme')return'hit';if(/bombardeert/.test(t))return'bomb';if(/ valt .* aan:/.test(t))return'atk';if(/voegen samen/.test(t))return'merge';return NICO[l.k]?l.k:'info'}
 function newsGroup(ty){return ['war','bomb','atk','hit','elim'].includes(ty)?'war':['peace','ally','trade','merge'].includes(ty)?'dip':'oth'}
 function newsRow(l){const ty=newsType(l);let t=esc(l.t);const nm=[...new Set(l.n.filter(n=>n!=null).map(n=>esc(natName(n))))].filter(Boolean).sort((a,b)=>b.length-a.length);
@@ -1085,7 +1105,7 @@ function showNews(then){
   const N=G.N[ME];const since=N.seen||0;const NB=nbrs()[ME];
   const items=G.log.filter(l=>l.id>since&&(l.n.includes(ME)||l.k==='elim'&&l.n.some(x=>NB.has(x))||l.k==='war'&&l.n.some(x=>NB.has(x))));N.seen=G.lc;
   if(!items.length){then&&then();return}
-  openSheet(`<h3>Nieuws <span class="note" style="font-weight:500">begin ronde ${G.round}</span></h3><div class="news">${items.slice(-8).reverse().map(newsRow).join('')}</div><button class="btn gold wide" id="nC">Verder</button>`,sh=>sh.querySelector('#nC').onclick=()=>{closeSheet();then&&then()},true);
+  openSheet(`<h3>Nieuws <span class="note" style="font-weight:500">begin ronde ${G.round}</span></h3><div class="news">${items.slice(-8).reverse().map(newsRow).join('')}</div><button class="btn pri wide" id="nC">Verder</button>`,sh=>sh.querySelector('#nC').onclick=()=>{closeSheet();then&&then()},true);
 }
 function showOffers(){
   const off=G.offers.find(o=>o.to===ME);if(!off)return;
@@ -1095,13 +1115,13 @@ function showOffers(){
   if(off.type==='help'){txt=`Je bondgenoot ${esc(natName(f))} is aangevallen door ${esc(natName(off.vs))} en vraagt je om mee te vechten.`;yes='Oorlog verklaren'}
   if(off.type==='ally')txt=`${esc(natName(f))} wil een bondgenootschap met je sluiten.`;
   if(off.type==='trade')txt=`${esc(natName(f))} stelt een handelsverdrag voor (+5% inkomen voor allebei).`;
-  openSheet(`<h3>${natFlag(f)} Bericht van ${esc(natName(f))}</h3><div class="note" style="font-size:15px;color:var(--ink)">${txt}</div><div class="row"><button class="btn ghost" id="oN">Weigeren</button><button class="btn gold" style="flex:1" id="oY">${yes}</button></div>`,s=>{
+  openSheet(`<h3>${natFlag(f)} Bericht van ${esc(natName(f))}</h3><div class="note" style="font-size:15px;color:var(--ink)">${txt}</div><div class="row"><button class="btn ghost" id="oN">Weigeren</button><button class="btn pri" style="flex:1" id="oY">${yes}</button></div>`,s=>{
     s.querySelector('#oN').onclick=()=>{closeSheet();if(!isHuman(f))addOp(f,ME,off.type==='help'?-25:-5);G.rev++;afterAction();showOffers()};
     s.querySelector('#oY').onclick=()=>{closeSheet();if(off.type==='peace')makePeace(f,ME);if(off.type==='help'&&!G.N[off.vs].dead){declareWar(ME,off.vs);addOp(f,ME,20)}if(off.type==='ally')makeAlliance(f,ME);if(off.type==='trade')makeTrade(f,ME);G.rev++;markSeen();afterAction();showOffers()}});
 }
 function handoff(){
   const n=curNation();const nick=G.hum[n]?.nick||natName(n);
-  const sc=el('div',{class:'screen solid'});sc.innerHTML=`<div style="margin:auto;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center"><div class="lbl">Ronde ${G.round}</div><div class="logo" style="font-size:44px">${esc(nick)}</div><div class="note" style="font-size:16px">Jij bent aan zet met <b style="color:${natColor(n)}">${esc(natName(n))}</b>. Geef de telefoon door.</div><button class="btn gold big" id="hoGo" style="padding:12px 26px">IK BEN ER KLAAR VOOR</button></div>`;
+  const sc=el('div',{class:'screen solid'});sc.innerHTML=`<div class="handoff"><div class="lbl">Ronde ${G.round}</div><div class="logo sm">${esc(nick)}</div><div class="note" style="font-size:16px">Jij bent aan zet met ${natFlag(n)} <b>${esc(natName(n))}</b>. Geef de telefoon door.</div><button class="btn pri big" id="hoGo" style="padding:12px 26px">Ik ben er klaar voor</button></div>`;
   $('#app').appendChild(sc);sc.querySelector('#hoGo').onclick=()=>{sc.remove();focusNation(n,-80);updateHud();beginMyTurn()}}
 
 /* ================= empire screen ================= */
@@ -1111,22 +1131,22 @@ function openRijk(tab){
   const tabs=[['buy','Bouwen'],['army','Leger & wapens'],['dip','Diplomatie'],['name','Naam & kleur']];
   let body='';
   if(tab==='buy'){const next=RANKS[rk+1];
-    body=`<div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"><div class="kv"><small>Schatkist</small><b style="color:var(--brass2)">${fmtMoney(N.m)}</b></div><div class="kv"><small>Inkomen/ronde</small><b>${fmtMoney(s.inc-s.upk)}</b></div><div class="kv"><small>Nieuwe soldaten</small><b>+${fmtT(reinfAmount(n))}</b></div><div class="kv"><small>Leger / max</small><b>${fmtT(s.troops)} / ${fmtT(armyCap(n))}</b></div><div class="kv"><small>Rang</small><b>${RANKS[rk].nm}</b></div></div>
+    body=`<div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"><div class="kv"><small>Schatkist</small><b>${fmtMoney(N.m)}</b></div><div class="kv"><small>Inkomen/ronde</small><b>${fmtMoney(s.inc-s.upk)}</b></div><div class="kv"><small>Nieuwe soldaten</small><b>+${fmtT(reinfAmount(n))}</b></div><div class="kv"><small>Leger / max</small><b>${fmtT(s.troops)} / ${fmtT(armyCap(n))}</b></div><div class="kv"><small>Rang</small><b>${RANKS[rk].nm}</b></div></div>
     <div class="note">${next?`Verover meer land om ${next.nm} te worden: dan krijg je een extra bevel per ronde.`:'Je hebt de hoogste rang bereikt.'} Elke aankoop kost 1 bevel.</div>
     <div class="ugrid">${UPG.map((u,i)=>{const lv=N.u[i],max=lv>=u.max,c=upCost(n,i);
-    return `<div class="up"><div class="t"><svg viewBox="0 0 24 24" fill="currentColor">${ICON[u.ic]}</svg><div><b>${u.nm}</b><div class="lv">niveau ${lv}/${u.max}</div></div></div><div class="pips">${Array.from({length:u.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')}</div><div class="d">${u.d}</div><button class="btn ${max?'ghost':'gold'}" data-u="${i}" ${!can||!ap||max||N.m<c?'disabled':''}>${max?'Maximaal':'Koop · '+fmtMoney(c)}</button></div>`}).join('')}</div>`}
+    return `<div class="up"><div class="t">${svgI(u.ic)}<div><b>${u.nm}</b><div class="lv">niveau ${lv}/${u.max}</div></div></div><div class="pips">${Array.from({length:u.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')}</div><div class="d">${u.d}</div><button class="btn ${max?'ghost':''}" data-u="${i}" ${!can||!ap||max||N.m<c?'disabled':''}>${max?'Maximaal':'Koop · '+fmtMoney(c)}</button></div>`}).join('')}</div>`}
   if(tab==='army'){const K=kit(n);
-    body=`<div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"><div class="kv"><small>Schatkist</small><b style="color:var(--brass2)">${fmtMoney(N.m)}</b></div><div class="kv"><small>Leger / max</small><b>${fmtT(s.troops)} / ${fmtT(armyCap(n))}</b></div><div class="kv"><small>Totale kracht</small><b>${fmtT(s.troops+unitPow(K,true,false))}</b></div></div>
+    body=`<div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"><div class="kv"><small>Schatkist</small><b>${fmtMoney(N.m)}</b></div><div class="kv"><small>Leger / max</small><b>${fmtT(s.troops)} / ${fmtT(armyCap(n))}</b></div><div class="kv"><small>Totale kracht</small><b>${fmtT(s.troops+unitPow(K,true,false))}</b></div></div>
     <div class="note">Kopen kost geen bevel. Je fabrieken maken per ronde maar een beperkt aantal; met meer Industrie maak je meer.</div>
     <div class="ugrid">${UNITS.map(u=>{const have=u.id==='sd'?N.t:K[u.id];const left=unitLeft(n,u.id);const no=!can||left<=0||N.m<u.c*Math.min(1,left/u.pack);
     return `<div class="up"><div class="t">${svgI(u.ic)}<div><b>${u.nm}</b><div class="lv">Je hebt <b class="num" style="font-size:13px">${fmtN(have)}</b></div></div></div><div class="d">${u.d}</div><div class="lv">${u.id==='sh'&&!hasCoast(n)?'Je hebt geen kust.':'Deze ronde nog te maken: '+fmtN(left)}</div>
-      <div class="row"><button class="btn gold" style="flex:1" data-b="${u.id}" data-p="1" ${no?'disabled':''}>+${fmtN(Math.min(u.pack,left)||u.pack)} · ${fmtMoney(u.c*Math.min(1,(left||u.pack)/u.pack))}</button><button class="btn" data-b="${u.id}" data-p="max" ${no?'disabled':''}>Max</button></div></div>`}).join('')}</div>`}
+      <div class="row"><button class="btn" style="flex:1" data-b="${u.id}" data-p="1" ${no?'disabled':''}>+${fmtN(Math.min(u.pack,left)||u.pack)} · ${fmtMoney(u.c*Math.min(1,(left||u.pack)/u.pack))}</button><button class="btn" data-b="${u.id}" data-p="max" ${no?'disabled':''}>Max</button></div></div>`}).join('')}</div>`}
   if(tab==='dip'){const D=dip();const row=(o,btns)=>`<div class="drow">${natFlag(o)}<span>${esc(natName(o))}</span><span class="r">${btns}</span></div>`;
     body=`<div class="note">Tik op een land op de kaart om een bondgenootschap, handel of vrede voor te stellen.</div>
-     <div class="lbl">In oorlog met</div><div class="dlist">${[...D.war[n]].map(o=>row(o,can&&ap?`<button class="btn green" data-pd="${o}">Vrede vragen</button>`:'')).join('')||'<div class="note">Je bent met niemand in oorlog.</div>'}</div>
+     <div class="lbl">In oorlog met</div><div class="dlist">${[...D.war[n]].map(o=>row(o,can&&ap?`<button class="btn" data-pd="${o}">Vrede vragen</button>`:'')).join('')||'<div class="note">Je bent met niemand in oorlog.</div>'}</div>
      <div class="lbl">Bondgenoten</div><div class="dlist">${[...D.al[n]].map(o=>row(o,'')).join('')||'<div class="note">Nog geen bondgenoten.</div>'}</div>
      <div class="lbl">Handelspartners</div><div class="dlist">${[...D.tr[n]].map(o=>row(o,'')).join('')||'<div class="note">Nog geen handelsverdragen.</div>'}</div>`}
-  if(tab==='name'){body=`<input type="text" id="rnI" maxlength="32" value="${esc(natName(n))}" aria-label="Naam van je rijk"><div class="lbl">Ideeën</div><div class="chips">${EMPIRE_NAMES.map(x=>`<button class="chip" data-n="${esc(x)}">${esc(x)}</button>`).join('')}</div><div class="lbl">Kleur van je land</div><div class="swatches">${PALETTE.map(c=>`<button data-c="${c}" style="background:${c}" class="${N.col===c?'on':''}" aria-label="Kleur"></button>`).join('')}</div><button class="btn gold" id="rnGo" ${can||G.mode!=='online'?'':'disabled'}>Opslaan</button>`}
+  if(tab==='name'){body=`<input type="text" id="rnI" maxlength="32" value="${esc(natName(n))}" aria-label="Naam van je rijk"><div class="lbl">Ideeën</div><div class="chips">${EMPIRE_NAMES.map(x=>`<button class="chip" data-n="${esc(x)}">${esc(x)}</button>`).join('')}</div><div class="lbl">Kleur van je land</div><div class="swatches">${PALETTE.map(c=>`<button data-c="${c}" style="background:${c}" class="${N.col===c?'on':''}" aria-label="Kleur"></button>`).join('')}</div><button class="btn pri" id="rnGo" ${can||G.mode!=='online'?'':'disabled'}>Opslaan</button>`}
   openSheet(`<h3>${natFlag(n)} ${esc(natName(n))} <span class="note" style="font-weight:500">${RANKS[rk].nm} · ${ap} ${ap===1?'bevel':'bevelen'} over</span></h3><div class="tabs">${tabs.map(([k,l])=>`<button class="tab ${k===tab?'on':''}" data-tab="${k}">${l}</button>`).join('')}</div>${body}<button class="btn ghost wide" id="rkC">Terug naar de kaart</button>`,sh=>{
     sh.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>openRijk(b.dataset.tab));
     sh.querySelector('#rkC').onclick=closeSheet;
@@ -1159,9 +1179,9 @@ $('#menuBtn').onclick=()=>{if(BATTLE)return;openSheet(`<h3>Menu</h3><div class="
    const sk=s.querySelector('#mmSkip');if(sk)sk.onclick=()=>{if(Date.now()-G.ts<120000||myTurn()){toast('Je kunt de beurt van een ander pas na 2 minuten stilstand overslaan.');return}closeSheet();endTurn();pushOnline(true,true);afterAction()}})};
 function gameOver(){
   const s=stats();const rows=[];for(let n=0;n<NN;n++)if(s[n].regs)rows.push(n);rows.sort((a,b)=>s[b].km-s[a].km);const w=G.over.winner;
-  openSheet(`<div class="lbl">${G.over.reason==='wereld'?'Wereldheerschappij':G.over.reason==='dood'?'Je land is gevallen':'Laatste ronde gespeeld'}</div><h3 style="font-size:28px"><span style="color:${natColor(w)}">${esc(natName(w))}</span> wint!</h3><div class="note">${G.hum[w]?esc(G.hum[w].nick)+' heeft het grootste land ter wereld gebouwd.':'Een computerland is de grootste macht ter wereld geworden.'}</div>
+  openSheet(`<div class="lbl">${G.over.reason==='wereld'?'Wereldheerschappij':G.over.reason==='dood'?'Je land is gevallen':'Laatste ronde gespeeld'}</div><h3 style="font-size:28px">${natFlag(w)} ${esc(natName(w))} wint</h3><div class="note">${G.hum[w]?esc(G.hum[w].nick)+' heeft het grootste land ter wereld gebouwd.':'Een computerland is de grootste macht ter wereld geworden.'}</div>
    <div class="tw"><table class="board num"><tr><th>#</th><th>Land</th><th>Grootte</th><th>% wereld</th></tr>${rows.slice(0,8).map((n,i)=>`<tr class="${n===ME?'me':''}"><td>${i+1}</td><td>${natFlag(n)} ${esc(natName(n))}${G.hum[n]?' ('+esc(G.hum[n].nick)+')':''}</td><td>${fmtKm(s[n].km)}</td><td>${nl(s[n].km/WORLD_KM*100,1)}%</td></tr>`).join('')}</table></div>
-   <div class="row"><button class="btn ghost" id="goMap">Bekijk kaart</button><button class="btn gold" style="flex:1" id="goNew">Nieuw spel</button></div>`,sh=>{sh.querySelector('#goMap').onclick=closeSheet;sh.querySelector('#goNew').onclick=()=>{closeSheet();leaveOnline();clearSave();showMenu()}})}
+   <div class="row"><button class="btn ghost" id="goMap">Bekijk kaart</button><button class="btn pri" style="flex:1" id="goNew">Nieuw spel</button></div>`,sh=>{sh.querySelector('#goMap').onclick=closeSheet;sh.querySelector('#goNew').onclick=()=>{closeSheet();leaveOnline();clearSave();showMenu()}})}
 
 /* ================= persistence ================= */
 const SAVEKEY='wereldrijk-save-v8';let saveT=0;
@@ -1179,10 +1199,10 @@ function startDrift(){cancelAnimationFrame(drift);if(matchMedia('(prefers-reduce
 function showMenu(){
   PICK=null;ME=-1;selN=-1;BATTLE=null;document.querySelectorAll('.livebar').forEach(x=>x.remove());closeSheet();G=previewState();dirty();DIP=null;renderPanel();setMode('menu');resize();startDrift();
   const save=loadSave();
-  const s=setScreen(`<div class="menuWrap"><div><div class="lbl" style="color:var(--brass)">Strategie · ${LIVE_N} echte landen</div><div class="logo">WERELD<br>RIJK</div><div class="tag">Kies een land, laat je bevolking en leger groeien en verover je buren. Alle landen spelen mee en elk land kan de grootste worden.</div></div>
+  const s=setScreen(`<div class="menuWrap"><div><div class="logo">Wereld<br>rijk</div><div class="mmeta"><span>Strategiespel</span><span>${LIVE_N} landen</span></div><div class="tag">Kies een land, laat je bevolking en leger groeien en verover je buren. Alle landen spelen mee en elk land kan de grootste worden.</div></div>
    <div class="menuBtns">
-    ${save?`<button class="btn gold" id="mCont">Doorgaan <small>${esc(save.G.N[save.ME]?.nm||NAT[save.ME]?.name||'')} · ronde ${save.G.round}</small></button>`:''}
-    <button class="btn ${save?'':'gold'}" id="mSolo">Solo spelen <small>tegen de hele wereld</small></button>
+    ${save?`<button class="btn pri" id="mCont">Doorgaan <small>${esc(save.G.N[save.ME]?.nm||NAT[save.ME]?.name||'')} · ronde ${save.G.round}</small></button>`:''}
+    <button class="btn ${save?'':'pri'}" id="mSolo">Solo spelen <small>tegen de hele wereld</small></button>
     <button class="btn" id="mLocal">Samen op 1 telefoon <small>2–4 spelers</small></button>
     <button class="btn" id="mOnline">Online met vrienden <small>elk op eigen toestel</small></button>
     <button class="btn ghost" id="mHelp">Hoe werkt het?</button></div></div>`);
@@ -1196,11 +1216,11 @@ function showHelp(){
   openSheet(`<h3>Hoe werkt Wereldrijk?</h3><div class="note" style="font-size:14px;line-height:1.5;color:var(--ink)">
   <p style="margin:0 0 8px"><b>Doel.</b> Word het grootste land ter wereld. Na de laatste ronde wint wie het meeste land heeft.</p>
   <p style="margin:0 0 8px"><b>Aanvallen.</b> Tik op een buurland en dan op Aanvallen. Kies hoeveel soldaten je stuurt. Veroverd land krijgt meteen jouw kleur en het front schuift over de hele grens op. Verdedigers vechten thuis sterker en geluk speelt mee. Druk op STOP wanneer je wilt; het front blijft staan voor je volgende aanval.</p>
-  <p style="margin:0 0 8px"><b>Bevelen.</b> Elke ronde heb je een paar bevelen (gele bolletjes). Aanvallen, bouwen of een voorstel doen kost 1 bevel.</p>
+  <p style="margin:0 0 8px"><b>Bevelen.</b> Elke ronde heb je een paar bevelen (de witte blokjes bovenin). Aanvallen, bouwen of een voorstel doen kost 1 bevel.</p>
   <p style="margin:0 0 8px"><b>Groeien.</b> Elke ronde komen er vanzelf soldaten bij uit je bevolking. Bouw woningen voor meer inwoners en kazernes voor meer soldaten. Hoe groter je land, hoe hoger je rang en hoe meer bevelen.</p>
   <p style="margin:0 0 8px"><b>Leger &amp; wapens.</b> Koop soldaten, tanks, gevechtsvliegtuigen, oorlogsschepen en bommen (knop Materieel bovenin). Bij een aanval kies je wat je meestuurt. Schepen heb je nodig om over zee aan te vallen. Met bommen verzwak je een vijand vooraf.</p>
   <p style="margin:0 0 8px"><b>Overgave.</b> Een land dat bijna verslagen is, kan capituleren: dan krijg je al zijn land. Sommige landen vechten liever tot het bittere einde. Je kunt ook zelf overgave eisen.</p>
-  <p style="margin:0"><b>Pas op.</b> Wie snel groeit of een land omsingelt, maakt de buren bang. Ze kunnen als eerste aanvallen, een coalitie tegen je vormen of samengaan tot één land. Bij vrede wordt het front de nieuwe grens.</p></div><button class="btn gold wide" id="hC">Begrepen</button>`,s=>s.querySelector('#hC').onclick=closeSheet)}
+  <p style="margin:0"><b>Pas op.</b> Wie snel groeit of een land omsingelt, maakt de buren bang. Ze kunnen als eerste aanvallen, een coalitie tegen je vormen of samengaan tot één land. Bij vrede wordt het front de nieuwe grens.</p></div><button class="btn pri wide" id="hC">Begrepen</button>`,s=>s.querySelector('#hC').onclick=closeSheet)}
 function countryBtns(ids,selNn,taken){return `<div class="clist2">${ids.map(n=>`<button class="cbtn ${selNn===n?'on':''}" data-n="${n}" ${taken&&taken.has(n)?'disabled':''}>${natFlag(n)}<span>${esc(NAT[n].name)}</span></button>`).join('')}</div>`}
 function startPick(mode){
   closeScreen();cancelAnimationFrame(drift);G=previewState();dirty();
@@ -1209,7 +1229,7 @@ function startPick(mode){
 function renderPick(){
   const P=PICK;const card=$('#pickcard');const n=P.cur;const taken=new Set(P.players.map(p=>p.nation));
   $('#pkTitle').textContent=P.diff<0?'Kies een moeilijkheid':P.mode==='local'?`Speler ${P.players.length+1}: kies je land`:'Kies je land';
-  $('#pkSub').textContent=P.diff<0?'Daarna kies je een land uit die modus':'Tik op een land met een gouden rand';
+  $('#pkSub').textContent=P.diff<0?'Daarna kies je een land uit die modus':'Tik op een land met een witte rand';
   let h='';
   if(P.diff<0){h+=`<div class="modes">${MODES.map((m,i)=>`<button class="mode" data-m="${i}"><b>${m.nm}</b><span class="note">${m.sub}</span></button>`).join('')}</div>`}
   else{
@@ -1220,8 +1240,8 @@ function renderPick(){
     if(n>=0){const d=NAT[n];
       h+=`<div class="grid2"><div class="kv"><small>Soldaten</small><b>${fmtT(d.mil*1000)}</b></div><div class="kv"><small>Inwoners</small><b>${fmtPop(d.pop)}</b></div></div>`;
       if(P.mode==='local')h+=`<input type="text" id="pkNick" maxlength="16" placeholder="Naam speler ${P.players.length+1}" aria-label="Naam speler">`;
-      h+=`<button class="btn gold big wide" id="pkGo" ${taken.has(n)?'disabled':''}>${P.mode==='solo'?'Speel met '+esc(d.name):'Kies '+esc(d.name)}</button>`}
-    if(P.mode==='local'){h+=`<div class="plist">${P.players.map((p,i)=>`<div class="pl"><i style="background:${PALETTE[i]}"></i><b>${esc(p.nick)}</b><span class="r">${esc(NAT[p.nation].name)}</span></div>`).join('')}</div><button class="btn green wide" id="pkStart" ${P.players.length<2?'disabled':''}>${P.players.length<2?'Minstens 2 spelers nodig':'START MET '+P.players.length+' SPELERS'}</button>`}
+      h+=`<button class="btn pri big wide" id="pkGo" ${taken.has(n)?'disabled':''}>${P.mode==='solo'?'Speel met '+esc(d.name):'Kies '+esc(d.name)}</button>`}
+    if(P.mode==='local'){h+=`<div class="plist">${P.players.map((p,i)=>`<div class="pl"><i style="background:${PALETTE[i]}"></i><b>${esc(p.nick)}</b><span class="r">${esc(NAT[p.nation].name)}</span></div>`).join('')}</div><button class="btn ${n<0?'pri':''} wide" id="pkStart" ${P.players.length<2?'disabled':''}>${P.players.length<2?'Minstens 2 spelers nodig':'Start met '+P.players.length+' spelers'}</button>`}
   }
   card.innerHTML=h;
   card.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{P.diff=+b.dataset.m;P.cur=-1;bordersDirty=true;renderPick();cam.s=minS();clampCam();req()});
@@ -1236,7 +1256,7 @@ $('#pkBack').onclick=()=>{if(PICK&&PICK.diff>=0&&!PICK.players.length){PICK.diff
 $('#pkOpts').onclick=()=>pickOptions();
 function pickOptions(){const o=PICK.opts;
   openSheet(`<h3>Spelopties</h3><div class="opt"><b>Aantal rondes</b><div class="note">Hoe lang het spel duurt. Daarna wint het grootste land.</div><div class="chips">${[25,40,60,0].map(v=>`<button class="chip ${o.maxR===v?'on':''}" data-r="${v}">${v||'Onbeperkt'}</button>`).join('')}</div></div>
-   <button class="btn gold wide" id="poC">Klaar</button>`,s=>{s.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{o.maxR=+b.dataset.r;pickOptions()});s.querySelector('#poC').onclick=closeSheet})}
+   <button class="btn pri wide" id="poC">Klaar</button>`,s=>{s.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{o.maxR=+b.dataset.r;pickOptions()});s.querySelector('#poC').onclick=closeSheet})}
 function beginGame(mode,humans){
   const o=PICK.opts;const diff=PICK.diff;PICK=null;
   G=initialState({mode,humans,maxR:o.maxR,diff});ME=G.order[0];startTurn(ME);addLog('Het spel is begonnen!',[],'info');
@@ -1264,9 +1284,9 @@ async function netInit(){
 function nickGet(){try{return localStorage.getItem('wr-nick')||''}catch(e){return ''}}
 function nickSet(v){try{localStorage.setItem('wr-nick',v)}catch(e){}}
 async function showOnline(){
-  const s=setScreen(`<div class="menuWrap"><div><div class="logo" style="font-size:54px">ONLINE</div><div class="tag">Speel tegen vrienden, ieder op een eigen telefoon. Iedereen kiest een land uit dezelfde modus en jullie spelen om de beurt.</div><div class="note" id="netNote" style="margin-top:10px">Verbinding maken…</div></div>
+  const s=setScreen(`<div class="menuWrap"><div><div class="logo sm">Online</div><div class="tag">Speel tegen vrienden, ieder op een eigen telefoon. Iedereen kiest een land uit dezelfde modus en jullie spelen om de beurt.</div><div class="note" id="netNote" style="margin-top:10px">Verbinding maken…</div></div>
     <div class="menuBtns"><div class="lbl">Jouw naam</div><input type="text" id="nk" maxlength="16" value="${esc(nickGet())}" placeholder="Bijv. Mika" aria-label="Jouw naam">
-    <button class="btn gold" id="oNew" disabled>Nieuw spel maken</button>
+    <button class="btn pri" id="oNew" disabled>Nieuw spel maken</button>
     <div class="row"><input type="text" id="oCode" maxlength="5" placeholder="CODE" aria-label="Spelcode" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-disp)"><button class="btn" id="oJoin" disabled>Meedoen</button></div>
     <div class="err" id="oErr"></div><button class="btn ghost" id="oBack">Terug</button></div></div>`);
   s.querySelector('#oBack').onclick=showMenu;
@@ -1290,7 +1310,7 @@ function enterLobby(code){
   leaveOnline();NET.code=code;NET.players=[];
   const s=setScreen(`<div class="setup"><div class="col"><div class="lbl">Spelcode, deel deze met je vrienden</div><div class="code">${code}</div>
      <div id="hostOpts"></div><div class="lbl">Spelers</div><div class="plist" id="lp"></div><div style="flex:1"></div><div class="err" id="lErr"></div>
-     <div class="row"><button class="btn ghost" id="lBack">Verlaten</button><button class="btn gold" style="flex:1" id="lGo" hidden>START SPEL</button></div><div class="note" id="lWait"></div></div><div class="col" id="lpick"></div></div>`,true);
+     <div class="row"><button class="btn ghost" id="lBack">Verlaten</button><button class="btn pri" style="flex:1" id="lGo" hidden>Start spel</button></div><div class="note" id="lWait"></div></div><div class="col" id="lpick"></div></div>`,true);
   s.querySelector('#lBack').onclick=()=>{leaveOnline();showOnline()};
   let myPick=-1;
   const isHost=()=>NET.game&&NET.game.host===NET.uid;
@@ -1343,7 +1363,7 @@ async function pushOnline(now,force){
 }
 
 /* ================= boot ================= */
-function boot(){resize();showMenu()}
+function boot(){resize();showMenu();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(req)}
 if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot();
 </script>
 
