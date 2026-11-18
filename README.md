@@ -4,6 +4,15 @@ Strategiespel in de browser: verover de wereld, alleen, samen op één telefoon 
 
 **Spelen:** open `index.html`, of de GitHub Pages-site van deze repository.
 
+## Wat zit erin
+- Echte landen, een front dat over de hele grens opschuift, terrein, moreel en oorlogsmoeheid
+- Legers per continent, met op de kaart bij elk continent hoeveel soldaten en tanks er staan
+- Kernwapens: Kernprogramma, Raketschild, doelwit kiezen op de kaart, radioactieve neerslag en kernmachten die terugslaan
+- Onrust: veroverd land moet wennen en kan in opstand komen; laat troepen achter of handhaaf de orde
+- Gebeurtenissen met keuzes, doelen met beloningen en spionage (sabotage, opstand stoken, technologie stelen)
+- Diplomatie, coalities (met waarschuwing), overgave en samengaan van landen
+- Groeigrafiek, geluidseffecten (aan/uit in het menu), Nederlands en Engels
+
 ## Online spelen
 Online spelen loopt via gratis openbare MQTT-servers (EMQX, HiveMQ, Mosquitto), die over WebSocket bereikt worden.
 Een account is niet nodig. De spelstatus wordt als "retained" bericht opgeslagen, zodat je na het verversen
