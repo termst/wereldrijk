@@ -24,6 +24,9 @@ Strategiespel in de browser: verover de wereld, alleen, samen op één telefoon 
 - Legers per continent. Op de kaart staat bij elk land een compact legerlabel met soldaten, tanks en vliegtuigen; het krimpt en laat details weg (een plusje) als je uitzoomt
 - Kernwapens: Kernprogramma, Raketschild, doelwit kiezen op de kaart, radioactieve neerslag en kernmachten die terugslaan
 - Onrust: veroverd land moet wennen en kan in opstand komen; laat troepen achter of handhaaf de orde. Alleen zolang je nog in oorlog bent met het oude land gaat het land terug; in vrede wordt een opstand neergeslagen en kost die alleen soldaten. Een land dat van de kaart is geveegd blijft weg: zijn land komt niet meer in opstand
+- Doelen uit vijf groepen (uitbreiden, leger, economie, diplomatie, techniek) met ruim twintig soorten; doel en beloning schalen mee met de moeilijkheid
+- Eerlijke start: een land naast veel grotere legers krijgt een begrensde bonus (makkelijk +20%, gemiddeld +35%, moeilijk +50%); in een tijdperk krijgt een piepklein land ook een minimumleger
+- Kaartranden: bondgenoten groen met gloed, echte spelers (geen computer) dun geel
 - Gebeurtenissen met keuzes, doelen met beloningen en spionage (sabotage, opstand stoken, technologie stelen)
 - Diplomatie, coalities (met waarschuwing), overgave en samengaan van landen
 - Op een telefoon staan doelen en oorlogen als twee kleine knoppen in de hoeken; tik erop en de inhoud klapt eronder uit, steeds maar één tegelijk

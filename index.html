@@ -843,6 +843,20 @@ const TRADE0=[['United States of America','Mexico'],['Canada','Mexico'],['China'
 let G=null,ME=-1,PICK=null;
 let NET={db:null,user:null,uid:null,code:null,unsubG:null,unsubP:null,players:[],game:null,writing:false,pending:false};
 const pk=(a,b)=>a<b?a+'-'+b:b+'-'+a;
+// Fair start for a player's country: when a much bigger army lives next door the country gets a bonus that grows with the
+// gap (from 4x to about 80x), capped at +20% on easy, +35% on medium and +50% on hard so it never turns into a free win.
+// In an era (real armies) a tiny country also gets a small minimum army.
+function startBoost(n,own,t0,d){
+  const nb=new Set();for(const r of natRegions[n])for(const j of R0[r].nb)if(R0[j].n0!==n)nb.add(R0[j].n0);
+  const ts=[...nb].filter(x=>natRegions[x].length).map(x=>t0[x]).sort((a,b)=>b-a);
+  const thr=(ts[0]||0)+.3*(ts[1]||0),ratio=thr/Math.max(1,own);
+  if(ratio<=4)return {f:1,fl:0};
+  const x=clamp(Math.log2(ratio/4)/Math.log2(20),0,1);
+  return {f:1+[.2,.35,.5][d]*x,fl:[800,1300,2000][d]*x}}
+function boostNation(Nn,f,fl){
+  if(f<=1&&Nn.t>=fl)return;f=Math.max(1,f);const g=Math.max(f,Nn.t>0?fl/Nn.t:1);
+  Nn.a=Nn.a.map(v=>Math.round(v*g));Nn.ka=Nn.ka.map(v=>Math.round(v*f));Nn.t=Nn.a.reduce((x,y)=>x+y,0);
+  Nn.k.tk=Nn.ka.reduce((x,y)=>x+y,0);for(const id of ['jt','sh','bm'])Nn.k[id]=Math.round((Nn.k[id]||0)*f);Nn.m=+(Nn.m*(1+(f-1)*.5)).toFixed(3)}
 function initialState(o){
   const R={o:new Array(NR),p:P0.map(v=>+v.toFixed(4)),g:G0.map(v=>+v.toFixed(4))};
   R0.forEach(r=>R.o[r.i]=r.n0);
@@ -857,13 +871,13 @@ function initialState(o){
     const rd=ERA?((ERA.res0||[]).find(x=>x[0]===n)||[]).slice(1).filter(resOK):RES0[d.k]||[];const done={};rd.forEach(id=>done[id]=1);Object.assign(k,{dr:done.dr?Math.round(d.bud*.6+10):0,kr:done.kr?Math.round(d.bud*.08+4):0,bb:0,emp:0});
     return {m:+(d.bud*.6+d.gdp*.01).toFixed(3),t:a.reduce((x,y)=>x+y,0),a,ka,u,k,rs:{done,cur:null},hit:0,dead:natRegions[n].length?0:1}});
   const order=[],hum={};
-  const ST=MODES[o.diff??1].st;
+  const ST=MODES[o.diff??1].st;const t0=N.map(x=>x.t),dd=clamp(o.diff??1,0,2);
   o.humans.forEach((h,k)=>{order.push(h.nation);hum[h.nation]={nick:h.nick,uid:h.uid||null};const Nn=N[h.nation];Nn.h=1;Nn.col=h.color||PALETTE[k%PALETTE.length];Nn.seen=0;Nn.rk=0;
-    if(!ST){Nn.rep=0;Nn.qi=1;Nn.qp=1;Nn.m=Math.max(Nn.m,NAT[h.nation].gdp*.03);return}
+    if(!ST){Nn.rep=0;Nn.qi=1;Nn.qp=1;Nn.m=Math.max(Nn.m,NAT[h.nation].gdp*.03);const B=startBoost(h.nation,Nn.t,t0,dd);boostNation(Nn,B.f,B.fl);return}
     // same start for every country on this difficulty: army and tanks spread like before, but scaled to the same total
     const d=NAT[h.nation],cst=natRegions[h.nation].some(i=>R0[i].coast);const ft=ST.t/Math.max(1,Nn.t),fk=ST.tk/Math.max(1,Nn.k.tk);
     if(Nn.t>0){Nn.a=Nn.a.map(v=>Math.round(v*ft));Nn.ka=Nn.ka.map(v=>Math.round(v*fk))}else{Nn.a[CAPC[h.nation]]=ST.t;Nn.ka[CAPC[h.nation]]=ST.tk}
-    Nn.t=Nn.a.reduce((x,y)=>x+y,0);Nn.k=Object.assign(KIT0(),{tk:Nn.ka.reduce((x,y)=>x+y,0),jt:ST.jt,sh:cst?ST.sh:0,bm:ST.bm});Nn.m=ST.m;Nn.rs={done:{},cur:null};Nn.rep=0;
+    Nn.t=Nn.a.reduce((x,y)=>x+y,0);Nn.k=Object.assign(KIT0(),{tk:Nn.ka.reduce((x,y)=>x+y,0),jt:ST.jt,sh:cst?ST.sh:0,bm:ST.bm});Nn.m=ST.m;Nn.rs={done:{},cur:null};Nn.rep=0;{const B=startBoost(h.nation,Nn.t,t0,dd);boostNation(Nn,B.f,0)}
     Nn.u=new Array(UPG.length).fill(0);Nn.u[U.ma]=cst?1:0;Nn.u[U.on]=1;Nn.u[U.in]=1;
     // a poor or tiny home country counts as bigger, a rich or crowded one as smaller (only for its own original land),
     // so every country on one difficulty has almost the same income and manpower
@@ -1303,7 +1317,7 @@ function endBattle(B,stopped){
   B.done=true;if(stopped&&!B.end)B.end='stop';
   if(!G.N[B.att].dead){const dc=ownsIn(B.att,B.c)?B.c:ownsIn(B.att,B.src)?B.src:homeCont(B.att);B.dc=dc;addA(B.att,dc,Math.max(0,B.a),B.tk);const K=kit(B.att);K.jt+=B.jt;K.sh+=B.sh;K.dr+=B.dr||0}
   STATS=null;
-  const g=B.km.g,l=B.km.l;
+  const g=B.km.g,l=B.km.l;if(isHuman(B.att)&&(g>500||B.flipped.length))G.N[B.att].bwin=(G.N[B.att].bwin||0)+1;
   if(isHuman(B.att)||isHuman(B.def))addLog($b(`${natName(B.att)} valt ${natName(B.def)} aan: ${g>500||B.flipped.length?'+'+fmtKm(g)+' veroverd':'geen terreinwinst'}${l>500||B.lostR.length?', '+fmtKm(l)+' verloren':''}`,`${natName(B.att)} attacks ${natName(B.def)}: ${g>500||B.flipped.length?'+'+fmtKm(g)+' conquered':'no gains'}${l>500||B.lostR.length?', '+fmtKm(l)+' lost':''}`),[B.att,B.def],(g>500||B.flipped.length)&&isHuman(B.def)?'hitme':'conq');
   if(isHuman(B.def))G.fx=(G.fx||[]).concat([...B.touched]);
   dirty();
@@ -1316,6 +1330,7 @@ function runBattle(att,def,send,maxSteps,u,c){const B=startBattle(att,def,send,m
 // Air strike with bombs (bm), cruise missiles (kr), bunker busters (bb) and EMP missiles (emp).
 // Enemy jets, a missile shield and air defence (research) shoot part of it down; stealth and hypersonic research get through.
 function airStrike(a,d,w,c){
+  if(isHuman(a))G.N[a].air=(G.N[a].air||0)+1;
   if(typeof w==='number')w={bm:w};if(c==null)c=bestTheater(a,d);const KD=kit(d),ND=A(d);
   const st=hasRes(a,'st'),pb=hasRes(a,'pb'),hs=hasRes(a,'hs'),ad=hasRes(d,'ad');
   const tot=(w.bm||0)+(w.kr||0)+(w.bb||0)+(w.emp||0);
@@ -1552,26 +1567,85 @@ function showEvent(then){const N=G.N[ME];const ev=N.ev;if(!ev){then&&then();retu
     <div class="evch">${E.ch.map((c,i)=>{const ok=!c.ok||c.ok(ME,ev.p);return `<button class="btn ${i?'':'pri'}" data-ec="${i}" ${ok?'':'disabled'}>${c.l(ev.p)}${ok?'':` <small>(${$t('te weinig geld','not enough money')})</small>`}</button>`}).join('')}</div></div>`,s=>{
     s.lock=true;s.querySelectorAll('[data-ec]').forEach(b=>b.onclick=()=>{const c=E.ch[+b.dataset.ec];const msg=c.f(ME,ev.p);closeSheet();STATS=null;dirty();G.rev++;addLog(`${natName(ME)}: ${E.t.replace(/!$/,'')}. ${msg}`,[ME],'info');markSeen();toast(`<b>${E.t}</b> ${esc(msg)}`,'win');afterAction();then&&then()})});}
 
-// Missions: up to three goals at a time, each with a reward. m.t = [nl,en]
+// Missions: three goals at a time, from five groups (expand, military, economy, diplomacy, tech) so the set is varied.
+// Targets and rewards scale with the difficulty: easy = smaller steps, hard = bigger steps and a bit more reward. m.t = [nl,en]
 const mtxt=m=>$t(m.t[0],m.t[1]);
-function msGen(n){const N=G.N[n];N.ms=N.ms||[];const have=new Set(N.ms.map(m=>m.k));const s=stats()[n];const inc=incOf(n);const opts=[];
-  if(!have.has('grow'))opts.push({k:'grow',s0:Math.round(s.km),b:Math.round(s.km*1.3),t:[`Vergroot je land tot ${fmtKm(s.km*1.3)}`,`Grow your country to ${fmtKm(s.km*1.3)}`],rw:{m:+(inc*2).toFixed(2)}});
-  if(!have.has('beat')){const c=[...nbrs()[n]].filter(x=>!G.N[x].dead&&!isHuman(x)&&!allied(n,x)&&stats()[x].power<s.power*1.5).sort((a,b)=>stats()[b].km-stats()[a].km)[0];
-    if(c!=null)opts.push({k:'beat',x:c,t:[`Verover ${natName(c)} helemaal`,`Conquer ${natName(c)} completely`],rw:{tk:Math.round(60+stats()[c].regs*12),m:+(inc*1.5).toFixed(2)}})}
-  if(!have.has('cont')&&myConts(n).length<NC)opts.push({k:'cont',b:myConts(n).length+1,t:[`Heb land op ${myConts(n).length+1} continenten`,`Hold land on ${myConts(n).length+1} continents`],rw:{jt:20+10*myConts(n).length}});
-  if(!have.has('up')){const ids=['in','mb','vl','on','hu'].filter(id=>ul(n,id)<UPG[U[id]].max-1);if(ids.length){const id=ids[Math.floor(rnd()*ids.length)];opts.push({k:'up',id,b:ul(n,id)+2,t:[`Bouw ${UPG[U[id]].nm} tot niveau ${ul(n,id)+2}`,`Build ${UPG[U[id]].nm} to level ${ul(n,id)+2}`],rw:{m:+(upCost(n,U[id])*.9).toFixed(2)}})}}
-  if(!have.has('ally')){const a=dip().al[n].size+1;opts.push({k:'ally',b:a,t:[`Heb ${a} ${a===1?'bondgenoot':'bondgenoten'} tegelijk`,`Have ${a} ${a===1?'ally':'allies'} at the same time`],rw:{bm:40,m:+(inc*.6).toFixed(2)}})}
-  if(!have.has('army')&&s.troops*1.35<armyCap(n))opts.push({k:'army',s0:Math.round(s.troops),b:Math.round(s.troops*1.35/1000)*1000,t:[`Bouw een leger van ${fmtT(s.troops*1.35)} soldaten`,`Build an army of ${fmtT(s.troops*1.35)} soldiers`],rw:{bm:30,tk:40}});
-  if(!have.has('cap')){const c=[...nbrs()[n]].filter(x=>!G.N[x].dead&&CAPR[x]!=null&&G.R.o[CAPR[x]]===x&&!allied(n,x)&&!isHuman(x)&&stats()[x].power<s.power*2.5);if(c.length){const x=c[Math.floor(rnd()*c.length)];opts.push({k:'cap',x,b:CAPR[x],t:[`Verover de hoofdstad van ${natName(x)}`,`Capture the capital of ${natName(x)}`],rw:{m:+(inc*2.5).toFixed(2),jt:15}})}}
-  while(N.ms.length<3&&opts.length){const i=Math.floor(rnd()*opts.length);N.ms.push(opts.splice(i,1)[0])}}
-function msProg(n,m){const s=stats()[n];
-  if(m.k==='grow')return m.s0!=null?[s.km-m.s0,m.b-m.s0]:[s.km,m.b];if(m.k==='beat'){if(G.N[m.x].dead)return [natRegions[m.x].some(r=>G.R.o[r]===n)?1:-1,1];return [clamp(1-stats()[m.x].km/(KM0[m.x]||1),0,.99),1]}if(m.k==='cont')return [myConts(n).length,m.b];
-  if(m.k==='up')return [ul(n,m.id),m.b];if(m.k==='ally')return [dip().al[n].size,m.b];if(m.k==='army')return m.s0!=null?[Math.max(0,s.troops-m.s0),m.b-m.s0]:[s.troops,m.b];if(m.k==='cap')return [G.R.o[m.b]===n?1:0,1];return [0,1]}
+// build both language strings of a text now, so the goal reads right when the player switches language later
+const bT=f=>{const o=LANG;LANG='nl';const a=f();LANG='en';const b=f();LANG=o;return [a,b]};
+const partOwned=(n,x)=>natRegions[x].reduce((c,r)=>c+(G.R.o[r]===n?1:0),0);
+const MS_UNIT={tk:{add:20,nm:['tanks','tanks']},jt:{add:8,nm:['vliegtuigen','jets']},sh:{add:3,nm:['schepen','ships']},bm:{add:10,nm:['bommen','bombs']}};
+function msGen(n){const N=G.N[n];N.ms=N.ms||[];const have=new Set(N.ms.map(m=>m.k));const s=stats()[n];const inc=incOf(n);const D=dip();const K=kit(n);
+  const d=clamp(G.diff??1,0,2),rm=[1.1,1,1.15][d];const opts=[];const pick=a=>a[Math.floor(rnd()*a.length)];
+  const money=(x,f)=>+(x*f*rm).toFixed(2),qty=x=>Math.round(x*rm);
+  const add=(cat,m)=>{if(!have.has(m.k))opts.push(Object.assign({cat},m))};
+  const taken=new Set(N.ms.map(m=>m.x).filter(x=>x!=null));
+  const nb=[...nbrs()[n]].filter(x=>!G.N[x].dead&&!isHuman(x));
+  const foes=nb.filter(x=>!allied(n,x)&&!taken.has(x));
+  // expand
+  {const f=[1.2,1.3,1.45][d];add('exp',{k:'grow',s0:Math.round(s.km),b:Math.round(s.km*f),t:bT(()=>$t(`Vergroot je land tot ${fmtKm(s.km*f)}`,`Grow your country to ${fmtKm(s.km*f)}`)),rw:{m:money(inc,2)}})}
+  {const k=Math.max(3,Math.round(s.regs*[.15,.2,.25][d]));add('exp',{k:'regs',b:s.regs+k,t:bT(()=>$t(`Bezit ${s.regs+k} gebieden`,`Hold ${s.regs+k} regions`)),rw:{m:money(inc,1.6),jt:qty(10)}})}
+  {const c=foes.filter(x=>stats()[x].power<s.power*[1.2,1.5,2][d]).sort((a,b)=>stats()[b].km-stats()[a].km)[0];
+   if(c!=null)add('exp',{k:'beat',x:c,t:bT(()=>$t(`Verover ${natName(c)} helemaal`,`Conquer ${natName(c)} completely`)),rw:{tk:qty(60+stats()[c].regs*12),m:money(inc,1.5)}})}
+  {const c=foes.filter(x=>CAPR[x]!=null&&G.R.o[CAPR[x]]===x&&stats()[x].power<s.power*[1.5,2.5,3.5][d]);
+   if(c.length){const x=pick(c);add('exp',{k:'cap',x,b:CAPR[x],t:bT(()=>$t(`Verover de hoofdstad van ${natName(x)}`,`Capture the capital of ${natName(x)}`)),rw:{m:money(inc,2.5),jt:qty(15)}})}}
+  {const c=foes.filter(x=>stats()[x].regs>=4&&stats()[x].power<s.power*[1.5,2,3][d]);
+   if(c.length){const x=pick(c),own=stats()[x].regs,k=Math.max(2,Math.min([2,3,4][d],Math.ceil(own*.4))),s0=partOwned(n,x);
+    add('exp',{k:'part',x,s0,b:s0+k,t:bT(()=>$t(`Verover ${k} gebieden van ${natName(x)}`,`Conquer ${k} regions of ${natName(x)}`)),rw:{m:money(inc,1.2),tk:qty(25+k*8)}})}}
+  if(myConts(n).length<NC)add('exp',{k:'cont',b:myConts(n).length+1,t:bT(()=>$t(`Heb land op ${myConts(n).length+1} continenten`,`Hold land on ${myConts(n).length+1} continents`)),rw:{jt:qty(20+10*myConts(n).length)}});
+  {const rk=rankOf(n);if(rk<RANKS.length-1)add('exp',{k:'rank',b:rk+1,t:bT(()=>$t(`Word een ${RANKS[rk+1].nl} (${RANKS[rk+1].at} gebieden)`,`Reach the rank of ${RANKS[rk+1].en} (${RANKS[rk+1].at} regions)`)),rw:{m:money(inc,3),bm:qty(30)}})}
+  // military
+  {const f=[1.25,1.35,1.5][d];if(s.troops*f<armyCap(n))add('mil',{k:'army',s0:Math.round(s.troops),b:Math.round(s.troops*f/1000)*1000,t:bT(()=>$t(`Bouw een leger van ${fmtT(s.troops*f)} soldaten`,`Build an army of ${fmtT(s.troops*f)} soldiers`)),rw:{bm:qty(30),tk:qty(40)}})}
+  {const us=Object.keys(MS_UNIT).filter(u=>unitOK(u)&&(u!=='sh'||hasCoast(n)));if(us.length){const u=pick(us),f=[1.3,1.4,1.5][d],cur=K[u]||0,b=Math.round(cur*f+MS_UNIT[u].add);
+    add('mil',{k:'unit',u,s0:cur,b,t:bT(()=>$t(`Heb ${fmtN(b)} ${MS_UNIT[u].nm[0]}`,`Have ${fmtN(b)} ${MS_UNIT[u].nm[1]}`)),rw:{m:money(inc,1)}})}}
+  {const k=[2,3,4][d];add('mil',{k:'win',s0:N.bwin||0,b:(N.bwin||0)+k,t:bT(()=>$t(`Verover gebied in ${k} aanvallen`,`Win ground in ${k} attacks`)),rw:{m:money(inc,.8),bm:qty(15)}})}
+  if(unitOK('bm')){const k=[1,2,3][d];add('mil',{k:'air',s0:N.air||0,b:(N.air||0)+k,t:bT(()=>$t(`Voer ${k} luchtaanval${k>1?'len':''} uit`,`Carry out ${k} air strike${k>1?'s':''}`)),rw:{tk:qty(30),m:money(inc,.6)}})}
+  if(d>=1&&ul(n,'kp')>=1&&upgOK('kp')){const b=(K.nk||0)+(d===2?2:1);add('mil',{k:'nuke',s0:K.nk||0,b,t:bT(()=>$t(`Heb ${b} kernbom${b>1?'men':''}`,`Have ${b} nuclear bomb${b>1?'s':''}`)),rw:{m:money(inc,3)}})}
+  // economy
+  {const f=[1.15,1.25,1.35][d];add('eco',{k:'inc',s0:+s.inc.toFixed(2),b:+(s.inc*f).toFixed(2),t:bT(()=>$t(`Laat je inkomen groeien met ${Math.round((f-1)*100)}%`,`Grow your income by ${Math.round((f-1)*100)}%`)),rw:{bm:qty(40),tk:qty(40)}})}
+  if(D.tr[n].size<8){const b=Math.min(8,D.tr[n].size+(d?2:1));add('eco',{k:'trade',b,t:bT(()=>$t(`Heb ${b} handelspartners tegelijk`,`Have ${b} trade partners at the same time`)),rw:{m:money(inc,.8)}})}
+  {const c=nb.filter(x=>!trading(n,x)&&!atWar(n,x)&&!taken.has(x));if(c.length){const x=pick(c);add('eco',{k:'trade2',x,t:bT(()=>$t(`Sluit een handelsverdrag met ${natName(x)}`,`Sign a trade deal with ${natName(x)}`)),rw:{m:money(inc,.6)}})}}
+  {const ids=['in','mb','vl','on','hu'].concat(hasCoast(n)?['ma']:[],['rs']).filter(id=>upgOK(id)&&ul(n,id)<UPG[U[id]].max-1);
+   if(ids.length){const id=pick(ids),b=Math.min(UPG[U[id]].max,ul(n,id)+[2,2,3][d]);add('eco',{k:'up',id,b,t:bT(()=>$t(`Bouw ${UPG[U[id]].nm} tot niveau ${b}`,`Build ${UPG[U[id]].nm} to level ${b}`)),rw:{m:+(upCost(n,U[id])*.9*rm).toFixed(2)}})}}
+  // diplomacy
+  {const a=D.al[n].size+1;add('dip',{k:'ally',b:a,t:bT(()=>$t(`Heb ${a} ${a===1?'bondgenoot':'bondgenoten'} tegelijk`,`Have ${a} ${a===1?'ally':'allies'} at the same time`)),rw:{bm:qty(40),m:money(inc,.6)}})}
+  {const c=[...Array(NN).keys()].filter(x=>x!==n&&!G.N[x].dead&&!isHuman(x)&&!allied(n,x)&&!atWar(n,x)&&!taken.has(x)&&stats()[x].power>s.power*[.2,.4,.7][d]).sort((x,y)=>stats()[y].power-stats()[x].power).slice(0,6);
+   if(c.length){const x=pick(c);add('dip',{k:'ally2',x,t:bT(()=>$t(`Word bondgenoot van ${natName(x)}`,`Ally with ${natName(x)}`)),rw:{m:money(inc,1.2),bm:qty(20)}})}}
+  {const c=[...D.war[n]].filter(x=>!G.N[x].dead&&!isHuman(x)&&!taken.has(x));
+   if(c.length){const x=pick(c);add('dip',{k:'peace',x,t:bT(()=>$t(`Sluit vrede met ${natName(x)}`,`Make peace with ${natName(x)}`)),rw:{m:money(inc,1),bm:qty(15)}})}}
+  // tech
+  {const rs=RES.filter(x=>resOK(x.id)&&resState(n,x.id)==='ok');if(rs.length){const x=pick(rs);add('tech',{k:'res',id:x.id,t:bT(()=>$t(`Ontwikkel ${x.nm.toLowerCase()}`,`Develop ${x.nm.toLowerCase()}`)),rw:{m:money(resCost(n,x.id),.8)}})}}
+  while(N.ms.length<3&&opts.length){const used=new Set(N.ms.map(m=>m.cat));const fresh=opts.filter(o=>!used.has(o.cat));const from=fresh.length?fresh:opts;
+    const cats=[...new Set(from.map(o=>o.cat))],cat=pick(cats);const o=pick(from.filter(x=>x.cat===cat));opts.splice(opts.indexOf(o),1);N.ms.push(o);have.add(o.k);if(o.x!=null)taken.add(o.x)}}
+function msProg(n,m){const s=stats()[n],N=G.N[n],K=kit(n);const rel=v=>m.s0!=null?[v-m.s0,m.b-m.s0]:[v,m.b];
+  switch(m.k){
+    case 'grow':return rel(s.km);
+    case 'regs':return [s.regs,m.b];
+    case 'beat':if(G.N[m.x].dead)return [natRegions[m.x].some(r=>G.R.o[r]===n)?1:-1,1];return [clamp(1-stats()[m.x].km/(KM0[m.x]||1),0,.99),1];
+    case 'cont':return [myConts(n).length,m.b];
+    case 'up':return [ul(n,m.id),m.b];
+    case 'ally':return [dip().al[n].size,m.b];
+    case 'army':return m.s0!=null?[Math.max(0,s.troops-m.s0),m.b-m.s0]:[s.troops,m.b];
+    case 'cap':return [G.R.o[m.b]===n?1:0,1];
+    case 'part':return rel(partOwned(n,m.x));
+    case 'rank':return [s.regs,RANKS[m.b].at];
+    case 'unit':return rel(K[m.u]||0);
+    case 'win':return rel(N.bwin||0);
+    case 'air':return rel(N.air||0);
+    case 'nuke':return rel(K.nk||0);
+    case 'inc':return rel(s.inc);
+    case 'trade':return [dip().tr[n].size,m.b];
+    case 'trade2':return [trading(n,m.x)?1:0,1];
+    case 'ally2':return [allied(n,m.x)?1:0,1];
+    case 'peace':return [atWar(n,m.x)?0:1,1];
+    case 'res':return [hasRes(n,m.id)?1:0,1]}
+  return [0,1]}
 const rwTxt=rw=>[rw.m?fmtMoney(rw.m):'',rw.tk?fmtN(rw.tk)+' tanks':'',rw.jt?fmtN(rw.jt)+' '+$t('vliegtuigen','jets'):'',rw.bm?fmtN(rw.bm)+' '+$t('bommen','bombs'):''].filter(Boolean).join(' + ');
 function checkMissions(n){const N=G.N[n];if(!N||!N.ms||!isHuman(n))return;const done=[];
   N.ms=N.ms.filter(m=>{const [a,b]=msProg(n,m);if(a>=b){done.push(m);return false}
     if(a<0&&m.k==='beat')return false; // someone else beat them to it: the goal is dropped
-    if((m.k==='beat'||m.k==='cap')&&allied(n,m.x))return false;if(m.k==='cap'&&G.R.o[m.b]!==m.x)return false;return true});
+    if(m.x!=null&&m.k!=='beat'&&G.N[m.x].dead)return false;
+    if((m.k==='beat'||m.k==='cap'||m.k==='part')&&allied(n,m.x))return false;if(m.k==='cap'&&G.R.o[m.b]!==m.x)return false;
+    if((m.k==='ally2'||m.k==='trade2')&&atWar(n,m.x))return false;if(m.k==='res'&&!resOK(m.id))return false;return true});
   for(const m of done){const rw=m.rw;N.m+=rw.m||0;const K=kit(n);if(rw.tk)addA(n,homeCont(n),0,rw.tk);K.jt+=rw.jt||0;K.bm+=rw.bm||0;N.msDone=(N.msDone||0)+1;STATS=null;
     addLog($b(`${natName(n)} haalt een doel: ${m.t[0]}. Beloning: ${rwTxt(rw)}`,`${natName(n)} completes a goal: ${m.t[1]}. Reward: ${rwTxt(rw)}`),[n],'ally');if(n===ME){sfx('win');toast(`<b>${$t('Doel gehaald!','Goal reached!')}</b> ${esc(mtxt(m))}. ${$t('Beloning','Reward')}: ${rwTxt(rw)}`,'win')}}
   if(done.length)G.rev++}
@@ -1778,7 +1852,7 @@ function endTurn(){
 const cv=$('#map'),ctx=cv.getContext('2d');const hit=document.createElement('canvas').getContext('2d');
 let DPR=1,VW=0,VH=0;const cam={s:1,x:0,y:0};
 let selN=-1,selC=-1,needDraw=false,flashes=[],regCol=[],natLabels=[],armyLabels=[],BATTLE=null;
-let borderPath=null,meOut=null,allyOut=null,warOut=null,pickOut=null,selOut=null,selComps=[],SELARR=[];
+let borderPath=null,meOut=null,allyOut=null,humOut=null,warOut=null,pickOut=null,selOut=null,selComps=[],SELARR=[];
 const glow=document.createElement('canvas');
 (function(){const p=24;glow.width=WW+2*p;glow.height=HH+2*p;const g=glow.getContext('2d');g.translate(p,p);g.shadowColor='rgba(80,190,255,.5)';g.shadowBlur=16;g.fillStyle='#0f2738';for(const r of R0)g.fill(r.path);g.shadowBlur=4;g.shadowColor='rgba(150,220,255,.45)';for(const r of R0)g.fill(r.path);glow.pad=p})();
 function resize(){hudMode();DPR=Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);clampCam();req()}
@@ -1793,9 +1867,10 @@ function buildBorders(){
   const o=G.R.o;const p=new Path2D();
   for(const r of R0){const ro=o[r.i];for(const {pts,e} of r.rings){let k=0;for(let j=0;j<e.length;j+=2){const nb=e[j],c=e[j+1];if(nb>=0&&o[nb]!==ro){p.moveTo(pts[k*2],pts[k*2+1]);for(let s=1;s<=c;s++)p.lineTo(pts[(k+s)*2],pts[(k+s)*2+1])}k+=c}}}
   borderPath=p;const f=focusN();
-  meOut=f>=0?segs(x=>x===f,true):null;allyOut=warOut=pickOut=null;selOut=selN>=0&&selN!==f?segs(x=>x===selN,true):null;selComps=selN>=0&&!PICK?natComps(selN):[];
-  if(f>=0&&!G.pv){const D=dip();const al=D.al[f],wa=D.war[f];if(al.size)allyOut=segs(x=>al.has(x),false);if(wa.size)warOut=segs(x=>wa.has(x),false)}
-  const ps=pickSet();if(ps){const taken=new Set(PICK.players.map(p=>p.nation));pickOut=segs(x=>ps.has(x)&&x!==f&&!taken.has(x),true);if(taken.size)allyOut=segs(x=>taken.has(x),true)}
+  meOut=f>=0?segs(x=>x===f,true):null;allyOut=humOut=warOut=pickOut=null;selOut=selN>=0&&selN!==f?segs(x=>x===selN,true):null;selComps=selN>=0&&!PICK?natComps(selN):[];
+  if(f>=0&&!G.pv){const D=dip();const al=D.al[f],wa=D.war[f];if(al.size)allyOut=segs(x=>al.has(x),true);if(wa.size)warOut=segs(x=>wa.has(x),false);
+    const hs=new Set();for(let n=0;n<NN;n++)if(n!==f&&isHuman(n)&&!G.N[n].dead)hs.add(n);if(hs.size)humOut=segs(x=>hs.has(x),true)}
+  const ps=pickSet();if(ps){const taken=new Set(PICK.players.map(p=>p.nation));pickOut=segs(x=>ps.has(x)&&x!==f&&!taken.has(x),true);if(taken.size)humOut=segs(x=>taken.has(x),true)}
   bordersDirty=false;
 }
 // Pieces of land of one country (connected over land), biggest first.
@@ -1850,7 +1925,9 @@ function draw(){
   ctx.strokeStyle='rgba(10,11,12,.9)';ctx.lineWidth=1.7/s;ctx.stroke(borderPath);
   if(pickOut){ctx.strokeStyle='rgba(236,235,230,.95)';ctx.lineWidth=2/s;ctx.stroke(pickOut)}
   if(warOut){ctx.setLineDash([5/s,4/s]);ctx.strokeStyle='rgba(222,162,50,.95)';ctx.lineWidth=1.8/s;ctx.stroke(warOut);ctx.setLineDash([])}
-  if(allyOut){if(!PICK)ctx.setLineDash([6/s,4/s]);ctx.strokeStyle='rgba(91,159,224,.95)';ctx.lineWidth=(PICK?2.6:1.8)/s;ctx.stroke(allyOut);ctx.setLineDash([])}
+  // allies: green with a soft glow; real (non-computer) players: a slim yellow line on top
+  if(allyOut){ctx.strokeStyle='rgba(60,220,110,.22)';ctx.lineWidth=8/s;ctx.stroke(allyOut);ctx.strokeStyle='rgba(60,220,110,.4)';ctx.lineWidth=4.4/s;ctx.stroke(allyOut);ctx.strokeStyle='rgba(96,240,138,.98)';ctx.lineWidth=2/s;ctx.stroke(allyOut)}
+  if(humOut){ctx.strokeStyle='rgba(255,213,74,.9)';ctx.lineWidth=(PICK?2.2:1.3)/s;ctx.stroke(humOut)}
   if(selOut){const pulse=.72+.28*Math.sin(now/260);ctx.strokeStyle='rgba(30,130,255,.28)';ctx.lineWidth=7.5/s;ctx.stroke(selOut);ctx.strokeStyle='rgba(5,12,24,.7)';ctx.lineWidth=4.2/s;ctx.stroke(selOut);ctx.strokeStyle=`rgba(64,168,255,${pulse})`;ctx.lineWidth=2.5/s;ctx.stroke(selOut)}
   if(meOut){ctx.strokeStyle='rgba(10,11,12,.85)';ctx.lineWidth=5.5/s;ctx.stroke(meOut);ctx.strokeStyle='#ff4a36';ctx.lineWidth=2.6/s;ctx.stroke(meOut)}
   ctx.setTransform(DPR,0,0,DPR,0,0);ctx.textAlign='center';ctx.textBaseline='middle';
