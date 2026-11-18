@@ -37,6 +37,8 @@ Honderdjarige Oorlog (1429), Dertigjarige Oorlog (1629), Zevenjarige Oorlog (175
 
 - Elk tijdperk heeft de landen, namen en grenzen van toen (bezet gebied hoort bij de bezetter, dus bijvoorbeeld het grootste Duitsland in 1942), met de bondgenootschappen en oorlogen van die maand
 - Je speelt elk land met zijn echte leger en economie; de kalender loopt vanaf die maand verder
+- Per moeilijkheid krijg je elk spel een nieuwe willekeurige selectie landen, passend bij hun echte sterkte: Makkelijk de grootmachten, Gemiddeld middelgrote landen, Moeilijk kleine en zwakke landen
+- In het menu staan de tijdperken van nieuw naar oud
 - Wapens passen bij de tijd: strijdwagens, ruiters, olifanten, ridders, katapulten, kanonnen, Grieks vuur; tanks en vliegtuigen pas in de wereldoorlogen. In het Engels krijgen ze ook de passende namen
 - Een tijdperk is ook te openen met `index.html?tijd=ww2` (ids: kadesh, perzen, pelop, punisch, gallie, byzperz, arabisch, kruis, mongolen, honderd, dertig, zeven, napoleon, ww1, ww2)
 - Online spelen blijft in hetzelfde tijdperk: wie met een code meedoet, wordt naar het tijdperk van het spel gestuurd
