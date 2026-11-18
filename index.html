@@ -409,6 +409,20 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
 .tbar{left:0;right:0;margin:0 auto;width:max-content;transform:none}
 @media (max-width:700px) and (orientation:portrait){.stat.ap{order:-1}#warbox .wbh{white-space:nowrap;gap:7px;font-size:12px;letter-spacing:.02em}#app .tbar{top:calc(var(--bar)*2 + 14px + var(--st));font-size:14px}}
 @media (max-height:430px){.stat.ap{order:-1}#goalbox{width:min(220px,30vw)}#goalbox .cnt{display:none}}
+#goalbox .cn{display:none}
+/* compact HUD (phones): two small chips, the content drops down below the chip that was tapped */
+#app.hudc #goalbox,#app.hudc #warbox{width:auto;max-width:none;overflow:visible;border-radius:10px;box-shadow:0 4px 14px #0007}
+#app.hudc #goalbox .wbh,#app.hudc #warbox .wbh{width:auto;height:36px;padding:0 11px;gap:8px;font-size:13px;white-space:nowrap}
+#app.hudc #goalbox .lbt,#app.hudc #goalbox .cnt,#app.hudc #warbox .wt,#app.hudc .wbh .chev{display:none}
+#app.hudc #goalbox .cn{display:block;font-family:var(--f-disp);font-size:14px;color:var(--ink)}
+#app.hudc .wbh[aria-expanded=true]{background:var(--panel2);border-radius:10px}
+#app.hudc #goalbox .gbb,#app.hudc #warbox .wbb{position:absolute;top:calc(100% + 6px);width:min(330px,calc(100vw - 20px));max-height:min(52vh,420px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px #000b;padding:10px 12px 12px;box-sizing:border-box;z-index:7}
+#app.hudc #goalbox .gbb{left:-1px}#app.hudc #warbox .wbb{right:-1px}
+#app.hudc #warbox .wbb .wbl:first-child{margin-top:0}
+.hsrow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.hsrow .lbl{margin:0 4px 0 0}
+.selhint{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.selhint .chip{padding:4px 10px;font-size:12.5px}
+.plwarn{background:#ff3b4e18;border:1px solid #ff3b4e66;border-radius:8px;padding:7px 10px;font-size:13px;color:#ffc2c8}.plwarn b{color:#ff8a95}
+.memo{font-size:12.5px;color:var(--mute)}.memo b{color:var(--ink);font-weight:600}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -664,7 +678,7 @@ const UPG=[
  {id:'mb',get nm(){return $t('Kazernes','Barracks')},ic:'helm',c:.04,max:10,get d(){return $t('+35% nieuwe soldaten per maand en ruimte voor een groter leger.','+35% new soldiers per month and room for a bigger army.')}},
  {id:'vl',get nm(){return $t('Forten','Forts')},ic:'fort',c:.04,max:10,get d(){return $t('+15% verdediging.','+15% defence.')}},
  {id:'on',get nm(){return $t('Legertechnologie','Army tech')},ic:'edu',c:.05,max:10,get d(){return $t('+6% aanvalskracht. Nodig voor nieuw onderzoek.','+6% attack strength. Needed for new research.')}},
- {id:'ma',get nm(){return $t('Marine','Navy')},ic:'anchor',c:.05,max:5,get d(){return $t('Val landen aan over zee, verder per niveau.','Attack countries across the sea, further with each level.')}},
+ {id:'ma',get nm(){return $t('Marine','Navy')},ic:'anchor',c:.05,max:5,get d(){return $t('Val landen aan over zee. Bereik per niveau: 600, 1.200, 2.200 en 4.000 km. Op niveau 5 bereikt je vloot elke kust ter wereld.','Attack countries across the sea. Range per level: 600, 1,200, 2,200 and 4,000 km. At level 5 your fleet reaches every coast in the world.')}},
  {id:'kp',get nm(){return $t('Kernprogramma','Nuclear programme')},ic:'atom',c:.12,max:3,req:['on',2],get d(){return $t('Niveau 1: je fabrieken kunnen kernbommen maken. Niveau 2 en 3: een zwaardere klap, en op niveau 3 twee per maand.','Level 1: your factories can make nuclear bombs. Levels 2 and 3: a heavier blow, and at level 3 two per month.')}},
  {id:'rs',get nm(){return $t('Raketschild','Missile shield')},ic:'shield',c:.06,max:5,get d(){return $t('Schiet per niveau 15% van de vijandelijke kernraketten en 6% van de bommen en raketten neer.','Shoots down 15% of enemy nuclear missiles and 6% of bombs and missiles per level.')}},
 ];
@@ -794,9 +808,12 @@ function initialState(o){
   // real-world alliances and trade pacts between computer countries (never with a player's country)
   const al={},tr={};const pact=(list,obj)=>list.forEach(([x,y])=>{const a=nIdx(x),b=nIdx(y);if(a<0||b<0||!natRegions[a].length||!natRegions[b].length||hum[a]||hum[b])return;obj[pk(a,b)]=1});
   const war={};
-  if(ERA){const ep=(list,obj)=>(list||[]).forEach(([a,b])=>{if(a==null||b==null||a===b||!natRegions[a].length||!natRegions[b].length)return;obj[pk(a,b)]=1});ep(ERA.al,al);ep(ERA.tr,tr);ep(ERA.war,war);for(const k in war){delete al[k];delete tr[k];war[k]=1}}
-  else{pact(ALLY0,al);pact(TRADE0,tr)}
-  return {v:8,v9:1,v10:1,era:ERA?ERA.id:'',tl:o.tl??90,coal:{},mode:o.mode,diff:o.diff??1,code:o.code||null,round:1,maxR:o.maxR,turn:0,order,hum,N,R,al,war,tr,op:{},occ:{},ig:{},fo:{},offers:[],log:[],lc:0,rev:1,over:null,ts:Date.now(),fx:[],rs:o.mode==='pv'?BASE:nextSeed()};
+  // hist: the real wars, alliances and trade pacts of that moment. Off: an equal start, nobody is at war or bound to anyone.
+  const hist=o.hist!==false;
+  if(hist&&ERA){const ep=(list,obj)=>(list||[]).forEach(([a,b])=>{if(a==null||b==null||a===b||!natRegions[a].length||!natRegions[b].length)return;obj[pk(a,b)]=1});ep(ERA.al,al);ep(ERA.tr,tr);ep(ERA.war,war);for(const k in war){delete al[k];delete tr[k];war[k]=1}}
+  else if(hist){pact(ALLY0,al);pact(TRADE0,tr)}
+  const rs0=o.mode==='pv'?BASE:nextSeed();
+  return {v:8,v9:1,v10:1,hs:hist?1:0,pseed:(rs0^0x5BD1E995)|0,era:ERA?ERA.id:'',tl:o.tl??90,coal:{},mode:o.mode,diff:o.diff??1,code:o.code||null,round:1,maxR:o.maxR,turn:0,order,hum,N,R,al,war,tr,op:{},occ:{},ig:{},fo:{},offers:[],log:[],lc:0,rev:1,over:null,ts:Date.now(),fx:[],rs:rs0,gr:{},tru:{}};
 }
 
 /* ================= caches & rules ================= */
@@ -864,7 +881,10 @@ const natName=n=>G&&G.N[n].nm||baseName(NAT[n]);
 const natFlag=n=>`<i class="nc" style="background:${natColor(n)}"></i>`;
 const atkMult=n=>(1+.06*ul(n,'on'))*(isHuman(n)?MODE().atk:1);
 const defMult=n=>1+.15*ul(n,'vl');
-const navalRange=n=>{const m=ul(n,'ma');return m?16+12*m:0};
+// Navy range in map units (1 unit is about 20 km). Every level reaches clearly further; at the top level a fleet reaches every coast in the world.
+const NAV_R=[0,30,60,110,200,1e9];
+const navalRange=n=>NAV_R[clamp(ul(n,'ma'),0,5)]||0;
+const navKm=lv=>lv>=5?$t('elke kust ter wereld','every coast in the world'):nl(NAV_R[clamp(lv,0,5)]*20)+' km';
 const curNation=()=>G.order[G.turn];
 function myTurn(){if(!G||G.over||G.pv)return false;if(G.mode==='online')return curNation()===ME;return true}
 function natBaseColor(n){if(G&&G.N[n]&&G.N[n].col)return hexToHsl(G.N[n].col);const h=(n*137.508+20)%360;return [h,30+(n*7)%31,36+(n*11)%23]}
@@ -874,7 +894,8 @@ function addLog(t,ns,k,g){G.lc=(G.lc||0)+1;const l={id:G.lc,r:G.round,t,n:ns||[]
 function rankOf(n){const k=stats()[n].regs;let r=0;RANKS.forEach((x,i)=>{if(k>=x.at)r=i});return r}
 const apMax=n=>3+rankOf(n);
 function owned(n){const a=[];for(let r=0;r<NR;r++)if(G.R.o[r]===n)a.push(r);return a}
-function dist(a,b){return Math.hypot(R0[a].lx-R0[b].lx,R0[a].ly-R0[b].ly)}
+// distance over sea: the map wraps around east to west, so a fleet may sail across the date line
+function dist(a,b){const dx=Math.abs(R0[a].lx-R0[b].lx);return Math.hypot(Math.min(dx,WW-dx),R0[a].ly-R0[b].ly)}
 function canReach(a,b){if(nbrs()[a].has(b))return true;const nr=navalRange(a);if(!nr)return false;
   const mine=COAST.filter(r=>G.R.o[r]===a),theirs=COAST.filter(r=>G.R.o[r]===b);for(const x of mine)for(const y of theirs)if(dist(x,y)<=nr)return true;return false}
 // MF: in total wars of the past a much larger part of the people was under arms
@@ -883,37 +904,49 @@ const MF=ERA&&ERA.mf||1;
 const armyCap=n=>{const c=stats()[n].mp*1e6*(.012+.003*ul(n,'mb'))*MF;return ERA?Math.max(c,NAT[n].mil*1200*(1+.1*ul(n,'mb'))):c};
 // Mobilisation: in the first year every country builds up its army slowly (35% in the first month, full speed after 12 months).
 const mob=()=>ERA&&ERA.mob?1:clamp(.35+.65*((G?G.round:1)-1)/12,.35,1);
-function aiTarget(n){const d=NAT[n],s=stats()[n];return Math.max(d.mil*1000,s.pop*1e6*.0013)*(1+.02*G.round)*(dip().war[n].size?1.4:1)*(.85+.5*d.ag)}
+function aiTarget(n){const d=NAT[n],s=stats()[n],P=ps(n);return Math.max(d.mil*1000,s.pop*1e6*.0013)*(1+.02*G.round)*(dip().war[n].size?1.4:G.N[n].pl?1.2:1)*(.78+.3*P.agg+.2*P.para+.1*d.ag)}
 function reinfAmount(n){const s=stats()[n];let a=s.mp*1e6*.0004*MF*(1+.35*ul(n,'mb'))*mob();if(isHuman(n)){a*=MODE().reinf*(1+.1*rankOf(n));if(dip().war[n].size&&lossFrac(n)>.05)a*=1.4}else a=Math.min(a*(dip().war[n].size?1.6:1),Math.max(0,aiTarget(n)-s.troops));a*=clamp(1-s.troops/armyCap(n),0,1);return Math.max(0,Math.round(a))}
 function frontShareC(def,att,c){let n=0,f=0;for(let r=0;r<NR;r++){if(G.R.o[r]!==def||CONT[r]!==c)continue;n++;if(R0[r].nb.some(j=>G.R.o[j]===att))f++}return n?clamp(f/n*1.6,.3,1):1}
 function frontShare(def,att){const own=owned(def);if(!own.length)return 1;let f=0;for(const r of own)if(R0[r].nb.some(j=>G.R.o[j]===att))f++;return clamp(f/own.length*1.6,.3,1)}
 
 /* ================= diplomacy ================= */
-function opinion(a,h){let v=G.op[a+'>'+h];if(v==null)v=allied(a,h)?50:0;if(atWar(a,h))v=Math.min(v,-60);return v}
+function opinion(a,h){let v=G.op[a+'>'+h];if(v==null)v=allied(a,h)?50:isHuman(a)?0:(ps(a).fri-.5)*16;if(atWar(a,h))v=Math.min(v,-60);return v}
 function addOp(a,h,d){if(isHuman(a)||a===h)return;G.op[a+'>'+h]=clamp(opinion(a,h)+d,-100,100)}
 // Odds that ally c joins a war in which t is attacked by a: depends on trust, courage, the attacker's strength, existing wars and trade ties.
-function allyHelpP(c,t,a){const s=stats();
-  let p=.3+opinion(c,t)/250+.25*NAT[c].ag;
-  p-=clamp(s[a].power/(s[c].power+1)-1,0,2)*.08;
+// An older alliance, a loyal and honourable character and an old grudge against the attacker all make help more likely.
+function allyHelpP(c,t,a){const s=stats(),P=ps(c);
+  let p=.24+opinion(c,t)/250+.3*P.loy+.12*P.honor-.12*P.caut+Math.min(.12,alAge(c,t)*.01)+(a!=null?grudge(c,a)/300:0);
+  if(a!=null){p-=clamp(s[a].power/(s[c].power+1)-1,0,2)*.08;if(trading(c,a))p-=.05+.1*P.merc;if(nbrs()[c].has(a))p+=.1}
   p-=.1*dip().war[c].size;
-  if(trading(c,a))p-=.1;if(nbrs()[c].has(a))p+=.1;
   return clamp(p,.1,.95)}
+const WHY_DECL={grv:['verklaart {t} de oorlog uit wraak voor wat er eerder gebeurde!','declares war on {t} to avenge past wrongs!'],exp:['eist land op en verklaart {t} de oorlog!','lays claim to land and declares war on {t}!'],
+  ally:['verklaart {t} de oorlog om zijn bondgenoot te steunen.','declares war on {t} to back its ally.'],hate:['verklaart {t} na maanden van spanning de oorlog!','declares war on {t} after months of tension!'],
+  ult:['verklaart {t} de oorlog: het ultimatum is verlopen!','declares war on {t}: the ultimatum has run out!'],joint:['valt samen met een bondgenoot {t} aan!','attacks {t} together with an ally!']};
 function declareWar(a,t,why){
   if(a===t||atWar(a,t)||G.N[a].dead||G.N[t].dead)return;
-  const K=pk(a,t),wasAl=allied(a,t)||(G.bk&&G.bk[K]!=null&&G.round-G.bk[K]<=3),wasTr=trading(a,t),wasPc=G.pc&&G.pc[K]!=null&&G.round-G.pc[K]<=3;
+  const K=pk(a,t),wasAl=allied(a,t)||(G.bk&&G.bk[K]!=null&&G.round-G.bk[K]<=3),wasTr=trading(a,t),wasPc=G.pc&&G.pc[K]!=null&&G.round-G.pc[K]<=3,brokeTruce=!isHuman(a)&&truce(a,t);
+  if(G.tru)delete G.tru[K];if(G.N[a].pl&&G.N[a].pl.t===t)G.N[a].pl=null;
   if(allied(a,t)){delete G.al[K];addLog($b(`${natName(a)} verbreekt het bondgenootschap met ${natName(t)}!`,`${natName(a)} breaks the alliance with ${natName(t)}!`),[a,t],'war','dip')}
   delete G.tr[K];G.war[K]=G.round;dipDirty();STATS=null;
-  addLog(why==='nuke'?$b(`${natName(a)} verklaart ${natName(t)} de oorlog uit afschuw over de kernaanval!`,`${natName(a)} declares war on ${natName(t)} in horror at the nuclear attack!`):why==='rev'?$b(`${natName(a)} komt in opstand tegen ${natName(t)}!`,`${natName(a)} rises against ${natName(t)}!`):why==='opp'?$b(`${natName(a)} ziet zijn kans schoon en valt het verzwakte ${natName(t)} aan!`,`${natName(a)} sees an opening and attacks the weakened ${natName(t)}!`):why==='enc'?$b(`${natName(a)} voelt zich omsingeld door ${natName(t)} en valt als eerste aan!`,`${natName(a)} feels surrounded by ${natName(t)} and strikes first!`):$b(`${natName(a)} verklaart ${natName(t)} de oorlog!`,`${natName(a)} declares war on ${natName(t)}!`),[a,t],'war');
+  addLog(why==='nuke'?$b(`${natName(a)} verklaart ${natName(t)} de oorlog uit afschuw over de kernaanval!`,`${natName(a)} declares war on ${natName(t)} in horror at the nuclear attack!`):why==='rev'?$b(`${natName(a)} komt in opstand tegen ${natName(t)}!`,`${natName(a)} rises against ${natName(t)}!`):why==='opp'?$b(`${natName(a)} ziet zijn kans schoon en valt het verzwakte ${natName(t)} aan!`,`${natName(a)} sees an opening and attacks the weakened ${natName(t)}!`):why==='enc'?$b(`${natName(a)} voelt zich omsingeld door ${natName(t)} en valt als eerste aan!`,`${natName(a)} feels surrounded by ${natName(t)} and strikes first!`):WHY_DECL[why]?$b(`${natName(a)} ${WHY_DECL[why][0].replace('{t}',natName(t))}`,`${natName(a)} ${WHY_DECL[why][1].replace('{t}',natName(t))}`):$b(`${natName(a)} verklaart ${natName(t)} de oorlog!`,`${natName(a)} declares war on ${natName(t)}!`),[a,t],'war');
+  if(brokeTruce){for(let x=0;x<NN;x++)if(x!==a&&x!==t&&!G.N[x].dead)addOp(x,a,-6);addLog($b(`${natName(a)} breekt de wapenstilstand met ${natName(t)}. Andere landen vertrouwen ${natName(a)} minder.`,`${natName(a)} breaks the truce with ${natName(t)}. Other countries trust ${natName(a)} less.`),[a,t],'war','war')}
   for(const c of nbrs()[t])if(c!==a)addOp(c,a,isHuman(a)?-8:-3);   // neighbours distrust an aggressor
   if(isHuman(a)&&(wasAl||wasPc||wasTr))betray(a,t,wasAl?'al':wasPc?'peace':'tr');
-  addOp(t,a,-30);for(const c of dip().al[t])if(c!==a)addOp(c,a,-10);  // the victim and its allies remember
+  addOp(t,a,-30);addGr(t,a,why==='rev'?15:35);for(const c of dip().al[t])if(c!==a){addOp(c,a,-10);addGr(c,a,6+8*ps(c).loy)}  // the victim and its allies remember
+  // allies of the victim: a defensive alliance is a promise to fight
   for(const c of [...dip().al[t]]){if(c===a||allied(c,a)||atWar(c,a)||G.N[c].dead)continue;
     if(isHuman(c)){G.offers.push({type:'help',from:t,to:c,vs:a,r:G.round});continue}
-    if(rnd()<allyHelpP(c,t,a)){G.war[pk(c,a)]=G.round;addOp(t,c,20);addLog($b(`${natName(c)} komt bondgenoot ${natName(t)} te hulp tegen ${natName(a)}!`,`${natName(c)} comes to the aid of ally ${natName(t)} against ${natName(a)}!`),[c,a],'war')}
-    else addOp(t,c,-15)}
+    if(rnd()<allyHelpP(c,t,a)){G.war[pk(c,a)]=G.round;if(G.tru)delete G.tru[pk(c,a)];addOp(t,c,20);addGr(a,c,15);addLog($b(`${natName(c)} komt bondgenoot ${natName(t)} te hulp tegen ${natName(a)}!`,`${natName(c)} comes to the aid of ally ${natName(t)} against ${natName(a)}!`),[c,a],'war')}
+    else{addOp(t,c,-15);addGr(t,c,12);if(isHuman(t))addLog($b(`Bondgenoot ${natName(c)} laat ${natName(t)} in de steek en blijft buiten de oorlog met ${natName(a)}.`,`Ally ${natName(c)} lets ${natName(t)} down and stays out of the war with ${natName(a)}.`),[c,t],'info','dip')}}
+  // allies of the attacker may join in: more likely for a loyal friend, a country with its own grudge or its own plans against the victim
+  if(why!=='rev'&&why!=='nuke')for(const c of [...dip().al[a]]){if(c===t||isHuman(c)||G.N[c].dead||atWar(c,t)||allied(c,t)||truce(c,t))continue;const P=ps(c);
+    let p=.04+.16*P.loy*clamp(opinion(c,a)/60,0,1.2)+grudge(c,t)/160+(G.N[c].pl&&G.N[c].pl.t===t?.45:0)+.08*P.agg-.15*dip().war[c].size-(trading(c,t)?.12:0);
+    if(!nbrs()[c].has(t)&&!canReach(c,t))continue;
+    if(rnd()<clamp(p,0,.7)){G.war[pk(c,t)]=G.round;if(G.N[c].pl&&G.N[c].pl.t===t)G.N[c].pl=null;addOp(a,c,12);addGr(t,c,25);addLog($b(`${natName(c)} sluit zich aan bij bondgenoot ${natName(a)} in de oorlog tegen ${natName(t)}!`,`${natName(c)} joins ally ${natName(a)} in the war against ${natName(t)}!`),[c,t],'war')}}
   dipDirty();
 }
-function makePeace(a,b){if(!atWar(a,b))return;delete G.war[pk(a,b)];(G.pc=G.pc||{})[pk(a,b)]=G.round;settleOcc(a,b);dipDirty();addLog($b(`Vrede tussen ${natName(a)} en ${natName(b)}`,`Peace between ${natName(a)} and ${natName(b)}`),[a,b],'peace','dip')}
+// A peace treaty starts a truce of about a year: computer countries keep it, unless their word is worth little and the temptation is big.
+function makePeace(a,b){if(!atWar(a,b))return;delete G.war[pk(a,b)];(G.pc=G.pc||{})[pk(a,b)]=G.round;setTruce(a,b,10+Math.round(4*((isHuman(a)?.5:ps(a).honor)+(isHuman(b)?.5:ps(b).honor))/2));for(const x of [a,b])if(G.N[x].pl&&G.N[x].pl.t===(x===a?b:a))G.N[x].pl=null;settleOcc(a,b);dipDirty();addLog($b(`Vrede tussen ${natName(a)} en ${natName(b)}`,`Peace between ${natName(a)} and ${natName(b)}`),[a,b],'peace','dip')}
 // A player who attacks an ally (or a trade partner, or breaks a fresh peace) loses the trust of the world:
 // every country likes them less, their other allies may drop them, and new treaties get harder (N.rep).
 function betray(a,t,kind){const N=G.N[a];const w=kind==='al'?1:kind==='peace'?.6:.3;N.rep=+((N.rep||0)+w).toFixed(2);
@@ -928,27 +961,144 @@ function betray(a,t,kind){const N=G.N[a];const w=kind==='al'?1:kind==='peace'?.6
 // what kind of betrayal attacking t would be for a ('al', 'peace', 'tr' or null)
 function betrayKind(a,t){if(atWar(a,t))return null;const K=pk(a,t);if(allied(a,t)||(G.bk&&G.bk[K]!=null&&G.round-G.bk[K]<=3))return 'al';if(G.pc&&G.pc[K]!=null&&G.round-G.pc[K]<=3)return 'peace';return trading(a,t)?'tr':null}
 const repLbl=r=>r<.3?[$t('Betrouwbaar','Reliable'),'var(--green)']:r<1?[$t('Wisselvallig','Unpredictable'),'var(--amber)']:r<2?[$t('Onbetrouwbaar','Unreliable'),'#ff8f8f']:[$t('Verrader','Traitor'),'var(--red)'];
-function makeAlliance(a,b){delete G.war[pk(a,b)];G.al[pk(a,b)]=1;dipDirty();if(!isHuman(a)&&!isHuman(b)){addOp(a,b,15);addOp(b,a,15)}addLog($b(`${natName(a)} en ${natName(b)} sluiten een bondgenootschap`,`${natName(a)} and ${natName(b)} form an alliance`),[a,b],'ally','merge')}
+function makeAlliance(a,b){delete G.war[pk(a,b)];G.al[pk(a,b)]=G.round;for(const x of [a,b])if(G.N[x].pl&&G.N[x].pl.t===(x===a?b:a))G.N[x].pl=null;dipDirty();if(!isHuman(a)&&!isHuman(b)){addOp(a,b,15);addOp(b,a,15)}addLog($b(`${natName(a)} en ${natName(b)} sluiten een bondgenootschap`,`${natName(a)} and ${natName(b)} form an alliance`),[a,b],'ally','merge')}
 function makeTrade(a,b){G.tr[pk(a,b)]=1;dipDirty();STATS=null;if(!isHuman(a)&&!isHuman(b)){addOp(a,b,6);addOp(b,a,6)}addLog($b(`Handelsverdrag tussen ${natName(a)} en ${natName(b)}`,`Trade deal between ${natName(a)} and ${natName(b)}`),[a,b],'trade','dip')}
 function accept(ai,h,type,bribe){
-  const op=opinion(ai,h);const s=stats();const br=bribe?clamp(bribe/(s[ai].inc+.05)*.3,0,.5):0;
+  const op=opinion(ai,h);const s=stats();const P=ps(ai),gr=grudge(ai,h);const br=bribe?clamp(bribe/(s[ai].inc+.05)*.3*(.6+.8*P.greed),0,.5):0;
   if(type==='ally'){if(atWar(ai,h))return false;const D=dip();for(const e of D.war[h])if(D.al[ai].has(e))return false;
-    const rep=G.N[h].rep||0;let need=35+18*rep-br*40;for(const e of D.war[ai])if(D.war[h].has(e))need-=30;if(s[h].power>s[ai].power*2)need-=15;return op+rnd()*30>=need}
-  if(type==='trade')return !atWar(ai,h)&&(op+br*60)>=-20+12*(G.N[h].rep||0);
-  if(type==='peace'){const since=G.round-(G.war[pk(ai,h)]||G.round);if(since<1)return false;return s[ai].power<s[h].power*.9||rnd()<.35+op/200+br+((G.N[ai].hit||0)>0?.25:0)}
+    const rep=G.N[h].rep||0;let need=35+18*rep-br*40+(.5-P.fri)*20+gr*.4;for(const e of D.war[ai])if(D.war[h].has(e))need-=30;if(s[h].power>s[ai].power*2)need-=15;
+    {const T=bigThreat(ai);if(T>=0&&T!==h&&(nbrs()[h].has(T)||atWar(h,T)))need-=8+14*P.para}return op+rnd()*30>=need}
+  if(type==='trade')return !atWar(ai,h)&&(op+br*60)>=-20+12*(G.N[h].rep||0)+(.5-P.merc)*24+gr*.3;
+  if(type==='peace'){const since=G.round-(G.war[pk(ai,h)]||G.round);if(since<1)return false;return s[ai].power<s[h].power*(.8+.2*P.caut)||rnd()<.32+op/200+br+((G.N[ai].hit||0)>0?.25:0)+.12*P.caut-.15*P.pride-gr/400}
   return false;
 }
 
 // Will AI country ai attack target t because player h asks (and maybe pays)?
 function acceptAsk(ai,h,t,pay){const s=stats();if(allied(ai,t)||G.N[t].dead||!canReach(ai,t))return false;
-  let sc=opinion(ai,h)/100+(allied(ai,h)?.35:0)+(atWar(h,t)?.12:0)+NAT[ai].ag*.35+clamp(pay/(s[ai].inc+.05)*.25,0,.45)
+  const P=ps(ai);let sc=opinion(ai,h)/100+(allied(ai,h)?.25+.15*P.loy:0)+(atWar(h,t)?.12:0)+P.agg*.25+P.opp*.1+clamp(pay/(s[ai].inc+.05)*.25*(.6+.8*P.greed),0,.45)+grudge(ai,t)/150+(G.N[ai].pl&&G.N[ai].pl.t===t?.3:0)-(truce(ai,t)?.3*P.honor:0)
     +clamp((s[ai].power/(s[t].power+1)-1)*.25,-.6,.4)-(trading(ai,t)?.2:0)-.06*(G.N[h].rep||0)-(dip().war[ai].size?.15*dip().war[ai].size:0)-(G.N[ai].we||0)/150;
   return sc+rnd()*.3>.8}
 // Will AI country ai join player h's country?
 function acceptJoin(ai,h){const s=stats();if(atWar(ai,h))return false;const op=opinion(ai,h);
   const ratio=s[h].power/(s[ai].power+1);const threat=[...dip().war[ai]].some(e=>e!==h&&s[e].power>s[ai].power*1.5);
-  const sc=op/100*.8-.12*(G.N[h].rep||0)+(allied(ai,h)?.25:0)+clamp(Math.log10(ratio)*.25,0,.55)+(threat?.3:0)+(G.N[ai].we||0)/200+lossFrac(ai)*.4-NAT[ai].ag*.45-(s[ai].regs>8?.3:s[ai].regs>4?.12:0);
+  const sc=op/100*.8-.12*(G.N[h].rep||0)+(allied(ai,h)?.25:0)+clamp(Math.log10(ratio)*.25,0,.55)+(threat?.3:0)+(G.N[ai].we||0)/200+lossFrac(ai)*.4-ps(ai).pride*.3-ps(ai).agg*.2+ps(ai).fri*.1-grudge(ai,h)/200-(s[ai].regs>8?.3:s[ai].regs>4?.12:0);
   return sc+rnd()*.2>.9}
+
+/* ================= NPC minds: a hidden character, a memory and plans ================= */
+// Every computer country has a hidden character: 13 traits between 0 and 1. A trait never decides on its own; it shifts the odds
+// of a choice by a modest amount, on top of strength, position and history. The player never sees the numbers, only the behaviour.
+//  agg aggressive · fri friendly · forg quick to forgive · loy loyal to allies · caut cautious · greed greedy · pride proud
+//  opp opportunist · para suspicious · amb expansionist · merc trader · honor keeps its word · pat patient
+// The character follows from G.pseed (one number in the save), so every client in an online game sees the same one.
+const TRAITS=['agg','fri','forg','loy','caut','greed','pride','opp','para','amb','merc','honor','pat'];
+const mulb=a=>()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+let PSC=null;
+function ps(n){if(!PSC||PSC.s!==G.pseed)PSC={s:G.pseed,v:[]};let p=PSC.v[n];if(p)return p;
+  const R=mulb(((G.pseed|0)^Math.imul(n+1,0x9E3779B1))|0);R();R();
+  const ag=clamp(NAT[n].ag??.25,0,1),mix=(b,w)=>clamp(b*w+R()*(1-w),0,1);p={};
+  p.agg=mix(clamp(.1+ag*1.1,0,1),.55);p.fri=mix(1-p.agg,.35);p.forg=mix(p.fri,.3);p.loy=mix(.55,.2);p.caut=mix(1-p.agg,.4);p.greed=R();p.pride=mix(p.agg,.25);
+  p.opp=mix(p.agg,.3);p.para=R();p.amb=mix(p.agg,.45);p.merc=mix(p.fri,.3);p.honor=mix(p.loy,.35);p.pat=mix(p.caut,.35);
+  return PSC.v[n]=p}
+// Memory: a grudge (G.gr['a>b']) is what a holds against b: wars declared on it, land taken, allies attacked, help refused.
+// It fades slowly, faster for a forgiving country, and is the main reason for wars of revenge.
+const grudge=(a,b)=>(G.gr&&G.gr[a+'>'+b])||0;
+function addGr(a,b,d){if(a===b||!G.N[a]||G.N[a].dead||isHuman(a))return;G.gr=G.gr||{};const k=a+'>'+b;const v=clamp((G.gr[k]||0)+d*(d>0?.75+.5*ps(a).pride:1),0,150);if(v<1)delete G.gr[k];else G.gr[k]=Math.round(v*10)/10}
+// Truce after a peace treaty (G.tru[pair] = last round of the truce).
+const truce=(a,b)=>!!(G.tru&&G.tru[pk(a,b)]>=G.round);
+const truceLeft=(a,b)=>G.tru&&G.tru[pk(a,b)]!=null?Math.max(0,G.tru[pk(a,b)]-G.round+1):0;
+function setTruce(a,b,m){G.tru=G.tru||{};const k=pk(a,b);G.tru[k]=Math.max(G.tru[k]||0,G.round+m)}
+// Months an alliance exists (G.al stores the round it was made; old saves store 1).
+const alAge=(a,b)=>{const v=G.al[pk(a,b)];return v?Math.max(0,G.round-v):0};
+// The strongest non-allied neighbour that is clearly stronger than n (or -1).
+function bigThreat(n){const s=stats();let b=-1,bp=s[n].power*1.3;for(const t of nbrs()[n]){if(G.N[t].dead||allied(n,t))continue;if(s[t].power>bp){bp=s[t].power;b=t}}return b}
+// The power t's allies would probably add against an attacker.
+function allyShield(t,att){const s=stats();let p=0;for(const c of dip().al[t]){if(c===att||G.N[c].dead||allied(c,att)||atWar(c,att))continue;p+=s[c].power*(isHuman(c)?.5:allyHelpP(c,t,att))*(nbrs()[c].has(att)||nbrs()[c].has(t)?1:.5)}return p}
+// Why n might go to war with t, and how strongly. Only reasons a country could say out loud.
+function motives(n,t,s,NB){const P=ps(n),op=opinion(n,t),D=dip();
+  const m={grv:grudge(n,t)/55*(1.15-.5*P.forg),exp:0,opp:0,fear:0,ally:0,hate:clamp(-op/100,0,1)*.45};
+  if(NB[n].has(t)){const r=s[n].power/(s[t].power+1);m.exp=P.amb*.55*clamp((r-.8)/1.5,0,1)*(.8+.4*clamp(s[t].gdp/(s[n].gdp+1),0,1))}
+  if(D.war[t].size||(G.N[t].hit||0)>0||(G.N[t].we||0)>40)m.opp=P.opp*.7*clamp(s[n].power/(s[t].power+1),0,1.5);
+  {const grow=s[t].km/(KM0[t]||s[t].km||1);if(grow>1.12&&s[t].power>s[n].power*.6)m.fear=P.para*.7*clamp(grow-1,0,1.2)}
+  for(const a of D.al[n])if(atWar(a,t))m.ally=Math.max(m.ally,P.loy*.7*clamp(opinion(n,a)/60+.5,.3,1.3));
+  let tot=0,why='exp',bw=0;for(const k in m){tot+=m[k];if(m[k]>bw){bw=m[k];why=k}}
+  tot-=clamp(op/100,0,1)*.8+(trading(n,t)?.15+.3*P.merc:0);   // friendship and trade hold a country back
+  return {tot,why}}
+// Can n win? Its power against t plus the help t can expect from its allies; a cautious country wants a bigger edge.
+function warOdds(n,t,s){const P=ps(n);const r=s[n].power/(s[t].power+allyShield(t,n)+1);return clamp((r/(1.2+.9*P.caut-.45*P.agg)-.6)/.7,0,1.4)}
+const WHY_TXT={grv:['uit wraak','to take revenge'],exp:['en eist land op','and lays claim to land'],opp:['nu het verzwakt is','now that it is weakened'],fear:['uit angst voor zijn groei','fearing its growth'],ally:['om een bondgenoot te steunen','to back an ally'],hate:['na maanden van vijandigheid','after months of hostility'],ult:['na het verlopen ultimatum','after the ultimatum ran out']};
+// A country does not declare war out of the blue. It picks a target with a reason, builds up and moves troops to that border for
+// a few months, warns or makes a demand, and only then declares war. It drops the plan when the reason or the chance goes away.
+function aiPlan(n,s,NB,GR){
+  const N=G.N[n],P=ps(n),D=dip(),aggW=MODE().agg,grace=t=>isHuman(t)&&G.round<=(MODE().grace||0);let pl=N.pl;
+  const load=Math.pow(.18+.4*P.agg,D.war[n].size);
+  if(pl&&(G.N[pl.t].dead||allied(n,pl.t)||atWar(n,pl.t)||grace(pl.t)||(!NB[n].has(pl.t)&&!canReach(n,pl.t))))N.pl=pl=null;
+  if(pl){const mo=motives(n,pl.t,s,NB);let sc=mo.tot*warOdds(n,pl.t,s)*load;if(isHuman(pl.t))sc/=MODE().safe||1;
+    if(sc<(pl.why==='ult'?.03:.1)){if(pl.w2&&isHuman(pl.t))addLog($b(`${natName(n)} trekt zijn troepen terug van de grens met ${natName(pl.t)}`,`${natName(n)} pulls its troops back from the border with ${natName(pl.t)}`),[n,pl.t],'peace','dip');
+      N.pl=null;N.plN=G.round+3;return}
+    if(pl.why!=='ult')pl.why=mo.why;pl.p+=(.15+.2*Math.min(1.5,sc))*(1.3-.6*P.pat)*clamp(aggW,.7,1.4);
+    if(!pl.w2&&pl.p>=.4)warnPlan(n,pl);
+    if(pl.p>=1){
+      if(truce(n,pl.t)&&!(P.honor<.25&&sc>.8&&rnd()<.15)){pl.p=.9;return}
+      if(!pl.w2){warnPlan(n,pl);return}
+      if(isHuman(pl.t)&&G.round-pl.w2<1)return;               // a player always gets at least one month of warning
+      if(isHuman(pl.t)&&G.offers.some(o=>o.type==='ult'&&o.from===n&&o.to===pl.t))return;   // waiting for an answer
+      const t=pl.t,w=pl.why;N.pl=null;N.plN=G.round+2;declareWar(n,t,w==='fear'?'enc':w)}
+    return}
+  if(N.plN&&G.round<N.plN)return;
+  if(rnd()>(.1+.22*P.agg+.12*P.amb)*aggW*Math.min(1,G.round/3)*load)return;
+  const cand=new Set(NB[n]);for(const t of GR.get(n)||[])cand.add(t);for(const a of D.al[n])for(const e of D.war[a])cand.add(e);
+  let best=-1,bs=.3,bw='';
+  for(const t of cand){if(t===n||G.N[t].dead||allied(n,t)||atWar(n,t)||grace(t))continue;if(!NB[n].has(t)&&!canReach(n,t))continue;
+    const mo=motives(n,t,s,NB);if(mo.tot<=.15)continue;let sc=mo.tot*warOdds(n,t,s);if(isHuman(t))sc/=MODE().safe||1;if(truce(n,t))sc*=P.honor>.3?.12:.5;
+    if(sc>bs){bs=sc;best=t;bw=mo.why}}
+  if(best>=0)N.pl={t:best,why:bw,p:Math.min(.3,bs*.2),r:G.round}}
+// Troops gather at the border: the target sees it coming. Toward a player a greedy or calculating country first makes a demand.
+function warnPlan(n,pl){pl.w2=G.round;const t=pl.t,P=ps(n),W=WHY_TXT[pl.why]||WHY_TXT.exp;
+  if(!isHuman(t))return;
+  addLog($b(`${natName(n)} trekt troepen samen aan de grens met ${natName(t)} (${W[0]})`,`${natName(n)} masses troops on the border with ${natName(t)} (${W[1]})`),[n,t],'war','war');
+  if(pl.why!=='ally'&&rnd()<.25+.55*P.greed-.2*P.pride){const amt=+clamp(Math.min(G.N[t].m*.35,stats()[t].inc*(2+3*P.greed)),.3,1e9).toFixed(2);
+    if(!G.offers.some(o=>o.type==='ult'&&o.from===n))G.offers.push({type:'ult',from:n,to:t,amt,why:pl.why,r:G.round})}}
+// The player answers an ultimatum.
+function answerUlt(off,yes){const f=off.from,h=off.to,N=G.N[f];
+  if(yes){const pay=Math.min(off.amt,G.N[h].m);G.N[h].m-=pay;N.m+=pay;N.pl=null;N.plN=G.round+10;addOp(f,h,12);addGr(f,h,-30);
+    addLog($b(`${natName(h)} betaalt ${natName(f)} ${fmtMoney(pay)}. ${natName(f)} trekt zijn troepen terug.`,`${natName(h)} pays ${natName(f)} ${fmtMoney(pay)}. ${natName(f)} pulls its troops back.`),[h,f],'peace','dip');return}
+  addOp(f,h,-10);addGr(f,h,10);const P=ps(f);
+  if(N.pl&&N.pl.t===h&&rnd()<.55+.4*P.pride){N.pl.p=1;N.pl.why='ult';N.pl.w2=Math.min(N.pl.w2||G.round,G.round-1)}
+  else{if(N.pl&&N.pl.t===h){N.pl=null;N.plN=G.round+4}addLog($b(`${natName(f)} durft zijn ultimatum aan ${natName(h)} niet uit te voeren`,`${natName(f)} backs down from its ultimatum to ${natName(h)}`),[f,h],'peace','dip')}}
+// What computer countries ask the players, and what allies do for them. At most a few messages per player per month.
+function aiAsks(){const s=stats(),NB=nbrs(),D=dip();
+  for(const h of G.order){if(G.N[h].dead)continue;let sent=G.offers.filter(o=>o.to===h&&o.r===G.round&&o.type!=='help'&&o.type!=='ult').length,soft=0;
+    const near=new Set([...NB[h],...D.al[h],...D.tr[h],...D.war[h]]);const ids=shuffle([...near].filter(c=>!isHuman(c)&&!G.N[c].dead));
+    for(const c of ids){if(sent>=2)break;const N=G.N[c],P=ps(c),op=opinion(c,h);N.ask=N.ask||{};const last=N.ask[h]??-99,cool=G.round-last;
+      const send=o=>{G.offers.push(Object.assign({from:c,to:h,r:G.round},o));N.ask[h]=G.round;sent++};
+      if(allied(c,h)){
+        // an ally that is losing a war asks for money
+        if(D.war[c].size&&cool>=5&&(lossFrac(c)>.08||[...D.war[c]].some(e=>s[e].power>s[c].power))&&op>5&&rnd()<.35){const amt=+Math.min(G.N[h].m*.2,s[h].inc*1.5).toFixed(2);if(amt>=.3){send({type:'aid',amt});continue}}
+        // an ally with its own plans proposes a joint war
+        if(N.pl&&N.pl.p>=.35&&cool>=6&&!allied(h,N.pl.t)&&!atWar(h,N.pl.t)&&!G.N[N.pl.t].dead&&canReach(h,N.pl.t)&&rnd()<.4+.3*P.loy){send({type:'joint',vs:N.pl.t});continue}
+        // a loyal ally helps a player who is losing a war, with money or soldiers
+        if(D.war[h].size&&lossFrac(h)>.06&&G.round-(N.gift??-99)>=6&&op>15&&rnd()<.12+.25*P.loy){N.gift=G.round;
+          if(P.greed>.55){const sd=Math.round(Math.min(A(c).a[homeCont(c)]*.06,25000));if(sd>=1000){subA(c,homeCont(c),sd,0);addA(h,homeCont(h),sd,0);addLog($b(`Bondgenoot ${natName(c)} stuurt ${natName(h)} ${fmtT(sd)} soldaten`,`Ally ${natName(c)} sends ${natName(h)} ${fmtT(sd)} soldiers`),[c,h],'ally','dip')}}
+          else{const amt=+Math.min(G.N[c].m*.2,s[c].inc*2).toFixed(2);if(amt>=.2){G.N[c].m-=amt;G.N[h].m+=amt;addLog($b(`Bondgenoot ${natName(c)} stuurt ${natName(h)} ${fmtMoney(amt)} oorlogssteun`,`Ally ${natName(c)} sends ${natName(h)} ${fmtMoney(amt)} in war aid`),[c,h],'ally','dip')}}}
+        continue}
+      if(atWar(c,h)||soft>=1)continue;
+      // an alliance against a shared enemy or a shared big neighbour, or just good friends
+      if(cool>=8&&D.al[c].size<3&&!truce(c,h)){const T=bigThreat(c);const common=[...D.war[c]].some(e=>D.war[h].has(e))||(T>=0&&(NB[h].has(T)||atWar(h,T)));
+        const okA=![...D.war[h]].some(e=>D.al[c].has(e))&&![...D.war[c]].some(e=>D.al[h].has(e));
+        if(okA&&op>=(common?25:55)-12*P.fri&&grudge(c,h)<15&&rnd()<.25+.3*P.fri+(common?.2*P.para:0)){send({type:'ally'});soft++;continue}}
+      if(cool>=10&&!trading(c,h)&&D.tr[c].size<6&&op>=-5&&grudge(c,h)<20&&rnd()<.06+.2*P.merc){send({type:'trade'});soft++;continue}}
+    // an ally that has turned against the player first complains, then ends the alliance
+    for(const c of D.al[h]){if(isHuman(c)||G.N[c].dead)continue;const N=G.N[c],op=opinion(c,h);N.alW=N.alW||{};
+      if(op<-15){if(N.alW[h]==null){N.alW[h]=G.round;addLog($b(`${natName(c)} is ontevreden over het bondgenootschap met ${natName(h)}`,`${natName(c)} is unhappy with its alliance with ${natName(h)}`),[c,h],'info','dip')}
+        else if(G.round-N.alW[h]>=2&&op<-25&&rnd()<.5-.3*ps(c).loy){delete G.al[pk(c,h)];delete N.alW[h];setTruce(c,h,4);dipDirty();addLog($b(`${natName(c)} zegt het bondgenootschap met ${natName(h)} op`,`${natName(c)} ends its alliance with ${natName(h)}`),[c,h],'war','dip')}}
+      else if(op>0)delete N.alW[h]}}}
+// Once a month: opinions drift back to a country's own nature, grudges fade, comrades in arms grow closer.
+function aiMemory(){
+  for(const k in G.op){const i=k.indexOf('>'),a=+k.slice(0,i),h=+k.slice(i+1);if(!G.N[a]||!G.N[h]||G.N[a].dead||G.N[h].dead){delete G.op[k];continue}const P=ps(a);let v=G.op[k];
+    if(trading(a,h))v+=1+P.merc;if(allied(a,h))v+=1+1.5*P.loy;const b=(P.fri-.5)*16;G.op[k]=Math.round((b+(v-b)*(v<b?.985-.05*P.forg:.985))*10)/10}
+  if(G.gr)for(const k in G.gr){const a=+k.slice(0,k.indexOf('>'));if(!G.N[a]||G.N[a].dead){delete G.gr[k];continue}const v=G.gr[k]*(.975-.06*ps(a).forg);if(v<2)delete G.gr[k];else G.gr[k]=Math.round(v*10)/10}
+  if(G.tru)for(const k in G.tru)if(G.tru[k]<G.round)delete G.tru[k];
+  const D=dip();for(const h of G.order){if(G.N[h].dead)continue;for(const e of D.war[h])for(const c of D.war[e])if(c!==h&&!isHuman(c))addOp(c,h,1.5)}}
 
 /* ================= war: a moving front line ================= */
 const HOME=1.3,TK_A=40,TK_D=25,JT=250,SH_A=300,SH_D=100,DR_A=60,DR_D=15;
@@ -1135,7 +1285,7 @@ function considerSurrender(d,a,demand){
   if(!beaten)return demand?'no':null;
   N.lastAsk=G.round;
   const helpers=[...dip().war[a]].filter(x=>x!==d&&allied(x,d)).length;
-  const stubborn=NAT[d].ag*.45+(N.last?.2:0)+helpers*.12+.08*Math.log10(1+KM0[d]/200000);
+  const stubborn=ps(d).pride*.35+ps(d).agg*.15+(N.last?.2:0)+helpers*.12+.08*Math.log10(1+KM0[d]/200000);
   if(rnd()<.18+lf*.5+we/180+(N.capL?.12:0)-stubborn){capitulate(d,a);return 'cap'}
   // not ready to give everything up: offer peace, the front line becomes the new border
   if(we>45&&rnd()<.55){if(isHuman(a)){if(!G.offers.some(o=>o.type==='peace'&&o.from===d&&o.to===a))G.offers.push({type:'peace',from:d,to:a,r:G.round,cede:1})}
@@ -1156,7 +1306,7 @@ function mergeInto(t,u,vs){
   for(const k of Object.keys(G.occ))if(G.occ[k][0]===t)G.occ[k][0]=u;
   const N=G.N[t],M=G.N[u],K=kit(t),KU=kit(u);M.m+=Math.max(0,N.m);for(const id of KITS)if(id!=='tk')KU[id]=(KU[id]||0)+(K[id]||0);for(let c=0;c<NC;c++){NU.a[c]+=NT.a[c];NU.ka[c]+=NT.ka[c]}NT.a.fill(0);NT.ka.fill(0);fixA(u);
   for(let i=0;i<UPG.length;i++)M.u[i]=Math.max(M.u[i],N.u[i]);M.rs=M.rs||{done:{},cur:null};for(const k in (N.rs&&N.rs.done)||{})M.rs.done[k]=1;
-  for(const e of [...dip().war[t]])if(e!==u&&!atWar(u,e)&&!allied(u,e))G.war[pk(u,e)]=G.round;
+  for(const e of [...dip().war[t]])if(e!==u&&!atWar(u,e)&&!allied(u,e)&&!truce(u,e))G.war[pk(u,e)]=G.round;
   N.t=0;N.m=0;N.k=KIT0();
   const kt=KM0[t]||1,ku=stats()[u].km||1;const nm=`${un}-${old}`;if(nm.length<=22&&!M.h&&kt>ku*.3)M.nm=nm;
   checkDead(t,u,true);dirty();
@@ -1188,22 +1338,22 @@ function aiThreats(){
       fear.push({t,enc,f:(big/(s[t].power+1))*(.4+enc)*(1+cq/4)*(grow>1.25?1.6:1)*(isHuman(x)?1.2:1)})}
     if(!fear.length)continue;
     // 1. surrounded countries strike first
-    for(const F of fear){const t=F.t;if(atWar(t,x)||G.N[t].dead)continue;
-      if(F.enc>.5&&rnd()<.22*agg&&s[t].power>big*.3){declareWar(t,x,'enc')}}
+    for(const F of fear){const t=F.t;if(atWar(t,x)||G.N[t].dead||truce(t,x))continue;const P=ps(t);
+      if(F.enc>.5&&rnd()<(.12+.2*P.para)*agg&&s[t].power>big*.3&&(!G.N[t].pl||G.N[t].pl.t!==x)&&!(isHuman(x)&&G.round<=(MODE().grace||0)))G.N[t].pl={t:x,why:'fear',p:.45,r:G.round}}
     if(G.round-(G.coal[x]==null?-99:G.coal[x])<4)continue;
     // 2. a weak, surrounded country may merge with a neighbour
     const weak=fear.filter(F=>F.enc>.35&&s[F.t].power<big*.3&&!G.N[F.t].dead).sort((a,b)=>b.enc-a.enc)[0];
     if(weak&&rnd()<.18*agg){const t=weak.t;let best=-1,bp=0;
       for(const [u] of BL[t]){if(u===x||G.N[u].dead||isHuman(u)||atWar(u,t)||allied(u,x)||!(BL[x].has(u)||allied(u,t)))continue;if(s[u].power>bp&&s[u].power<big*.8){bp=s[u].power;best=u}}
-      if(best>=0){mergeInto(t,best,x);G.coal[x]=G.round;if(!atWar(best,x)&&s[best].power+s[t].power>big*.45)G.war[pk(best,x)]=G.round;dipDirty();continue}}
+      if(best>=0){mergeInto(t,best,x);G.coal[x]=G.round;if(!atWar(best,x)&&!truce(best,x)&&s[best].power+s[t].power>big*.45){G.war[pk(best,x)]=G.round;addGr(x,best,20)}dipDirty();continue}}
     // 3. coalition: frightened neighbours ally with each other and declare war together
-    const mem=fear.filter(F=>F.f>1.2&&!atWar(F.t,x)&&!G.N[F.t].dead).sort((a,b)=>b.f-a.f).slice(0,5).map(F=>F.t);
+    const mem=fear.filter(F=>F.f>1.2&&!atWar(F.t,x)&&!G.N[F.t].dead&&(!truce(F.t,x)||ps(F.t).honor<.2)).sort((a,b)=>b.f-a.f).slice(0,5).map(F=>F.t);
     const warring=[...dip().war[x]].filter(t=>!isHuman(t));
     let cp=0;for(const t of new Set([...mem,...warring]))cp+=s[t].power;
     if(mem.length>=2&&cp>big*.6&&rnd()<.45*agg){
       G.coal[x]=G.round;const all=[...new Set([...mem,...warring])].slice(0,7);
-      for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const a=all[i],b=all[j];if(!atWar(a,b)){G.al[pk(a,b)]=1;delete G.war[pk(a,b)]}}
-      for(const t of mem){if(allied(t,x))delete G.al[pk(t,x)];delete G.tr[pk(t,x)];G.war[pk(t,x)]=G.round}
+      for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const a=all[i],b=all[j];if(!atWar(a,b)&&!allied(a,b)){G.al[pk(a,b)]=G.round;delete G.war[pk(a,b)]}}
+      for(const t of mem){if(allied(t,x))delete G.al[pk(t,x)];delete G.tr[pk(t,x)];if(G.tru)delete G.tru[pk(t,x)];G.war[pk(t,x)]=G.round;addGr(x,t,25);if(G.N[t].pl&&G.N[t].pl.t===x)G.N[t].pl=null}
       dipDirty();STATS=null;
       addLog($b(`Coalitie tegen ${natName(x)}! ${mem.map(natName).join(', ')} sluiten een verbond en verklaren samen de oorlog.`,`Coalition against ${natName(x)}! ${mem.map(natName).join(', ')} form a pact and declare war together.`),[x,...mem],'war','merge');
     }
@@ -1247,7 +1397,7 @@ function aiNuke(n){const K=kit(n),N=G.N[n];if((K.nk||0)<1||N.dead||G.round<8||G.
   if(!(lossFrac(n)>.3||N.capL||(N.we||0)>75))return;const s=stats();
   for(const e of dip().war[n]){if(G.N[e].dead)continue;if(s[e].power<s[n].power*.8)continue;
     if(isHuman(e)){if(G.nkH===G.round||lossFrac(n)<.15&&!N.capL)continue;if(!Object.keys(G.occ).some(k=>G.occ[k][0]===e&&G.R.o[+k]===n)&&(G.N[e].hitR||{})[n]==null)continue}
-    if(rnd()>.18*(isHuman(e)?MODE().nk||1:.6)*(.5+NAT[n].ag))continue;if(isHuman(e))G.nkH=G.round;const t=nukeTarget(n,e);if(t>=0){nukeStrike(n,t);return}}}
+    if(rnd()>.18*(isHuman(e)?MODE().nk||1:.6)*(.4+.6*ps(n).agg+.3*(1-ps(n).caut)))continue;if(isHuman(e))G.nkH=G.round;const t=nukeTarget(n,e);if(t>=0){nukeStrike(n,t);return}}}
 
 /* ================= unrest: conquered land must be held ================= */
 // Conquered regions slowly integrate (G.ig 0..1). Until then they give less money and soldiers and can rise up,
@@ -1261,11 +1411,18 @@ function unrestRound(){
   const done=new Set();
   for(const k of Object.keys(G.ig)){const r=+k;if(done.has(r)||G.ig[k]==null)continue;if(rnd()<revoltChance(r))revolt(r,done)}
 }
-function revolt(r,done){
+// force: stirred up by spies. Without that, land only returns to its old owner while that country is at war with the occupier.
+// In peace the treaty fixed the border: the uprising is put down (it costs soldiers and sets the land back), but the land stays.
+// This used to hand land back at random in peace time and even restart the war.
+function revolt(r,done,force){
   const o=G.R.o[r],n0=R0[r].n0,c=CONT[r];if(G.N[n0].dead){if(done)done.add(r);return []}   // an eliminated country stays eliminated: its land can no longer rise up
   const grp=[r],st=[r],seen=new Set([r]);
   while(st.length){const x=st.pop();for(const j of R0[x].la){if(seen.has(j))continue;seen.add(j);if(G.R.o[j]===o&&R0[j].n0===n0&&G.ig[j]!=null&&G.ig[j]<.75){grp.push(j);st.push(j)}}}
   if(done)grp.forEach(x=>done.add(x));
+  if(!force&&!atWar(n0,o)){let pop=0;for(const x of grp){pop+=G.R.p[x];G.ig[x]=Math.max(0,+(G.ig[x]-.15).toFixed(3))}
+    const [lost]=subA(o,c,Math.min(A(o).a[c]*.05,pop*1e6*.002+800),0);G.N[o].we=clamp((G.N[o].we||0)+2,0,100);
+    if(isHuman(o)){let km=0;for(const x of grp)km+=R0[x].km;addLog($b(`Onrust: een opstand in ${fmtKm(km)} veroverd land is neergeslagen${lost?` (${fmtT(lost)} soldaten verloren)`:''}. Het land blijft van ${natName(o)}.`,`Unrest: an uprising in ${fmtKm(km)} of conquered land was put down${lost?` (${fmtT(lost)} soldiers lost)`:''}. The land stays with ${natName(o)}.`),[o,n0],'revolt','info')}
+    STATS=null;return []}
   let pop=0;for(const x of grp)pop+=G.R.p[x];
   G._noEvac=1;G._noLg=1;for(const x of grp)transfer(x,n0);delete G._noEvac;delete G._noLg;G.N[o].hit=Math.max(0,(G.N[o].hit||0)-grp.length);
   const rebels=Math.round(pop*1e6*.006+3000);addA(n0,c,rebels,Math.round(rebels/2000));subA(o,c,A(o).a[c]*.04,0);
@@ -1278,7 +1435,7 @@ function revolt(r,done){
 }
 function myUnrest(n){const out=new Array(NC).fill(null).map(()=>({regs:0,km:0,risk:0}));for(const k in G.ig||{}){const r=+k;if(G.R.o[r]!==n)continue;const u=out[CONT[r]];u.regs++;u.km+=R0[r].km;u.risk=Math.max(u.risk,revoltChance(r))}return out}
 // Old saves: add the new fields.
-function migrate(g){if(!g)return g;g.ig=g.ig||{};g.fo=g.fo||{};g.hist=g.hist||[];g.N.forEach(N=>{if(N.u)while(N.u.length<UPG.length)N.u.push(0);if(N.k&&N.k.nk==null)N.k.nk=0});
+function migrate(g){if(!g)return g;g.ig=g.ig||{};g.fo=g.fo||{};g.hist=g.hist||[];g.gr=g.gr||{};g.tru=g.tru||{};if(g.pseed==null)g.pseed=((g.rs|0)^0x5BD1E995)|0;g.N.forEach(N=>{if(N.u)while(N.u.length<UPG.length)N.u.push(0);if(N.k&&N.k.nk==null)N.k.nk=0});
   if(ERA){g.v9=1;g.v10=1}
   if(!g.v9){g.v9=1;NAT.forEach((d,n)=>{const nu=NUKES[d.k],N=g.N[n];if(!nu||N.h||N.dead)return;N.k=N.k||{tk:0,jt:0,sh:0,bm:0};N.k.nk=nu[0];N.u[U.kp]=nu[1];N.u[U.rs]=nu[2]})}
   if(!g.v10){g.v10=1;g.N.forEach((N,n)=>{N.rs=N.rs||{done:{},cur:null};if(!N.h)(RES0[NAT[n].k]||[]).forEach(id=>N.rs.done[id]=1)})}return g}
@@ -1367,7 +1524,7 @@ function spyRun(o,id){const op=SPY.find(x=>x.id===id);const ok=rnd()<op.ch;let m
   if(ok){if(id==='sab'){const K=kit(o),NA=A(o);const bm=Math.round(K.bm*.35),nk=K.nk&&rnd()<.5?1:0;K.bm-=bm;K.nk-=nk;const c=homeCont(o);const [,tk]=subA(o,c,0,NA.ka[c]*.12);
       msg=$t(`Depots opgeblazen: ${fmtN(bm)} bommen${tk?', '+fmtN(tk)+' tanks':''}${nk?' en een kernbom':''} vernietigd.`,`Depots blown up: ${fmtN(bm)} bombs${tk?', '+fmtN(tk)+' tanks':''}${nk?' and a nuclear bomb':''} destroyed.`)}
     else if(id==='opst'){let n=0;for(const k in G.ig)if(G.R.o[+k]===o){G.ig[k]=Math.max(0,G.ig[k]-.35);n++}
-      if(n){const rs=Object.keys(G.ig).filter(k=>G.R.o[+k]===o).map(Number);let rv=0;const dn=new Set();for(const r of rs){if(dn.has(r))continue;if(rnd()<revoltChance(r)*6){revolt(r,dn);rv++}}msg=rv?$t(`Het verzet slaat toe: ${rv} ${rv===1?'opstand':'opstanden'} tegen ${natName(o)}!`,`The resistance strikes: ${rv} ${rv===1?'uprising':'uprisings'} against ${natName(o)}!`):$t(`Het verzet in ${n} gebieden is aangewakkerd.`,`The resistance in ${n} areas is stirred up.`)}
+      if(n){const rs=Object.keys(G.ig).filter(k=>G.R.o[+k]===o).map(Number);let rv=0;const dn=new Set();for(const r of rs){if(dn.has(r))continue;if(rnd()<revoltChance(r)*6){if(revolt(r,dn,true).length)rv++}}msg=rv?$t(`Het verzet slaat toe: ${rv} ${rv===1?'opstand':'opstanden'} tegen ${natName(o)}!`,`The resistance strikes: ${rv} ${rv===1?'uprising':'uprisings'} against ${natName(o)}!`):$t(`Het verzet in ${n} gebieden is aangewakkerd.`,`The resistance in ${n} areas is stirred up.`)}
       else{G.N[o].we=Math.min(100,(G.N[o].we||0)+22);msg=$t(`Demonstraties in ${natName(o)}: hun oorlogsmoeheid stijgt flink.`,`Protests in ${natName(o)}: their war weariness rises sharply.`)}}
     else if(id==='tech'){const best=['on','in','vl','kp','rs','ma'].filter(x=>ul(o,x)>ul(ME,x)).sort((a,b)=>(ul(o,b)-ul(ME,b))-(ul(o,a)-ul(ME,a)))[0];
       if(best&&!(best==='kp'&&ul(ME,'on')<2)){G.N[ME].u[U[best]]++;msg=$t(`Plannen gestolen: ${UPG[U[best]].nm} is nu niveau ${ul(ME,best)}.`,`Plans stolen: ${UPG[U[best]].nm} is now level ${ul(ME,best)}.`)}else{G.N[ME].m+=spyCost();msg=$t(`Ze hebben niets dat jij nog niet hebt. Je spionnen verkopen wat ze vonden voor ${fmtMoney(spyCost())}.`,`They have nothing you do not have. Your spies sell what they found for ${fmtMoney(spyCost())}.`)}}}
@@ -1409,7 +1566,7 @@ function startTurn(n){
 function aiBuyUnits(n,budget){
   const N=G.N[n],W=dip().war[n],S=stats();
   // who are we buying against: all current enemies, or in peace the strongest non-allied neighbour
-  const foes=W.size?[...W]:[...nbrs()[n]].filter(e=>!G.N[e].dead&&!allied(n,e)).sort((a,b)=>S[b].power-S[a].power).slice(0,1);
+  const foes=W.size?[...W]:N.pl&&!G.N[N.pl.t].dead?[N.pl.t]:[...nbrs()[n]].filter(e=>!G.N[e].dead&&!allied(n,e)).sort((a,b)=>S[b].power-S[a].power).slice(0,1);
   let sd=0,tk=0,jt=0,sh=0,bm=0,sea=0;
   for(const e of foes){if(G.N[e].dead)continue;const K=kit(e),t=K.tk||0;tk+=t*TK_D;jt+=(K.jt||0)*JT;sh+=(K.sh||0)*SH_D;bm+=K.bm||0;sd+=Math.max(0,(G.N[e].t||0)-t);if(W.size&&isNaval(n,e))sea+=S[e].power}
   const tot=sd+tk+jt+sh+1;
@@ -1429,7 +1586,7 @@ function aiBuyUnits(n,budget){
 // AI: keep the land army spread over its continents by population, with extra troops where the enemies are.
 function aiArmy(n){const N=A(n),s=stats()[n];const cs=myConts(n);if(!cs.length)return;const h=homeCont(n);
   for(let c=0;c<NC;c++)if(!s.cr[c]&&(N.a[c]||N.ka[c])){N.a[h]+=N.a[c];N.ka[h]+=N.ka[c];N.a[c]=0;N.ka[c]=0}
-  if(cs.length>1){const thr=new Array(NC).fill(0);let tt=0;const war=dip().war[n].size>0;for(const e of dip().war[n]){const EA=A(e),se=stats()[e];for(const c of cs)if(se.cr[c]){const v=EA.a[c]+EA.ka[c]*TK_D;thr[c]+=v;tt+=v}}
+  if(cs.length>1){const thr=new Array(NC).fill(0);let tt=0;const foesA=[...dip().war[n]];if(G.N[n].pl&&!G.N[G.N[n].pl.t].dead&&!foesA.includes(G.N[n].pl.t))foesA.push(G.N[n].pl.t);const war=foesA.length>0;for(const e of foesA){const EA=A(e),se=stats()[e];for(const c of cs)if(se.cr[c]){const v=EA.a[c]+EA.ka[c]*TK_D;thr[c]+=v;tt+=v}}
     if(!war){const S=stats();for(let r=0;r<NR;r++){if(G.R.o[r]!==n)continue;const c=CONT[r],el=R0[r].el;for(const k in el){const p=G.R.o[+k];if(p===n||G.N[p].dead||allied(n,p))continue;const v=S[p].power*el[k];thr[c]+=v;tt+=v}}}
     const kb=war?.5:.65;
     const pp=s.pop||1,tot=N.a.reduce((x,y)=>x+y,0),totk=N.ka.reduce((x,y)=>x+y,0);
@@ -1437,9 +1594,10 @@ function aiArmy(n){const N=A(n),s=stats()[n];const cs=myConts(n);if(!cs.length)r
   fixA(n)}
 function aiTurn(n){
   const N=G.N[n];if(N.dead)return;const enemies=[...dip().war[n]];const K=kit(n);aiArmy(n);
-  let invest=N.m*(enemies.length?.3:.5);const prio=enemies.length?['mb','vl','on','in','hu']:(n%2?['in','hu','mb','on','vl','ma']:['hu','in','vl','mb','on','ma']);
+  const P=ps(n);let invest=N.m*(enemies.length?.3:.5);
+  const prio=enemies.length?['mb','vl','on','in','hu']:P.amb+P.agg>1.15?['mb','on','in','hu','ma','vl']:P.caut+P.para>1.15?['vl','in','mb','hu','on','ma']:P.merc>.6?['in','hu','on','vl','mb','ma']:(n%2?['in','hu','mb','on','vl','ma']:['hu','in','vl','mb','on','ma']);
   let bought=0;for(const id of prio){if(bought>=2)break;const i=U[id];if(N.u[i]>=UPG[i].max)continue;const c=upCost(n,i);if(c<=invest){buyUpg(n,i);invest-=c;bought++}}
-  if(enemies.length||rnd()<NAT[n].ag*.35)aiBuyUnits(n,N.m*(enemies.length?.45:.12));
+  if(enemies.length||N.pl||rnd()<.12+P.agg*.2+P.para*.12)aiBuyUnits(n,N.m*(enemies.length?.45:N.pl?.3:.12));
   for(const e of enemies){if(G.N[n].dead||G.N[e].dead||!canReach(n,e))continue;
     const c=bestTheater(n,e),src=srcCont(n,e,c),NA=A(n);
     const naval=isNaval(n,e,c);const E=defFront(e,n,naval,c);const FT=frontTerrain(n,e,c);const need=E.p*defDM(e)*FT.d*FT.h;
@@ -1454,7 +1612,7 @@ function aiTurn(n){
     const myP=(send+unitPow(u,true,naval))*atkMult(n);
     const ew=(G.N[e].we||0)/250,mw=(G.N[n].we||0)/200;
     const ratio=myP/(need*(myOcc?.75:1)*(1-ew+mw)+1);
-    const pAtk=clamp((ratio-.85)/.4,0,1)*clamp((95-(G.N[n].we||0))/45,0,1);   // odds rise with the power ratio and fall with war weariness
+    const pAtk=clamp((ratio-(.72+.28*P.caut))/(.3+.2*P.pat),0,1)*clamp((95-(G.N[n].we||0))/45,0,1);   // odds rise with the power ratio and fall with war weariness; a cautious country waits for a bigger edge
     if(send>300&&rnd()<pAtk){
       if(K.bm>4&&rnd()<.5)u.bm=Math.round(K.bm*.5);if(K.kr>1&&rnd()<.35)u.kr=Math.round(K.kr*.4);
       runBattle(n,e,send,isHuman(e)?5:6,u,c)}
@@ -1472,8 +1630,8 @@ function aiAlliances(s,NB){
     if(thr>=0&&tp>s[n].power*1.3&&(NB[p].has(thr)||atWar(p,thr)))v+=.8;     // common big neighbour
     if(NB[n].has(p))v+=.3;if(trading(n,p))v+=.4;
     const r=s[p].power/(s[n].power+1);if(r>.4&&r<3)v+=.3;                   // partner that actually matters
-    v+=clamp(opinion(n,p)/100,-1,1)*.6;                                    // trust built up or lost earlier
-    return v-(NAT[n].ag-.5)*.5};
+    v+=clamp(opinion(n,p)/100,-1,1)*.6-grudge(n,p)/80;                     // trust built up or lost earlier
+    const P=ps(n);return v+(P.fri-.5)*.4+(thr>=0?(P.para-.5)*.3:0)-(P.agg-.5)*.3};
   const ids=[];for(let n=0;n<NN;n++)if(!G.N[n].dead&&!isHuman(n))ids.push(n);shuffle(ids);
   for(const n of ids){
     if(G.N[n].dead||dip().al[n].size>=3||rnd()>.04)continue;
@@ -1485,56 +1643,49 @@ function aiAlliances(s,NB){
   }
   for(const n of ids){if(G.N[n].dead)continue;
     for(const p of [...dip().al[n]]){if(p<n||G.N[p].dead||isHuman(p))continue;
-      if(Math.max(score(n,p),score(p,n))<.9&&rnd()<.04){delete G.al[pk(n,p)];dipDirty();addLog($b(`Het bondgenootschap tussen ${natName(n)} en ${natName(p)} loopt af`,`The alliance between ${natName(n)} and ${natName(p)} expires`),[n,p],'info')}}}
+      if(Math.max(score(n,p),score(p,n))<.9&&rnd()<.05*(1.25-ps(n).loy)*(alAge(n,p)<6?.3:1)){delete G.al[pk(n,p)];setTruce(n,p,3);dipDirty();addLog($b(`Het bondgenootschap tussen ${natName(n)} en ${natName(p)} loopt af`,`The alliance between ${natName(n)} and ${natName(p)} expires`),[n,p],'info')}}}
 }
 // NPC trade: every country keeps up to 6 treaties, preferring rich partners, allies and neighbours it trusts.
 function aiTrade(s,NB){
   const rich=[];for(let n=0;n<NN;n++)if(!G.N[n].dead)rich.push(n);rich.sort((a,b)=>s[b].gdp-s[a].gdp);const top=rich.slice(0,10);
   const ids=[];for(let n=0;n<NN;n++)if(!G.N[n].dead&&!isHuman(n))ids.push(n);ids.sort(()=>rnd()-.5);
   for(const n of ids){
-    if(G.N[n].dead||dip().tr[n].size>=6||rnd()>.07)continue;
+    if(G.N[n].dead||dip().tr[n].size>=6||rnd()>.03+.08*ps(n).merc)continue;
     const cand=new Set([...NB[n],...dip().al[n],...top]);let best=-1,bs=-1e9;
     for(const p of cand){if(p===n||G.N[p].dead||isHuman(p)||atWar(n,p)||trading(n,p)||dip().tr[p].size>=6)continue;
-      if(opinion(n,p)<-15||opinion(p,n)<-15)continue;
+      if(opinion(n,p)<-15-15*ps(n).merc||opinion(p,n)<-15-15*ps(p).merc||grudge(n,p)>25||grudge(p,n)>25)continue;
       const v=Math.log10(s[p].gdp+1)+(allied(n,p)?1:0)+(NB[n].has(p)?.5:0)+opinion(n,p)/100;if(v>bs){bs=v;best=p}}
     if(best>=0)makeTrade(n,best);
   }
 }
 function aiDiplomacy(){
-  const s=stats(),NB=nbrs();const aggW=MODE().agg;
+  const s=stats(),NB=nbrs();
+  const GR=new Map();if(G.gr)for(const k in G.gr){if(G.gr[k]<20)continue;const i=k.indexOf('>'),a=+k.slice(0,i),b=+k.slice(i+1);if(G.N[b].dead)continue;if(!GR.has(a))GR.set(a,[]);GR.get(a).push(b)}
   const ids=[];for(let n=0;n<NN;n++)if(!G.N[n].dead&&!isHuman(n))ids.push(n);shuffle(ids);
   for(const n of ids){
     if(G.N[n].dead)continue;
     for(const e of [...dip().war[n]]){
       const since=G.round-(G.war[pk(n,e)]||G.round);
-      if(isHuman(e)){if(since>=3&&s[n].power<s[e].power*.7&&rnd()<.2&&!G.offers.some(o=>o.type==='peace'&&o.from===n&&o.to===e))G.offers.push({type:'peace',from:n,to:e,r:G.round});continue}
-      if(n<e&&since>=1){
-        // how badly each side wants out: war weariness, lost land, being the weaker side, a long stalemate, a cautious nature
-        const want=(x,y)=>clamp((G.N[x].we||0)/100*.6+lossFrac(x)*1.0+(s[x].power<s[y].power*.7?.25:0)+since*.02-NAT[x].ag*.15,0,1);
-        const wn=want(n,e),we2=want(e,n);
-        if(rnd()<Math.min(.5,.02+.3*Math.max(wn,we2)+.2*Math.min(wn,we2)))makePeace(n,e)}
+      // how badly each side wants out: war weariness, lost land, being the weaker side, a long stalemate, its character
+      const want=(x,y)=>{const P=ps(x);return clamp((G.N[x].we||0)/100*.6+lossFrac(x)*1.0+(s[x].power<s[y].power*.7?.25:0)+since*.025+.12*P.caut-.12*P.pride-.08*P.agg-grudge(x,y)/500,0,1)};
+      if(isHuman(e)){const w=want(n,e);if(since>=2&&w>.3&&rnd()<.12+.3*w&&!G.offers.some(o=>o.type==='peace'&&o.from===n&&o.to===e))G.offers.push({type:'peace',from:n,to:e,r:G.round});continue}
+      // peace needs both sides: the side that is losing badly surrenders or cedes land (considerSurrender), otherwise both must be tired of it
+      if(n<e&&since>=1){const wn=want(n,e),we2=want(e,n);
+        if(rnd()<Math.min(.35,.01+.32*Math.min(wn,we2)+.12*Math.max(wn,we2)*(since>=3?1:.5)))makePeace(n,e)}
     }
-    const ag=NAT[n].ag;const loadF=Math.pow(.1+.35*ag,dip().war[n].size); // each extra war is less likely, never impossible
-    if(rnd()>(.03+.11*ag)*aggW*Math.min(1,G.round/3)*loadF)continue;
-    let best=null,bs=0;
-    for(const t of NB[n]){
-      if(G.N[t].dead||allied(n,t)||atWar(n,t))continue;
-      let tp=s[t].power+1;for(const c of dip().al[t])if(NB[n].has(c)&&!allied(c,n))tp+=s[c].power*.5;
-      let need=(3.0-1.9*ag);/* grudges raise the odds, friendship lowers them */const opp=dip().war[t].size>0||(G.N[t].hit||0)>0;
-      if(dip().war[t].size>0)need*=.7;if((G.N[t].hit||0)>0)need*=.8;
-      if(isHuman(t)){if(G.round<=(MODE().grace||0))continue;need*=MODE().safe||1}const sc=s[n].power/tp/need*clamp(1-opinion(n,t)/250,.6,1.4);if(sc>.7&&sc>bs){bs=sc;best={t,opp}}
-    }
-    if(best&&rnd()<clamp((bs-.7)/.45,0,1))declareWar(n,best.t,best.opp?'opp':'');
+    aiPlan(n,s,NB,GR);
   }
   aiAlliances(s,NB);
   aiTrade(s,NB);
   aiThreats();
+  aiAsks();
 }
 // Land that changed hands this month (transfer() keeps count) becomes one news line per pair of countries.
 function flushLand(){const L=G.lg||{};G.lg={};const seen=new Set(),out=[];
   for(const k in L){const [a,b]=k.split('>').map(Number);const key=pk(a,b);if(seen.has(key))continue;seen.add(key);const net=L[k]-(L[b+'>'+a]||0);
     if(Math.abs(net)<600)continue;out.push(net>0?{a,b,km:net}:{a:b,b:a,km:-net})}
   out.sort((x,y)=>y.km-x.km);const big=out.slice(0,14);for(const x of out)if(!big.includes(x)&&(isHuman(x.a)||isHuman(x.b)))big.push(x);
+  for(const x of out){addGr(x.b,x.a,Math.min(25,3+x.km/30000*8));addOp(x.b,x.a,-Math.min(10,2+x.km/60000*4))}
   for(const x of big){const l=addLog($b(`${natName(x.a)} verovert ${fmtKm(x.km)} van ${natName(x.b)}`,`${natName(x.a)} conquers ${fmtKm(x.km)} from ${natName(x.b)}`),[x.a,x.b],'conq','land');l.km=Math.round(x.km)}}
 const WIN_SHARE=.35;
 function roundEnd(){
@@ -1542,10 +1693,10 @@ function roundEnd(){
   aiDiplomacy();unrestRound();aiResearch();flushLand();
   for(const k of Object.keys(G.fo||{})){const r=+k;G.R.p[r]*=.985;G.R.g[r]*=.97;if(--G.fo[k]<=0)delete G.fo[k]}
   for(let r=0;r<NR;r++){const N=G.N[G.R.o[r]];G.R.p[r]=+(G.R.p[r]*(1.0015+.003*N.u[U.hu])).toFixed(5);G.R.g[r]=+(G.R.g[r]*1.005).toFixed(5)}
-  for(const k of Object.keys(G.occ)){const r=+k,o=G.occ[k],ow=G.R.o[r],c=CONT[r];if(!G.N[ow].a||!G.N[o[0]].a)continue;const dg=G.N[ow].a[c],og=G.N[o[0]].a[c];
+  for(const k of Object.keys(G.occ)){const r=+k,o=G.occ[k],ow=G.R.o[r],c=CONT[r];if(o[0]===ow||!atWar(o[0],ow)){delete G.occ[k];continue}if(!G.N[ow].a||!G.N[o[0]].a)continue;const dg=G.N[ow].a[c],og=G.N[o[0]].a[c];
     if(dg>og*1.2+500){o[1]-=.06;if(o[1]<=.01)delete G.occ[k]}}
   for(let n=0;n<NN;n++){const N=G.N[n];if(N.rep)N.rep=N.rep>.05?+(N.rep*.97).toFixed(3):0;N.we=Math.round((N.we||0)*(dip().war[n].size?.88:.6));if(!dip().war[n].size)N.capL=0;N.hit=Math.floor((N.hit||0)/2);N.cq=Math.floor((N.cq||0)*.7);if(N.last&&!dip().war[n].size)N.last=0}
-  for(const k in G.op){const [a,h]=k.split('>').map(Number);let v=G.op[k];v+=trading(a,h)?2:0;v+=allied(a,h)?1:0;G.op[k]=Math.round(v*.97)}
+  aiMemory();
   G.offers=G.offers.filter(o=>G.round-o.r<2);
   for(const T of [G.pc,G.bk])if(T)for(const k in T)if(G.round-T[k]>3)delete T[k];
   G.round++;dirty();recordHist();
@@ -1564,10 +1715,10 @@ function endTurn(){
 const cv=$('#map'),ctx=cv.getContext('2d');const hit=document.createElement('canvas').getContext('2d');
 let DPR=1,VW=0,VH=0;const cam={s:1,x:0,y:0};
 let selN=-1,selC=-1,needDraw=false,flashes=[],regCol=[],natLabels=[],armyLabels=[],BATTLE=null;
-let borderPath=null,meOut=null,allyOut=null,warOut=null,pickOut=null,selOut=null;
+let borderPath=null,meOut=null,allyOut=null,warOut=null,pickOut=null,selOut=null,selComps=[],SELARR=[];
 const glow=document.createElement('canvas');
 (function(){const p=24;glow.width=WW+2*p;glow.height=HH+2*p;const g=glow.getContext('2d');g.translate(p,p);g.shadowColor='rgba(80,190,255,.5)';g.shadowBlur=16;g.fillStyle='#0f2738';for(const r of R0)g.fill(r.path);g.shadowBlur=4;g.shadowColor='rgba(150,220,255,.45)';for(const r of R0)g.fill(r.path);glow.pad=p})();
-function resize(){DPR=Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);clampCam();req()}
+function resize(){hudMode();DPR=Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);clampCam();req()}
 function minS(){return VH>VW*1.15?Math.max(VW/WW,VH/HH*.62):Math.max(VW/WW,VH/HH)}
 function clampCam(){cam.s=clamp(cam.s,minS(),40);const mw=WW*cam.s,mh=HH*cam.s;cam.x=mw<=VW?(VW-mw)/2:clamp(cam.x,VW-mw,0);cam.y=mh<=VH?(VH-mh)/2:clamp(cam.y,VH-mh,0)}
 function req(){if(!needDraw){needDraw=true;requestAnimationFrame(draw)}}
@@ -1579,11 +1730,40 @@ function buildBorders(){
   const o=G.R.o;const p=new Path2D();
   for(const r of R0){const ro=o[r.i];for(const {pts,e} of r.rings){let k=0;for(let j=0;j<e.length;j+=2){const nb=e[j],c=e[j+1];if(nb>=0&&o[nb]!==ro){p.moveTo(pts[k*2],pts[k*2+1]);for(let s=1;s<=c;s++)p.lineTo(pts[(k+s)*2],pts[(k+s)*2+1])}k+=c}}}
   borderPath=p;const f=focusN();
-  meOut=f>=0?segs(x=>x===f,true):null;allyOut=warOut=pickOut=null;selOut=selN>=0&&selN!==f?segs(x=>x===selN,true):null;
+  meOut=f>=0?segs(x=>x===f,true):null;allyOut=warOut=pickOut=null;selOut=selN>=0&&selN!==f?segs(x=>x===selN,true):null;selComps=selN>=0&&!PICK?natComps(selN):[];
   if(f>=0&&!G.pv){const D=dip();const al=D.al[f],wa=D.war[f];if(al.size)allyOut=segs(x=>al.has(x),false);if(wa.size)warOut=segs(x=>wa.has(x),false)}
   const ps=pickSet();if(ps){const taken=new Set(PICK.players.map(p=>p.nation));pickOut=segs(x=>ps.has(x)&&x!==f&&!taken.has(x),true);if(taken.size)allyOut=segs(x=>taken.has(x),true)}
   bordersDirty=false;
 }
+// Pieces of land of one country (connected over land), biggest first.
+function natComps(n){const o=G.R.o,seen=new Uint8Array(NR),out=[];
+  for(let r=0;r<NR;r++){if(o[r]!==n||seen[r])continue;const comp=[],st=[r];seen[r]=1;while(st.length){const x=st.pop();comp.push(x);for(const j of R0[x].la)if(!seen[j]&&o[j]===n){seen[j]=1;st.push(j)}}
+    let km=0;const bb=[1e9,1e9,-1e9,-1e9];for(const x of comp){km+=R0[x].km;const b=R0[x].bb;bb[0]=Math.min(bb[0],b[0]);bb[1]=Math.min(bb[1],b[1]);bb[2]=Math.max(bb[2],b[2]);bb[3]=Math.max(bb[3],b[3])}
+    out.push({comp,km,bb,x:(bb[0]+bb[2])/2,y:(bb[1]+bb[3])/2})}
+  return out.sort((a,b)=>b.km-a.km)}
+// The selected country: blue rings around its small or far-away pieces of land, and arrows at the screen edge to pieces out of view.
+function drawSel(s,now){SELARR=[];if(selN<0||!selComps.length||PICK||G.pv)return;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const tb=$('#top'),top=(tb&&tb.offsetParent?tb.getBoundingClientRect().bottom:0)+10,lft=12;let bot=VH-16,rgt=VW-12;
+  {const P=$('#panel');if(P&&P.classList.contains('open')){if(P.offsetTop>VH*.3)bot=P.offsetTop-12;else rgt=P.offsetLeft-12}}
+  const avoid=['#goalbox','#warbox','#zoom','#dock','#hint'].map(q=>{const e=$(q);if(!e||e.hidden||!e.offsetParent)return null;const b=e.getBoundingClientRect();return b.width?b:null}).filter(Boolean);
+  const cl=[];selComps.forEach((c,i)=>{const x0=c.bb[0]*s+cam.x,y0=c.bb[1]*s+cam.y,x1=c.bb[2]*s+cam.x,y1=c.bb[3]*s+cam.y,cx=(x0+x1)/2,cy=(y0+y1)/2;
+    const q=cl.find(k=>Math.hypot((k.x0+k.x1)/2-cx,(k.y0+k.y1)/2-cy)<36);
+    if(q){q.x0=Math.min(q.x0,x0);q.y0=Math.min(q.y0,y0);q.x1=Math.max(q.x1,x1);q.y1=Math.max(q.y1,y1);q.n++;q.main=q.main||!i;q.wx=(q.wx*(q.n-1)+c.x)/q.n;q.wy=(q.wy*(q.n-1)+c.y)/q.n}
+    else cl.push({x0,y0,x1,y1,n:1,main:!i,wx:c.x,wy:c.y})});
+  if(cl.length<2&&Math.max(cl[0].x1-cl[0].x0,cl[0].y1-cl[0].y0)>24)return;
+  const pulse=.65+.35*Math.sin(now/260);
+  for(const k of cl){const cx=(k.x0+k.x1)/2,cy=(k.y0+k.y1)/2,sz=Math.max(k.x1-k.x0,k.y1-k.y0);
+    if(cx>=lft&&cx<=rgt&&cy>=top&&cy<=bot){if(k.main&&sz>24||sz>90)continue;
+      const R=Math.max(12,sz/2+9);ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fillStyle='rgba(64,168,255,.12)';ctx.fill();ctx.lineWidth=4;ctx.strokeStyle='rgba(5,12,24,.55)';ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle=`rgba(64,168,255,${pulse})`;ctx.stroke();continue}
+    // off screen: an arrow on the edge, pointing at it (tap it to fly there)
+    const mx=VW/2,my=(top+bot)/2,dx=cx-mx,dy=cy-my;const t=Math.min(dx?((dx>0?rgt-14:lft+14)-mx)/dx:1e9,dy?((dy>0?bot-14:top+14)-my)/dy:1e9);
+    let ax=mx+dx*t,ay=my+dy*t;const ang=Math.atan2(dy,dx);
+    for(const b of avoid)if(ax>b.left-16&&ax<b.right+16&&ay>b.top-16&&ay<b.bottom+16){if(Math.abs(ax-lft-14)<2||Math.abs(ax-rgt+14)<2)ay=ay<(b.top+b.bottom)/2&&b.top-18>top?b.top-18:b.bottom+18;else ax=ax<(b.left+b.right)/2?b.left-18:b.right+18}
+    if(SELARR.some(a=>Math.hypot(a.x-ax,a.y-ay)<26))continue;
+    ctx.save();ctx.translate(ax,ay);ctx.beginPath();ctx.arc(0,0,13,0,7);ctx.fillStyle='rgba(8,20,36,.92)';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='rgba(64,168,255,.95)';ctx.stroke();
+    ctx.rotate(ang);ctx.beginPath();ctx.moveTo(6,0);ctx.lineTo(-3,-5.5);ctx.lineTo(-3,5.5);ctx.closePath();ctx.fillStyle='#4aa8ff';ctx.fill();ctx.restore();
+    SELARR.push({x:ax,y:ay,wx:k.wx,wy:k.wy})}}
 function buildColors(){const base=new Array(NN);regCol=new Array(NR);for(let r=0;r<NR;r++){const o=G.R.o[r];regCol[r]=base[o]||(base[o]=natColor(o))}colorsDirty=false}
 function draw(){
   needDraw=false;if(!G)return;
@@ -1608,7 +1788,7 @@ function draw(){
   if(pickOut){ctx.strokeStyle='rgba(236,235,230,.95)';ctx.lineWidth=2/s;ctx.stroke(pickOut)}
   if(warOut){ctx.setLineDash([5/s,4/s]);ctx.strokeStyle='rgba(222,162,50,.95)';ctx.lineWidth=1.8/s;ctx.stroke(warOut);ctx.setLineDash([])}
   if(allyOut){if(!PICK)ctx.setLineDash([6/s,4/s]);ctx.strokeStyle='rgba(91,159,224,.95)';ctx.lineWidth=(PICK?2.6:1.8)/s;ctx.stroke(allyOut);ctx.setLineDash([])}
-  if(selOut){const pulse=.6+.4*Math.sin(now/220);ctx.strokeStyle=`rgba(255,255,255,${pulse})`;ctx.lineWidth=2.4/s;ctx.stroke(selOut)}
+  if(selOut){const pulse=.72+.28*Math.sin(now/260);ctx.strokeStyle='rgba(30,130,255,.28)';ctx.lineWidth=7.5/s;ctx.stroke(selOut);ctx.strokeStyle='rgba(5,12,24,.7)';ctx.lineWidth=4.2/s;ctx.stroke(selOut);ctx.strokeStyle=`rgba(64,168,255,${pulse})`;ctx.lineWidth=2.5/s;ctx.stroke(selOut)}
   if(meOut){ctx.strokeStyle='rgba(10,11,12,.85)';ctx.lineWidth=5.5/s;ctx.stroke(meOut);ctx.strokeStyle='#ff4a36';ctx.lineWidth=2.6/s;ctx.stroke(meOut)}
   ctx.setTransform(DPR,0,0,DPR,0,0);ctx.textAlign='center';ctx.textBaseline='middle';
   const placed=[];const f=focusN();const ov=bx=>placed.some(q=>q[0]<bx[2]&&bx[0]<q[2]&&q[1]<bx[3]&&bx[1]<q[3]);
@@ -1630,6 +1810,7 @@ function draw(){
     if(showT)drawPill(L.n,sd,tk,jt,x,y+fs*.55,multi?CONTS[L.c]:null,relW(L.n),true,lv,z)}
   ctx.letterSpacing='0px';armyPass(false);
   if(!G.pv)drawCaps(s,vx0,vy0,vx1,vy1);
+  drawSel(s,now);
   drawFx(s,now);
   if(selOut||flashes.length||OCC_ANIM||FX.length||ZONE_ANIM)req();
 }
@@ -1858,6 +2039,8 @@ function onTap(x,y){
   if(!G||BATTLE)return;const r=regionAt(x,y);
   if(PICK){if(r<0)return;const n=G.R.o[r];const ps=pickSet();if(!ps){toast($t('Kies eerst een moeilijkheid','Pick a difficulty first'));return}if(!ps.has(n)){toast($t(`${esc(baseName(NAT[n]))} kun je niet kiezen in ${MODES[PICK.diff].nm}. Kies een land met een witte rand.`,`You cannot pick ${esc(baseName(NAT[n]))} in ${MODES[PICK.diff].nm}. Pick a country with a white outline.`));return}PICK.cur=n;bordersDirty=true;renderPick();req();return}
   if(G.pv)return;
+  hudClose();
+  {const a=SELARR.find(a=>Math.hypot(a.x-x,a.y-y)<22);if(a){flyTo(a.wx,a.wy,Math.max(cam.s,3));return}}
   if(NUKE_T){if(r>=0&&G.R.o[r]===NUKE_T.o)openNukeConfirm(r);else toast($t(`Tik op een gebied van <b>${esc(natName(NUKE_T.o))}</b>, of druk op Annuleer.`,`Tap an area of <b>${esc(natName(NUKE_T.o))}</b>, or press Cancel.`));return}
   selC=r>=0?CONT[r]:-1;selectNation(r>=0?G.R.o[r]:-1);
   if(r>=0&&!inFreeView(x,y))flyTo((x-cam.x)/cam.s,(y-cam.y)/cam.s,cam.s);
@@ -1878,11 +2061,21 @@ function relBlock(o){const D=dip();const chip=(x,cls)=>`<button class="chip rc $
   h+=`<div class="lbl">${$t('In oorlog met','At war with')}</div>`+(wa.length?`<div class="chips rchips">${wa.map(x=>chip(x,'wa')).join('')}</div>`:`<div class="note">${$t(`${nm} is met niemand in oorlog.`,`${nm} is at war with nobody.`)}</div>`);
   if(isHuman(o)&&o!==ME){const [rl,rc]=repLbl(G.N[o].rep||0);h+=`<div class="sec"><span>${$t('Betrouwbaarheid','Reliability')}</span><span style="color:${rc}">${rl}</span></div>`}
   return h}
+// What the player can know about a computer country's attitude: its plans once it masses troops, a truce, how an ally
+// will probably act, and whether it holds a grudge. The character itself stays hidden.
+function relMemo(o){let h='';const pl=G.N[o].pl,P=ps(o);
+  if(pl&&pl.t===ME&&pl.w2){const W=WHY_TXT[pl.why]||WHY_TXT.exp;h+=`<div class="plwarn"><b>${$t('Troepen aan je grens','Troops on your border')}</b> · ${esc(natName(o))} ${$t('bereidt een aanval voor','prepares an attack')} (${LANG==='en'?W[1]:W[0]}). ${$t('Een bondgenootschap, steun of een sterkere grens kan het afschrikken.','An alliance, aid or a stronger border may deter it.')}</div>`}
+  const tl=truceLeft(o,ME);if(tl&&!atWar(o,ME))h+=`<div class="memo"><b>${$t('Wapenstilstand','Truce')}</b>: ${$t(`nog ${tl} ${tl===1?'maand':'maanden'}. ${natName(o)} houdt zich daar ${P.honor>.6?'zeker':P.honor>.3?'waarschijnlijk':'misschien'} aan.`,`${tl} more ${tl===1?'month':'months'}. ${natName(o)} will ${P.honor>.6?'surely':P.honor>.3?'probably':'perhaps'} keep it.`)}</div>`;
+  if(allied(o,ME)){const age=alAge(o,ME),hp=allyHelpP(o,ME,null);const lb=hp>.7?$t('zeer waarschijnlijk','very likely'):hp>.5?$t('waarschijnlijk','likely'):hp>.3?$t('misschien','maybe'):$t('onwaarschijnlijk','unlikely');
+    h+=`<div class="memo"><b>${$t('Bondgenoot','Ally')}</b> ${age>0?$t(`sinds ${age} ${age===1?'maand':'maanden'}`,`for ${age} ${age===1?'month':'months'}`):$t('sinds deze maand','since this month')}. ${$t('Komt je te hulp als je wordt aangevallen','Comes to your aid if you are attacked')}: <b>${lb}</b>.</div>`}
+  const g=grudge(o,ME);if(g>25)h+=`<div class="memo">${$t(`${esc(natName(o))} is ${g>70?'diep verbitterd over':'niet vergeten'} wat jij eerder deed.`,`${esc(natName(o))} ${g>70?'is deeply bitter about':'has not forgotten'} what you did before.`)}</div>`;
+  return h}
 function renderPanel(){
   const P=$('#panel');if(NUKE_T||selN<0||!G||G.pv||G.N[selN].dead){P.classList.remove('open');$('#app').classList.remove('pnl');updateHint();return}
   const o=selN,st=stats()[o];const can=myTurn();const [rc,rl]=relOf(o);const ap=apLeft();
     let h=`<div class="ph"><span class="fl">${natFlag(o)}</span><div style="min-width:0"><h2>${esc(natName(o))}</h2><div class="own"><span class="rel ${rc}">${rl}</span>${G.hum[o]&&o!==ME?$t('speler ','player ')+esc(G.hum[o].nick):''}</div></div><button class="x" id="pClose" aria-label="${$t('Sluiten','Close')}">${svgI('close')}</button></div><div class="pb">`;
   h+=`<div class="grid2"><div class="kv"><small>${$t('Soldaten','Soldiers')}</small><b class="num">${fmtT(st.troops)}</b></div><div class="kv"><small>${$t('Inwoners','Population')}</small><b class="num">${fmtPop(st.pop)}</b></div><div class="kv"><small>${$t('Grootte','Size')}</small><b class="num">${fmtKm(st.km)}</b></div><div class="kv"><small>${$t('Economie','Economy')}</small><b class="num">${fmtMoney(st.gdp)}</b></div></div>`+kitChips(o);
+  {const cs=natComps(o);if(cs.length>1){const far=cs.filter(c=>c.km>=200).length;h+=`<div class="selhint note"><span>${$t(`${esc(natName(o))} heeft land op ${far>1?far:cs.length} plekken, blauw gemarkeerd op de kaart.`,`${esc(natName(o))} has land in ${far>1?far:cs.length} places, marked in blue on the map.`)}</span><button class="chip" id="selAll">${$t('Toon al het land','Show all land')}</button></div>`}}
   {const tc={};let tt=0;for(let r=0;r<NR;r++)if(G.R.o[r]===o){tt+=R0[r].km;if(TER[r])tc[TER[r]]=(tc[TER[r]]||0)+R0[r].km}
     const tl=Object.keys(tc).filter(t=>tc[t]>tt*.15).sort((a,b)=>tc[b]-tc[a]);if(tl.length)h+=`<div class="note terr">${$t('Terrein','Terrain')}: ${tl.map(t=>`${svgI(TERR[t].ic)} ${TERR[t].nm.toLowerCase()} (${Math.round(tc[t]/tt*100)}%)`).join(', ')}. ${$t('Moeilijker te veroveren.','Harder to conquer.')}</div>`}
   if(G.N[o].last)h+=`<div class="warn">${$t(`${esc(natName(o))} vecht tot het bittere einde: +30% verdediging.`,`${esc(natName(o))} fights to the bitter end: +30% defence.`)}</div>`;
@@ -1896,7 +2089,7 @@ function renderPanel(){
     const un=myUnrest(ME);const tu=un.reduce((a,u)=>a+u.regs,0);
     if(tu){const cc=G.N[ME].calm===G.round;h+=`<div class="lbl" style="display:flex;align-items:center;gap:5px">${svgI('fist').replace('<svg','<svg style="width:14px;height:14px;color:var(--red)"')}${$t('Onrust in veroverd land','Unrest in conquered land')}</div><div class="dlist">${un.map((u,c)=>{if(!u.regs)return'';const rk=u.risk>.03?[$t('hoog','high'),'var(--red)']:u.risk>.012?[$t('gemiddeld','medium'),'var(--amber)']:[$t('laag','low'),'var(--green)'];
       return `<div class="drow"><span>${CONTS[c]}</span><span class="r num" style="margin-left:auto">${u.regs} ${u.regs===1?$t('gebied','area'):$t('gebieden','areas')} · ${u.risk>0?`${$t('opstand','uprising')} <b style="color:${rk[1]}">${u.risk*100<1?'<1':nl(u.risk*100,0)}% ${$t('per maand','per month')}</b>`:`<b style="color:var(--green)">${$t('geen opstandsrisico','no uprising risk')}</b>`}</span></div>`}).join('')}</div>
-      <div class="note">${$t('Rood gestreept land is nog niet aan jou gewend: het levert minder geld en soldaten op en kan in opstand komen. Hoe meer soldaten je op dat continent hebt, hoe sneller het went.','Red striped land is not yet used to you: it gives less money and fewer soldiers and can rise up. The more soldiers you have on that continent, the faster it settles.')}</div>
+      <div class="note">${$t('Rood gestreept land is nog niet aan jou gewend: het levert minder geld en soldaten op en kan in opstand komen. Hoe meer soldaten je op dat continent hebt, hoe sneller het went. Ben je in vrede met het oude land, dan blijft het land van jou: een opstand kost dan alleen soldaten.','Red striped land is not yet used to you: it gives less money and fewer soldiers and can rise up. The more soldiers you have on that continent, the faster it settles. At peace with its old owner the land stays yours: an uprising then only costs soldiers.')}</div>
       <button class="btn wide" id="calmB" ${can&&ap&&!cc&&G.N[ME].m>=calmCost()?'':'disabled'}>${cc?$t('Orde wordt deze maand gehandhaafd','Order is kept this month'):`${$t('Orde handhaven','Keep order')} <small>· ${fmtMoney(calmCost())}, ${$t('1 bevel','1 order')}</small>`}</button>`}
     h+=`<div class="note">${$t('Tik op een buurland om het aan te vallen of om samen te werken.','Tap a neighbour to attack it or work with it.')}</div>`}
   else if(can&&ME>=0){
@@ -1914,7 +2107,8 @@ function renderPanel(){
       const air=K.bm+K.kr+K.bb+K.emp;if(air>0)h+=`<button class="btn wide" id="bombB" ${ap?'':'disabled'}>${svgI('bomb')} ${$t('Luchtaanval','Air strike')} <small>· ${[K.bm?fmtN(K.bm)+' '+$t('bommen','bombs'):'',K.kr?fmtN(K.kr)+' '+$t('raketten','missiles'):'',K.bb?fmtN(K.bb)+' '+$t('bunkerbr.','bunkerb.'):'',K.emp?fmtN(K.emp)+' EMP':''].filter(Boolean).join(', ')}</small></button>`}
     if((kit(ME).nk||0)>0&&!allied(ME,o))h+=`<button class="btn nuke wide" id="nukeB" ${ap?'':'disabled'}>${svgI('atom')} ${$t('Kernaanval','Nuclear strike')} <small>· ${fmtN(kit(ME).nk)} ${$t(kit(ME).nk===1?'kernbom':'kernbommen',kit(ME).nk===1?'nuclear bomb':'nuclear bombs')}</small></button>`;
     {const we=G.N[o].we||0;if(we>5)h+=`<div class="sec"><span>${$t('Oorlogsmoeheid','War weariness')}</span><span>${we>70?$t('op instorten','about to collapse'):we>45?$t('hoog','high'):we>20?$t('merkbaar','noticeable'):$t('laag','low')}</span></div><div class="webar"><i style="width:${we}%;background:${we>45?'var(--red)':'var(--amber)'}"></i></div>`}
-    if(!isHuman(o)){const op=opinion(o,ME);h+=`<div class="sec"><span>${$t('Mening over jou','Opinion of you')}</span><span>${op>40?$t('vriendelijk','friendly'):op>5?$t('positief','positive'):op>-20?$t('neutraal','neutral'):op>-60?$t('wantrouwig','distrustful'):$t('vijandig','hostile')}</span></div><div class="opbar"><i style="${op>=0?`left:50%;width:${op/2}%;background:var(--green)`:`left:${50+op/2}%;width:${-op/2}%;background:var(--red)`}"></i></div>`}
+    if(!isHuman(o)){const op=opinion(o,ME);h+=`<div class="sec"><span>${$t('Mening over jou','Opinion of you')}</span><span>${op>40?$t('vriendelijk','friendly'):op>5?$t('positief','positive'):op>-20?$t('neutraal','neutral'):op>-60?$t('wantrouwig','distrustful'):$t('vijandig','hostile')}</span></div><div class="opbar"><i style="${op>=0?`left:50%;width:${op/2}%;background:var(--green)`:`left:${50+op/2}%;width:${-op/2}%;background:var(--red)`}"></i></div>`
+      h+=relMemo(o)}
     const dis=ap?'':'disabled';h+='<div class="dipbtns">';
     if(war){h+=`<button class="btn" data-dip="peace" ${dis}>${$t('Vrede voorstellen','Propose peace')}</button>`;if(!isHuman(o))h+=`<button class="btn" data-dip="surr" ${dis}>${$t('Overgave eisen','Demand surrender')}</button>`}
     else if(allied(ME,o))h+=`<button class="btn ghost" data-dip="breakAl" ${dis}>${$t('Bondgenoot­schap opzeggen','End alliance')}</button>`;
@@ -1927,6 +2121,7 @@ function renderPanel(){
   if(o===ME){const [rl,rc]=repLbl(G.N[ME].rep||0);h+=`<div class="sec"><span>${$t('Je betrouwbaarheid','Your reliability')}</span><span style="color:${rc}">${rl}</span></div>`}
   h+='</div>';P.innerHTML=h;P.classList.add('open');$('#app').classList.add('pnl');
   $('#pClose').onclick=()=>selectNation(-1);
+  {const sa=$('#selAll');if(sa)sa.onclick=()=>{const a=[1e9,1e9,-1e9,-1e9];for(const c of natComps(o)){a[0]=Math.min(a[0],c.bb[0]);a[1]=Math.min(a[1],c.bb[1]);a[2]=Math.max(a[2],c.bb[2]);a[3]=Math.max(a[3],c.bb[3])}focusBox(a,0,6)}}
   const rk=$('#rkB');if(rk)rk.onclick=()=>openRijk('buy');
   const ra=$('#rkA');if(ra)ra.onclick=()=>openRijk('army');
   const ab=$('#attB');if(ab)ab.onclick=()=>openAttack(o,selC);
@@ -2177,17 +2372,25 @@ function toastRecent(){if(ME<0)return;const N=G.N[ME];const items=G.log.filter(l
 function markSeen(){if(ME>=0&&G.N[ME])G.N[ME].seen=Math.max(G.N[ME].seen||0,G.lc)}
 function toast(html,cls){const t=el('div',{class:'toast '+(cls||'')},html);$('#toasts').appendChild(t);while($('#toasts').children.length>3)$('#toasts').firstChild.remove();setTimeout(()=>t.remove(),4300)}
 function afterAction(quiet){if(G&&!G.pv&&ME>=0)checkMissions(ME);if(!quiet)renderPanel();updateHud();req();persist()}
-let GB_OPEN=(()=>{try{const v=localStorage.getItem('wr-gb');return v==null?innerWidth>700&&innerHeight>500:v==='1'}catch(e){return true}})();
+// Small screens: goals and wars are two small chips (icon + number) in the corners; tapping one opens its content as a
+// dropdown below it, and only one is open at a time, so nothing overlaps.
+const hudC=()=>innerWidth<760||innerHeight<460;
+function hudMode(){const a=$('#app');if(a)a.classList.toggle('hudc',hudC())}
+let GB_OPEN=(()=>{if(hudC())return false;try{const v=localStorage.getItem('wr-gb');return v==null?innerWidth>700&&innerHeight>500:v==='1'}catch(e){return true}})();
+function hudClose(){if(!hudC()||!(GB_OPEN||WB_OPEN))return false;GB_OPEN=WB_OPEN=false;renderGoals();renderWarbox();return true}
 function renderGoals(){const W=$('#goalbox');if(!G||G.pv||ME<0||G.N[ME].dead||!(G.N[ME].ms||[]).length){W.hidden=true;return}
-  const ms=G.N[ME].ms;let h=`<button class="wbh" id="gbT" aria-expanded="${GB_OPEN}"><span class="g">${svgI('star')}</span><span style="font-size:12px">${$t('Doelen','Goals')}</span><span class="cnt">${G.N[ME].msDone||0} ${$t('gehaald','done')}</span><span class="chev">${GB_OPEN?'▲':'▼'}</span></button>`;
+  const ms=G.N[ME].ms;let h=`<button class="wbh" id="gbT" aria-expanded="${GB_OPEN}" aria-label="${$t('Doelen','Goals')}"><span class="g">${svgI('star')}</span><span class="lbt">${$t('Doelen','Goals')}</span><span class="cnt">${G.N[ME].msDone||0} ${$t('gehaald','done')}</span><span class="cn">${ms.length}</span><span class="chev">${GB_OPEN?'▲':'▼'}</span></button>`;
   if(GB_OPEN){h+='<div class="gbb">'+ms.map(m=>{const [a,b]=msProg(ME,m);const f=clamp(a/b,0,1);return `<div class="gl"><div class="gt">${esc(mtxt(m))}</div><div class="gbar"><i style="width:${Math.round(f*100)}%"></i></div><div class="gr">${$t('Beloning','Reward')}: ${rwTxt(m.rw)}</div></div>`}).join('')+'</div>'}
-  W.innerHTML=h;W.hidden=false;W.querySelector('#gbT').onclick=()=>{GB_OPEN=!GB_OPEN;try{localStorage.setItem('wr-gb',GB_OPEN?'1':'0')}catch(e){}renderGoals()}}
-let WB_OPEN=(()=>{try{return localStorage.getItem('wr-wb')!=='0'}catch(e){return true}})();
+  W.innerHTML=h;W.hidden=false;W.querySelector('#gbT').onclick=()=>{GB_OPEN=!GB_OPEN;if(hudC()){if(GB_OPEN&&WB_OPEN){WB_OPEN=false;renderWarbox()}}else try{localStorage.setItem('wr-gb',GB_OPEN?'1':'0')}catch(e){}renderGoals()}}
+let WB_OPEN=(()=>{if(hudC())return false;try{return localStorage.getItem('wr-wb')!=='0'}catch(e){return true}})();
+// computer countries that mass troops on your border (their plan is visible once they warned)
+const plansVs=h=>{const o=[];for(let n=0;n<NN;n++){const p=G.N[n].pl;if(p&&p.t===h&&p.w2&&!G.N[n].dead&&!isHuman(n))o.push(n)}return o};
 function renderWarbox(){const W=$('#warbox');if(!G||G.pv||ME<0||G.N[ME].dead){W.hidden=true;return}
   const D=dip();const wars=[...D.war[ME]],als=[...D.al[ME]];
-  const ic=k=>`<svg viewBox="0 0 24 24">${NICO[k]}</svg>`;const TH=threatOf(ME);
-  let h=`<button class="wbh" id="wbT" aria-expanded="${WB_OPEN}"><span class="w">${ic('war')}${wars.length}</span><span class="a">${ic('ally')}${als.length}</span>${TH.lvl===2?`<span class="thr" title="${$t('Coalitiegevaar','Coalition danger')}">!</span>`:''}<span style="font-size:12px">${wars.length?$t('In oorlog','At war'):$t('Geen oorlog','No war')}</span><span class="chev">${WB_OPEN?'▲':'▼'}</span></button>`;
-  if(WB_OPEN&&(wars.length||als.length||TH.lvl)){h+='<div class="wbb">';
+  const ic=k=>`<svg viewBox="0 0 24 24">${NICO[k]}</svg>`;const TH=threatOf(ME),PL=plansVs(ME);
+  let h=`<button class="wbh" id="wbT" aria-expanded="${WB_OPEN}" aria-label="${$t('Oorlogen en bondgenoten','Wars and allies')}"><span class="w">${ic('war')}${wars.length}</span><span class="a">${ic('ally')}${als.length}</span>${TH.lvl===2||PL.length?`<span class="thr" title="${$t('Dreiging','Threat')}">!</span>`:''}<span class="wt">${wars.length?$t('In oorlog','At war'):$t('Geen oorlog','No war')}</span><span class="chev">${WB_OPEN?'▲':'▼'}</span></button>`;
+  if(WB_OPEN&&(wars.length||als.length||TH.lvl||PL.length)){h+='<div class="wbb">';
+    if(PL.length)h+=`<div class="thrw hi"><b>${$t('Troepen aan je grens','Troops on your border')}</b><small>${PL.slice(0,4).map(x=>esc(natName(x))+' ('+(WHY_TXT[G.N[x].pl.why]||WHY_TXT.exp)[LANG==='en'?1:0]+')').join(', ')}. ${$t('Een aanval kan elk moment komen. Verbeter de relatie, zoek bondgenoten of versterk je grens.','An attack can come any moment. Improve relations, find allies or strengthen your border.')}</small></div>`;
     if(TH.lvl)h+=`<div class="thrw ${TH.lvl===2?'hi':''}"><b>${TH.lvl===2?$t('Coalitiegevaar!','Coalition danger!'):$t('Je buren worden nerveus','Your neighbours are getting nervous')}</b><small>${TH.mem.slice(0,4).map(x=>esc(natName(x))).join(', ')} ${$t(TH.mem.length===1?'is':'zijn',TH.mem.length===1?'is':'are')} ${$t('bang van je groei.','afraid of your growth.')}${TH.lvl===2?' '+$t('Ze kunnen samen een verbond sluiten en je tegelijk aanvallen. Sluit vrede of bondgenootschappen, of rem je groei even.','They may form a pact and attack you together. Make peace or alliances, or slow your growth for a while.'):''}</small></div>`;
     if(wars.length){h+='<div class="wbl">'+$t('In oorlog met','At war with')+'</div>';
       for(const e of wars){const help=[...D.al[e]].filter(x=>x!==ME);const fight=help.filter(x=>atWar(x,ME));
@@ -2196,8 +2399,8 @@ function renderWarbox(){const W=$('#warbox');if(!G||G.pv||ME<0||G.N[ME].dead){W.
       for(const a of als){const fw=[...D.war[a]].filter(x=>atWar(x,ME));h+=`<button class="wbr al" data-wn="${a}"><b>${natFlag(a)}${esc(natName(a))}<span class="num">${fmtT(G.N[a].t)}</span></b>${fw.length?`<small>${$t('Vecht mee tegen:','Fights with you against:')} ${fw.slice(0,3).map(x=>esc(natName(x))).join(', ')}</small>`:''}</button>`}}
     h+='</div>'}
   W.innerHTML=h;W.hidden=false;
-  W.querySelector('#wbT').onclick=()=>{WB_OPEN=!WB_OPEN;try{localStorage.setItem('wr-wb',WB_OPEN?'1':'0')}catch(e){}renderWarbox()};
-  W.querySelectorAll('[data-wn]').forEach(b=>b.onclick=()=>{const n=+b.dataset.wn;selC=-1;selectNation(n);focusNation(n)})}
+  W.querySelector('#wbT').onclick=()=>{WB_OPEN=!WB_OPEN;if(hudC()){if(WB_OPEN&&GB_OPEN){GB_OPEN=false;renderGoals()}}else try{localStorage.setItem('wr-wb',WB_OPEN?'1':'0')}catch(e){}renderWarbox()};
+  W.querySelectorAll('[data-wn]').forEach(b=>b.onclick=()=>{const n=+b.dataset.wn;selC=-1;hudClose();selectNation(n);focusNation(n)})}
 function updateHud(){
   if(!G||G.pv){$('#warbox').hidden=true;$('#goalbox').hidden=true;return}renderWarbox();renderGoals();const s=stats();const n=ME>=0?ME:curNation();
   $('#empName').textContent=natName(n);$('#empRank').textContent=RANKS[rankOf(n)].nm;$('#empSw').style.background=natColor(n);
@@ -2287,9 +2490,18 @@ function showOffers(){
   if(off.type==='help'){txt=$t(`Je bondgenoot ${esc(natName(f))} is aangevallen door ${esc(natName(off.vs))} en vraagt je om mee te vechten.`,`Your ally ${esc(natName(f))} was attacked by ${esc(natName(off.vs))} and asks you to join the fight.`);yes=$t('Oorlog verklaren','Declare war')}
   if(off.type==='ally')txt=$t(`${esc(natName(f))} wil een bondgenootschap met je sluiten.`,`${esc(natName(f))} wants to form an alliance with you.`);
   if(off.type==='trade')txt=$t(`${esc(natName(f))} stelt een handelsverdrag voor (+5% inkomen voor allebei).`,`${esc(natName(f))} proposes a trade deal (+5% income for both).`);
+  // stale offers: the situation changed since it was sent
+  if((off.type==='joint'&&(G.N[off.vs].dead||atWar(ME,off.vs)||allied(ME,off.vs)||!allied(f,ME)))||(off.type==='aid'&&(!allied(f,ME)||!dip().war[f].size))||G.N[f].dead||(off.type!=='peace'&&off.type!=='help'&&atWar(f,ME))){showOffers();return}
+  if(off.type==='ult'){const W=WHY_TXT[off.why]||WHY_TXT.exp;txt=$t(`${esc(natName(f))} heeft troepen aan je grens (${W[0]}) en stelt een ultimatum: betaal <b>${fmtMoney(off.amt)}</b>, anders volgt oorlog.`,`${esc(natName(f))} has troops on your border (${W[1]}) and issues an ultimatum: pay <b>${fmtMoney(off.amt)}</b>, or there will be war.`);yes=G.N[ME].m>=off.amt?$t('Betalen','Pay'):$t(`Betaal wat je hebt (${fmtMoney(G.N[ME].m)})`,`Pay what you have (${fmtMoney(G.N[ME].m)})`)}
+  if(off.type==='aid'){txt=$t(`Je bondgenoot ${esc(natName(f))} heeft het zwaar in de oorlog tegen ${esc([...dip().war[f]].slice(0,2).map(natName).join(', '))} en vraagt <b>${fmtMoney(off.amt)}</b> steun.`,`Your ally ${esc(natName(f))} is struggling in the war against ${esc([...dip().war[f]].slice(0,2).map(natName).join(', '))} and asks for <b>${fmtMoney(off.amt)}</b> in aid.`);yes=$t('Steun sturen','Send aid')}
+  if(off.type==='joint'){txt=$t(`Je bondgenoot ${esc(natName(f))} wil samen met jou ${esc(natName(off.vs))} aanvallen. Doe je mee? Dan verklaren jullie allebei de oorlog.`,`Your ally ${esc(natName(f))} wants to attack ${esc(natName(off.vs))} together with you. Will you join? Then you both declare war.`);yes=$t('Samen aanvallen','Attack together')}
   openSheet(`<h3>${natFlag(f)} ${$t('Bericht van','Message from')} ${esc(natName(f))}</h3><div class="note" style="font-size:15px;color:var(--ink)">${txt}</div><div class="row"><button class="btn ghost" id="oN">${$t('Weigeren','Decline')}</button><button class="btn pri" style="flex:1" id="oY">${yes}</button></div>`,s=>{s.onclose=showOffers;
-    s.querySelector('#oN').onclick=()=>{closeSheet();if(!isHuman(f))addOp(f,ME,off.type==='help'?-25:-5);G.rev++;afterAction();showOffers()};
-    s.querySelector('#oY').onclick=()=>{closeSheet();if(off.type==='peace')makePeace(f,ME);if(off.type==='help'&&!G.N[off.vs].dead){declareWar(ME,off.vs);addOp(f,ME,20)}if(off.type==='ally')makeAlliance(f,ME);if(off.type==='trade')makeTrade(f,ME);G.rev++;markSeen();afterAction();showOffers()}});
+    s.querySelector('#oN').onclick=()=>{closeSheet();if(off.type==='ult')answerUlt(off,false);else if(!isHuman(f)){addOp(f,ME,off.type==='help'?-25:off.type==='aid'?-10:-5);if(off.type==='help')addGr(f,ME,15)}G.rev++;afterAction();showOffers()};
+    s.querySelector('#oY').onclick=()=>{closeSheet();if(off.type==='peace')makePeace(f,ME);if(off.type==='help'&&!G.N[off.vs].dead){declareWar(ME,off.vs);addOp(f,ME,20)}if(off.type==='ally'){makeAlliance(f,ME);addOp(f,ME,10)}if(off.type==='trade'){makeTrade(f,ME);addOp(f,ME,5)}
+      if(off.type==='ult')answerUlt(off,true);
+      if(off.type==='aid'){const pay=Math.min(off.amt,G.N[ME].m);G.N[ME].m-=pay;G.N[f].m+=pay;addOp(f,ME,14);addGr(f,ME,-10);addLog($b(`${natName(ME)} stuurt bondgenoot ${natName(f)} ${fmtMoney(pay)} steun`,`${natName(ME)} sends ally ${natName(f)} ${fmtMoney(pay)} in aid`),[ME,f],'ally','dip')}
+      if(off.type==='joint'&&!G.N[off.vs].dead){declareWar(f,off.vs,'exp');declareWar(ME,off.vs,'joint');addOp(f,ME,15)}
+      G.rev++;markSeen();afterAction();showOffers()}});
 }
 function handoff(){
   const n=curNation();const nick=G.hum[n]?.nick||natName(n);
@@ -2307,7 +2519,7 @@ function openRijk(tab){
     ${mb<1?`<div class="note">${$t(`Mobilisatie: je land bouwt zijn leger nog op. Er komen nu ${Math.round(mb*100)}% van de normale nieuwe soldaten per maand bij; na een jaar (${fmtDate(13)}) is dat 100%.`,`Mobilisation: your country is still building up its army. You now get ${Math.round(mb*100)}% of the normal new soldiers per month; after a year (${fmtDate(13)}) that is 100%.`)}</div>`:''}
     <div class="note">${next?$t(`Verover meer land om ${next.nl} te worden: dan krijg je een extra bevel per maand.`,`Conquer more land to become ${next.en}: you get an extra order per month.`):$t('Je hebt de hoogste rang bereikt.','You reached the highest rank.')} ${$t('Elke aankoop kost 1 bevel.','Each purchase costs 1 order.')}</div>
     <div class="ugrid">${UPG.map((u,i)=>{if(!upgOK(u.id))return '';const lv=N.u[i],max=lv>=u.max,c=upCost(n,i);const rq=u.req&&ul(n,u.req[0])<u.req[1];
-    return `<div class="up${u.id==='kp'?' upn':''}"><div class="t">${svgI(u.ic)}<div><b>${u.nm}</b><div class="lv">${$t('niveau','level')} ${lv}/${u.max}</div></div></div><div class="pips">${Array.from({length:u.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')}</div><div class="d">${u.d}</div><button class="btn ${max||rq?'ghost':''}" data-u="${i}" ${!can||!ap||max||rq||N.m<c?'disabled':''}>${max?$t('Maximaal','Maxed'):rq?$t(`Eerst ${UPG[U[u.req[0]]].nm} ${u.req[1]}`,`First ${UPG[U[u.req[0]]].nm} ${u.req[1]}`):$t('Koop · ','Buy · ')+fmtMoney(c)}</button></div>`}).join('')}</div>`}
+    return `<div class="up${u.id==='kp'?' upn':''}"><div class="t">${svgI(u.ic)}<div><b>${u.nm}</b><div class="lv">${$t('niveau','level')} ${lv}/${u.max}</div></div></div><div class="pips">${Array.from({length:u.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')}</div><div class="d">${u.d}${u.id==='ma'?`<span style="display:block;margin-top:4px;color:var(--ink);font-weight:600">${$t('Bereik nu','Range now')}: ${lv?navKm(lv):$t('alleen buurlanden','neighbours only')}</span>`:''}</div><button class="btn ${max||rq?'ghost':''}" data-u="${i}" ${!can||!ap||max||rq||N.m<c?'disabled':''}>${max?$t('Maximaal','Maxed'):rq?$t(`Eerst ${UPG[U[u.req[0]]].nm} ${u.req[1]}`,`First ${UPG[U[u.req[0]]].nm} ${u.req[1]}`):$t('Koop · ','Buy · ')+fmtMoney(c)}</button></div>`}).join('')}</div>`}
   if(tab==='army'){const K=kit(n);const bc=buyCont(n);
     const WHY={get fab(){return $t('je fabrieken','your factories')},get army(){return $t('je maximale leger','your maximum army')},get crew(){return $t('bemanning (3 soldaten per tank)','crew (3 soldiers per tank)')},get pilot(){return $t('je aantal piloten','your number of pilots')}};
     body=`<div class="grid2" ${g5}>${kv($t('Schatkist','Treasury'),fmtMoney(N.m))}${kv($t('Leger / max','Army / max'),`${fmtT(s.troops)} / ${fmtT(armyCap(n))}`)}${kv($t('Werving per maand','Recruits per month'),fmtT(unitCap(n,'sd')))}${kv($t('Vliegtuigen / piloten','Jets / pilots'),`${fmtN(K.jt)} / ${fmtN(jetCap(n))}`)}${kv($t('Totale kracht','Total strength'),fmtT(s.troops+unitPow(K,true,false)))}</div>
@@ -2465,13 +2677,13 @@ const eraUrl=(id,extra)=>{const q=new URLSearchParams(location.search);q.delete(
 function showEras(){const cur=ERA?ERA.id:'';
   openSheet(`<h3>${$t('Kies een tijdperk','Pick an era')}</h3><div class="note">${$t('Elk tijdperk heeft de landen en grenzen van toen, op het hoogtepunt van de oorlog. Je speelt vanaf die maand verder.','Every era has the countries and borders of that time, at the height of the war. You play on from that month.')}</div><div class="eras">${(window.ERA_LIST||[]).map(x=>`<button class="eraB${x.id===cur?' on':''}" data-era="${x.id}"><b>${esc($t(x.nm[0],x.nm[1]))}</b><span class="ew">${esc($t(x.when[0],x.when[1]))}</span><span class="note">${esc($t(x.sides[0],x.sides[1]))}</span></button>`).join('')}</div><button class="btn ghost wide" id="erC">${$t('Sluiten','Close')}</button>`,
     sh=>{sh.querySelector('#erC').onclick=closeSheet;sh.querySelectorAll('[data-era]').forEach(b=>b.onclick=()=>{const id=b.dataset.era;if(id===cur){closeSheet();return}location.href=eraUrl(id)})},true)}
-const HELP=[{"gn":"De basis","ge":"The basics","items":[{"ic":"star","tn":"Doel","te":"Goal","nl":"Word het grootste land ter wereld. Je begint op {START} en elke beurt is één maand. Na de laatste maand wint wie het meeste land heeft. Verover je 35% van alle land, dan win je meteen.","en":"Become the biggest country in the world. You start on {START} and every turn is one month. After the last month, whoever has the most land wins. Conquer 35% of all land and you win at once."},{"ic":"list","tn":"Bevelen","te":"Orders","nl":"Elke maand heb je een paar bevelen (de witte blokjes bovenin). Aanvallen, bouwen, onderzoek starten of een voorstel doen kost 1 bevel.","en":"Each month you have a few orders (the white blocks at the top). Attacking, building, starting research or making a proposal costs 1 order."},{"ic":"tank","tn":"Aanvallen","te":"Attacking","nl":"Tik op een buurland en dan op Aanvallen. Kies hoeveel soldaten je stuurt. Veroverd land krijgt meteen jouw kleur en het front schuift over de hele grens op. Verdedigers vechten thuis sterker en geluk speelt mee. Druk op STOP wanneer je wilt; het front blijft staan voor je volgende aanval.","en":"Tap a neighbouring country, then Attack. Pick how many soldiers you send. Conquered land turns your colour at once and the front moves along the whole border. Defenders fight harder at home and luck plays a part. Press STOP whenever you want; the front stays where it is for your next attack."},{"ic":"house","tn":"Groeien","te":"Growing","nl":"Elke maand komen er vanzelf soldaten bij uit je bevolking. {MOB} Bouw woningen voor meer inwoners en kazernes voor meer soldaten. Hoe groter je land, hoe hoger je rang en hoe meer bevelen.","en":"Each month new soldiers join from your population. {MOB} Build housing for more people and barracks for more soldiers. The bigger your country, the higher your rank and the more orders."},{"ic":"clock","tn":"Tijd","te":"Time","nl":"Bovenin zie je de datum. Je hebt per beurt beperkt tijd (rechtsonder). De klok loopt pas als je het nieuws en je berichten hebt gelezen. Is de tijd op, dan eindigt je beurt vanzelf.","en":"The date is at the top. Each turn you have limited time (bottom right). The clock only runs once you have read the news and your messages. When time runs out your turn ends by itself."}]},{"gn":"Oorlog voeren","ge":"Waging war","items":[{"ic":"bomb","tn":"Gevechten","te":"Battles","nl":"Niet alleen het grootste leger wint. Moreel, het initiatief en uitputting bepalen wie die dag beter vecht, dus het front gaat heen en weer. Een land dat moe is van de oorlog of zijn hoofdstad kwijt is, geeft zich eerder over of vraagt om vrede.","en":"The biggest army does not always win. Morale, initiative and exhaustion decide who fights better that day, so the front moves back and forth. A country that is tired of war or has lost its capital surrenders sooner or asks for peace."},{"ic":"mnt","tn":"Terrein en seizoenen","te":"Terrain and seasons","nl":"Niet elk land is even makkelijk te veroveren. In de kou van Rusland of Mongolië (in de winter, december tot februari, nog veel erger; in de zomer makkelijker), in de woestijn, in het regenwoud van de Amazone en Congo en in de bergen schuift het front trager op, vecht de verdediger sterker en verlies je zelf meer soldaten. Tanks helpen weinig in de jungle en de bergen.","en":"Not every country is equally easy to conquer. In the cold of Russia or Mongolia (much worse in winter, December to February; easier in summer), in the desert, in the rainforests of the Amazon and Congo and in the mountains the front moves slower, the defender fights harder and you lose more soldiers yourself. Tanks help little in jungle and mountains."},{"ic":"ship","tn":"Continenten","te":"Continents","nl":"Soldaten en tanks staan op een continent en verdedigen alleen daar. Heb je land op een ander continent, verplaats dan troepen (tik op je eigen land). Een gebied zonder leger wordt snel veroverd. Vliegtuigen, schepen en bommen kunnen overal heen, en vliegtuigen laten het front sneller opschuiven.","en":"Soldiers and tanks are stationed on a continent and only defend there. If you own land on another continent, move troops there (tap your own country). An area without an army falls fast. Jets, ships and bombs can go anywhere, and jets make the front move faster."},{"ic":"helm","tn":"Legers op de kaart","te":"Armies on the map","nl":"Op elk continent waar je land hebt, staat een label met je soldaten (helm) en tanks. Ook van je vijanden en bondgenoten zie je zo waar hun legers staan. Zoom in om de legers van alle landen te zien.","en":"On every continent where you hold land there is a label with your soldiers (helmet) and tanks. You also see where the armies of your enemies and allies stand. Zoom in to see the armies of all countries."},{"ic":"jet","tn":"Leger &amp; wapens","te":"Army &amp; weapons","nl":"Koop soldaten, tanks, gevechtsvliegtuigen, oorlogsschepen en bommen (knop Materieel bovenin). Wapens zijn duur en kosten elke maand onderhoud, dus je kunt niet alles tegelijk kopen. Je inwoners bepalen hoeveel soldaten je per maand werft en hoe groot je leger mag worden; elke tank heeft 3 soldaten als bemanning nodig en voor vliegtuigen heb je piloten nodig. Bij een aanval kies je wat je meestuurt. Schepen heb je nodig om over zee aan te vallen.","en":"Buy soldiers, tanks, fighter jets, warships and bombs (Arms button at the top). Weapons are expensive and cost upkeep every month, so you cannot buy everything at once. Your population decides how many soldiers you recruit per month and how big your army can get; every tank needs 3 soldiers as crew and jets need pilots. In an attack you choose what to send along. You need ships to attack across the sea."},{"ic":"lab","tn":"Onderzoek","te":"Research","nl":"Onder Rijk › Onderzoek ontwikkel je nieuwe wapens: drones, precisiebommen, kruisraketten, bunkerbrekers, luchtafweer en later stealthbommenwerpers, EMP-raketten, hypersone raketten en de waterstofbom. Een project kost geld en duurt een paar maanden; sommige techniek bestaat pas vanaf een bepaalde datum.","en":"Under Rijk › Research you develop new weapons: drones, precision bombs, cruise missiles, bunker busters, air defence and later stealth bombers, EMP missiles, hypersonic missiles and the hydrogen bomb. A project costs money and takes a few months; some technology only exists from a certain date."},{"ic":"bomb","tn":"Luchtaanval","te":"Air strike","nl":"Tik op een vijand en kies Luchtaanval. Bommen doden soldaten, kruisraketten verwoesten fabrieken, bunkerbrekers breken forten af en een EMP legt tanks, vliegtuigen en drones plat. Vijandelijke vliegtuigen, een raketschild en luchtafweer schieten een deel neer.","en":"Tap an enemy and choose Air strike. Bombs kill soldiers, cruise missiles destroy factories, bunker busters tear down forts and an EMP knocks out tanks, jets and drones. Enemy jets, a missile shield and air defence shoot some of it down."},{"ic":"flag","tn":"Overgave","te":"Surrender","nl":"Een land dat bijna verslagen is, kan capituleren: dan krijg je al zijn land. Sommige landen vechten liever tot het bittere einde. Je kunt ook zelf overgave eisen.","en":"A country that is almost beaten can capitulate: you get all its land. Some countries prefer to fight to the bitter end. You can also demand surrender yourself."}]},{"gn":"Je rijk vasthouden","ge":"Holding your empire","items":[{"ic":"fist","tn":"Onrust","te":"Unrest","nl":"Veroverd land is eerst rood gestreept: het is nog niet aan je gewend. Het levert minder geld en soldaten op en kan in opstand komen, waarna het land terugkeert naar het oude land. Een land dat je helemaal van de kaart hebt geveegd komt nooit terug. Laat soldaten achter op dat continent of gebruik <i>Orde handhaven</i> (tik op je eigen land); na een paar maanden hoort het land echt bij jou.","en":"Conquered land is striped red at first: it is not used to you yet. It gives less money and fewer soldiers and can rise up, after which it returns to the old country. A country you wipe off the map never comes back. Leave soldiers on that continent or use <i>Keep order</i> (tap your own country); after a few months the land is truly yours."},{"ic":"fort","tn":"Pas op","te":"Watch out","nl":"Wie snel groeit of een land omsingelt, maakt de buren bang. Ze kunnen als eerste aanvallen, een coalitie tegen je vormen of samengaan tot één land. Bij vrede wordt het front de nieuwe grens.","en":"Whoever grows fast or surrounds a country scares the neighbours. They can strike first, form a coalition against you or merge into one country. At peace the front becomes the new border."},{"ic":"dip","tn":"Diplomatie en vertrouwen","te":"Diplomacy and trust","nl":"Tik op een land om te zien met wie het samenwerkt en met wie het in oorlog is. Vraag andere landen om iemand aan te vallen, geef ze troepen, wapens of geld, of vraag of ze bij je land willen horen. Val je een bondgenoot of handelspartner aan, of breek je een vrede, dan vertrouwt de hele wereld je minder: verdragen worden moeilijker en andere bondgenoten kunnen je laten vallen.","en":"Tap a country to see who it works with and who it is at war with. Ask other countries to attack someone, give them troops, weapons or money, or ask whether they want to join your country. If you attack an ally or trade partner, or break a peace, the whole world trusts you less: treaties get harder and other allies may drop you."},{"ic":"list","tn":"Nieuws","te":"News","nl":"Het nieuws staat onder kopjes: samenvoegingen en verbonden, oorlog, wie welk land heeft veroverd, en vrede en diplomatie.","en":"The news is grouped under headings: mergers and alliances, war, who conquered which land, and peace and diplomacy."}]},{"gn":"Extra","ge":"Extra","items":[{"ic":"atom","tn":"Kernwapens","te":"Nuclear weapons","nl":"Bouw een Kernprogramma (vereist Legertechnologie 2) en maak dan kernbommen bij Leger &amp; wapens. Tik op een land, kies Kernaanval en tik op het gebied dat je wilt raken: het leger op dat continent wordt gedecimeerd en het gebied wordt radioactief. De hele wereld zal je haten, en echte kernmachten (zoals de VS, Rusland en China) slaan terug. Een Raketschild schiet raketten neer.","en":"Build a Nuclear programme (needs Army tech 2) and then make nuclear bombs under Army &amp; weapons. Tap a country, choose Nuclear strike and tap the area you want to hit: the army on that continent is decimated and the area becomes radioactive. The whole world will hate you, and real nuclear powers (like the US, Russia and China) strike back. A Missile shield shoots missiles down."},{"ic":"spy","tn":"Spionage","te":"Espionage","nl":"Saboteer wapendepots, stook opstanden aan of steel technologie. Worden je spionnen betrapt, dan wordt dat land boos.","en":"Sabotage weapon depots, incite uprisings or steal technology. If your spies are caught that country gets angry."},{"ic":"edu","tn":"Gebeurtenissen en doelen","te":"Events and goals","nl":"Soms gebeurt er iets in je land en moet je kiezen hoe je reageert. Linksboven staan je doelen: haal ze voor geld en wapens.","en":"Sometimes something happens in your country and you choose how to react. Your goals are at the top left: complete them for money and weapons."}]}];
+const HELP=[{"gn":"De basis","ge":"The basics","items":[{"ic":"star","tn":"Doel","te":"Goal","nl":"Word het grootste land ter wereld. Je begint op {START} en elke beurt is één maand. Na de laatste maand wint wie het meeste land heeft. Verover je 35% van alle land, dan win je meteen.","en":"Become the biggest country in the world. You start on {START} and every turn is one month. After the last month, whoever has the most land wins. Conquer 35% of all land and you win at once."},{"ic":"list","tn":"Bevelen","te":"Orders","nl":"Elke maand heb je een paar bevelen (de witte blokjes bovenin). Aanvallen, bouwen, onderzoek starten of een voorstel doen kost 1 bevel.","en":"Each month you have a few orders (the white blocks at the top). Attacking, building, starting research or making a proposal costs 1 order."},{"ic":"tank","tn":"Aanvallen","te":"Attacking","nl":"Tik op een buurland en dan op Aanvallen. Kies hoeveel soldaten je stuurt. Veroverd land krijgt meteen jouw kleur en het front schuift over de hele grens op. Verdedigers vechten thuis sterker en geluk speelt mee. Druk op STOP wanneer je wilt; het front blijft staan voor je volgende aanval.","en":"Tap a neighbouring country, then Attack. Pick how many soldiers you send. Conquered land turns your colour at once and the front moves along the whole border. Defenders fight harder at home and luck plays a part. Press STOP whenever you want; the front stays where it is for your next attack."},{"ic":"house","tn":"Groeien","te":"Growing","nl":"Elke maand komen er vanzelf soldaten bij uit je bevolking. {MOB} Bouw woningen voor meer inwoners en kazernes voor meer soldaten. Hoe groter je land, hoe hoger je rang en hoe meer bevelen.","en":"Each month new soldiers join from your population. {MOB} Build housing for more people and barracks for more soldiers. The bigger your country, the higher your rank and the more orders."},{"ic":"clock","tn":"Tijd","te":"Time","nl":"Bovenin zie je de datum. Je hebt per beurt beperkt tijd (rechtsonder). De klok loopt pas als je het nieuws en je berichten hebt gelezen. Is de tijd op, dan eindigt je beurt vanzelf.","en":"The date is at the top. Each turn you have limited time (bottom right). The clock only runs once you have read the news and your messages. When time runs out your turn ends by itself."}]},{"gn":"Oorlog voeren","ge":"Waging war","items":[{"ic":"bomb","tn":"Gevechten","te":"Battles","nl":"Niet alleen het grootste leger wint. Moreel, het initiatief en uitputting bepalen wie die dag beter vecht, dus het front gaat heen en weer. Een land dat moe is van de oorlog of zijn hoofdstad kwijt is, geeft zich eerder over of vraagt om vrede.","en":"The biggest army does not always win. Morale, initiative and exhaustion decide who fights better that day, so the front moves back and forth. A country that is tired of war or has lost its capital surrenders sooner or asks for peace."},{"ic":"mnt","tn":"Terrein en seizoenen","te":"Terrain and seasons","nl":"Niet elk land is even makkelijk te veroveren. In de kou van Rusland of Mongolië (in de winter, december tot februari, nog veel erger; in de zomer makkelijker), in de woestijn, in het regenwoud van de Amazone en Congo en in de bergen schuift het front trager op, vecht de verdediger sterker en verlies je zelf meer soldaten. Tanks helpen weinig in de jungle en de bergen.","en":"Not every country is equally easy to conquer. In the cold of Russia or Mongolia (much worse in winter, December to February; easier in summer), in the desert, in the rainforests of the Amazon and Congo and in the mountains the front moves slower, the defender fights harder and you lose more soldiers yourself. Tanks help little in jungle and mountains."},{"ic":"ship","tn":"Continenten","te":"Continents","nl":"Soldaten en tanks staan op een continent en verdedigen alleen daar. Heb je land op een ander continent, verplaats dan troepen (tik op je eigen land). Een gebied zonder leger wordt snel veroverd. Vliegtuigen, schepen en bommen kunnen overal heen, en vliegtuigen laten het front sneller opschuiven.","en":"Soldiers and tanks are stationed on a continent and only defend there. If you own land on another continent, move troops there (tap your own country). An area without an army falls fast. Jets, ships and bombs can go anywhere, and jets make the front move faster."},{"ic":"helm","tn":"Legers op de kaart","te":"Armies on the map","nl":"Op elk continent waar je land hebt, staat een label met je soldaten (helm) en tanks. Ook van je vijanden en bondgenoten zie je zo waar hun legers staan. Zoom in om de legers van alle landen te zien.","en":"On every continent where you hold land there is a label with your soldiers (helmet) and tanks. You also see where the armies of your enemies and allies stand. Zoom in to see the armies of all countries."},{"ic":"jet","tn":"Leger &amp; wapens","te":"Army &amp; weapons","nl":"Koop soldaten, tanks, gevechtsvliegtuigen, oorlogsschepen en bommen (knop Materieel bovenin). Wapens zijn duur en kosten elke maand onderhoud, dus je kunt niet alles tegelijk kopen. Je inwoners bepalen hoeveel soldaten je per maand werft en hoe groot je leger mag worden; elke tank heeft 3 soldaten als bemanning nodig en voor vliegtuigen heb je piloten nodig. Bij een aanval kies je wat je meestuurt. Schepen heb je nodig om over zee aan te vallen.","en":"Buy soldiers, tanks, fighter jets, warships and bombs (Arms button at the top). Weapons are expensive and cost upkeep every month, so you cannot buy everything at once. Your population decides how many soldiers you recruit per month and how big your army can get; every tank needs 3 soldiers as crew and jets need pilots. In an attack you choose what to send along. You need ships to attack across the sea."},{"ic":"lab","tn":"Onderzoek","te":"Research","nl":"Onder Rijk › Onderzoek ontwikkel je nieuwe wapens: drones, precisiebommen, kruisraketten, bunkerbrekers, luchtafweer en later stealthbommenwerpers, EMP-raketten, hypersone raketten en de waterstofbom. Een project kost geld en duurt een paar maanden; sommige techniek bestaat pas vanaf een bepaalde datum.","en":"Under Rijk › Research you develop new weapons: drones, precision bombs, cruise missiles, bunker busters, air defence and later stealth bombers, EMP missiles, hypersonic missiles and the hydrogen bomb. A project costs money and takes a few months; some technology only exists from a certain date."},{"ic":"bomb","tn":"Luchtaanval","te":"Air strike","nl":"Tik op een vijand en kies Luchtaanval. Bommen doden soldaten, kruisraketten verwoesten fabrieken, bunkerbrekers breken forten af en een EMP legt tanks, vliegtuigen en drones plat. Vijandelijke vliegtuigen, een raketschild en luchtafweer schieten een deel neer.","en":"Tap an enemy and choose Air strike. Bombs kill soldiers, cruise missiles destroy factories, bunker busters tear down forts and an EMP knocks out tanks, jets and drones. Enemy jets, a missile shield and air defence shoot some of it down."},{"ic":"flag","tn":"Overgave","te":"Surrender","nl":"Een land dat bijna verslagen is, kan capituleren: dan krijg je al zijn land. Sommige landen vechten liever tot het bittere einde. Je kunt ook zelf overgave eisen.","en":"A country that is almost beaten can capitulate: you get all its land. Some countries prefer to fight to the bitter end. You can also demand surrender yourself."}]},{"gn":"Je rijk vasthouden","ge":"Holding your empire","items":[{"ic":"fist","tn":"Onrust","te":"Unrest","nl":"Veroverd land is eerst rood gestreept: het is nog niet aan je gewend. Het levert minder geld en soldaten op en kan in opstand komen. Ben je nog in oorlog met het oude land, dan keert het land terug; ben je in vrede, dan wordt de opstand neergeslagen en kost die alleen soldaten. Een land dat je helemaal van de kaart hebt geveegd komt nooit terug. Laat soldaten achter op dat continent of gebruik <i>Orde handhaven</i> (tik op je eigen land); na een paar maanden hoort het land echt bij jou.","en":"Conquered land is striped red at first: it is not used to you yet. It gives less money and fewer soldiers and can rise up. While you are still at war with its old country the land returns to it; at peace the uprising is put down and only costs soldiers. A country you wipe off the map never comes back. Leave soldiers on that continent or use <i>Keep order</i> (tap your own country); after a few months the land is truly yours."},{"ic":"fort","tn":"Pas op","te":"Watch out","nl":"Wie snel groeit of een land omsingelt, maakt de buren bang. Ze kunnen een aanval voorbereiden, een coalitie tegen je vormen of samengaan tot één land. Bij vrede wordt het front de nieuwe grens.","en":"Whoever grows fast or surrounds a country scares the neighbours. They can prepare an attack, form a coalition against you or merge into one country. At peace the front becomes the new border."},{"ic":"dip","tn":"Karakter en geheugen","te":"Character and memory","nl":"Elk computerland heeft een eigen, verborgen karakter: het ene is agressief of trots, het andere vriendelijk, voorzichtig, trouw of vergevingsgezind. Landen onthouden wat je ze aandeed en vergeten dat langzaam. Een land valt niet zomaar aan: het trekt eerst troepen samen aan je grens (je ziet dat in het nieuws, bij Oorlog rechtsboven en bij het land zelf) en stelt soms een ultimatum. Na een vredesverdrag volgt ongeveer een jaar wapenstilstand.","en":"Every computer country has its own hidden character: one is aggressive or proud, another friendly, cautious, loyal or forgiving. Countries remember what you did to them and forget it slowly. A country does not attack out of the blue: it first masses troops on your border (you see it in the news, under War at the top right and on the country itself) and sometimes issues an ultimatum. A peace treaty is followed by a truce of about a year."},{"ic":"dip","tn":"Bondgenoten","te":"Allies","nl":"Een bondgenootschap is meer dan een knop. Bondgenoten komen je te hulp als je wordt aangevallen (hoe zeker staat bij het land), sluiten zich soms aan bij jouw oorlogen, stellen samen aanvallen voor, vragen steun als ze verliezen en sturen geld of soldaten als jij het zwaar hebt. Laat je ze in de steek, dan worden ze ontevreden en kunnen ze het verbond opzeggen.","en":"An alliance is more than a button. Allies come to your aid when you are attacked (how surely is shown on the country), sometimes join your wars, propose joint attacks, ask for aid when they are losing and send money or soldiers when you struggle. Let them down and they grow unhappy and may end the alliance."},{"ic":"anchor","tn":"Marine","te":"Navy","nl":"Met Marine val je landen over zee aan. Elk niveau reikt verder: ongeveer 600, 1.200, 2.200 en 4.000 km. Op niveau 5 bereikt je vloot elke kust ter wereld, ook aan de andere kant van de aarde.","en":"With Navy you attack countries across the sea. Every level reaches further: about 600, 1,200, 2,200 and 4,000 km. At level 5 your fleet reaches every coast in the world, even on the other side of the globe."},{"ic":"dip","tn":"Diplomatie en vertrouwen","te":"Diplomacy and trust","nl":"Tik op een land om te zien met wie het samenwerkt en met wie het in oorlog is. Vraag andere landen om iemand aan te vallen, geef ze troepen, wapens of geld, of vraag of ze bij je land willen horen. Val je een bondgenoot of handelspartner aan, of breek je een vrede, dan vertrouwt de hele wereld je minder: verdragen worden moeilijker en andere bondgenoten kunnen je laten vallen.","en":"Tap a country to see who it works with and who it is at war with. Ask other countries to attack someone, give them troops, weapons or money, or ask whether they want to join your country. If you attack an ally or trade partner, or break a peace, the whole world trusts you less: treaties get harder and other allies may drop you."},{"ic":"list","tn":"Nieuws","te":"News","nl":"Het nieuws staat onder kopjes: samenvoegingen en verbonden, oorlog, wie welk land heeft veroverd, en vrede en diplomatie.","en":"The news is grouped under headings: mergers and alliances, war, who conquered which land, and peace and diplomacy."}]},{"gn":"Extra","ge":"Extra","items":[{"ic":"atom","tn":"Kernwapens","te":"Nuclear weapons","nl":"Bouw een Kernprogramma (vereist Legertechnologie 2) en maak dan kernbommen bij Leger &amp; wapens. Tik op een land, kies Kernaanval en tik op het gebied dat je wilt raken: het leger op dat continent wordt gedecimeerd en het gebied wordt radioactief. De hele wereld zal je haten, en echte kernmachten (zoals de VS, Rusland en China) slaan terug. Een Raketschild schiet raketten neer.","en":"Build a Nuclear programme (needs Army tech 2) and then make nuclear bombs under Army &amp; weapons. Tap a country, choose Nuclear strike and tap the area you want to hit: the army on that continent is decimated and the area becomes radioactive. The whole world will hate you, and real nuclear powers (like the US, Russia and China) strike back. A Missile shield shoots missiles down."},{"ic":"spy","tn":"Spionage","te":"Espionage","nl":"Saboteer wapendepots, stook opstanden aan of steel technologie. Worden je spionnen betrapt, dan wordt dat land boos.","en":"Sabotage weapon depots, incite uprisings or steal technology. If your spies are caught that country gets angry."},{"ic":"edu","tn":"Gebeurtenissen en doelen","te":"Events and goals","nl":"Soms gebeurt er iets in je land en moet je kiezen hoe je reageert. Linksboven staan je doelen: haal ze voor geld en wapens.","en":"Sometimes something happens in your country and you choose how to react. Your goals are at the top left: complete them for money and weapons."}]}];
 function showHelp(){
   openSheet(`<h3>${$t('Hoe werkt Wereldrijk?','How does Wereldrijk work?')}</h3><div class="help">${HELP.map(g=>`<div class="hg">${$t(g.gn,g.ge)}</div>${g.items.map(c=>`<div class="hc">${svgI(c.ic)}<b>${$t(c.tn,c.te)}</b><span>${$t(c.nl,c.en).replace('{START}',startD()).replace('{MOB}',$t(ERA&&ERA.mob?'De oorlog is al in volle gang, dus alle landen zijn al gemobiliseerd.':'In het eerste jaar gaat dat nog langzaam (mobilisatie, voor alle landen); daarna op volle snelheid.',ERA&&ERA.mob?'The war is already in full swing, so all countries are already mobilised.':'In the first year this is still slow (mobilisation, for all countries); after that at full speed.'))}</span></div>`).join('')}`).join('')}</div><button class="btn pri wide" id="hC">${$t('Begrepen','Got it')}</button>`,s=>s.querySelector('#hC').onclick=closeSheet,true)}
 function countryBtns(ids,selNn,taken){return `<div class="clist2">${ids.map(n=>`<button class="cbtn ${selNn===n?'on':''}" data-n="${n}" ${taken&&taken.has(n)?'disabled':''}>${natFlag(n)}<span>${esc(baseName(NAT[n]))}</span></button>`).join('')}</div>`}
 function startPick(mode){
   closeScreen();cancelAnimationFrame(drift);shuffleModes();G=previewState();dirty();
-  PICK={mode,players:[],cur:-1,diff:-1,opts:{maxR:36,tl:90}};setMode('pick');resize();cam.s=minS();cam.x=-(WW*cam.s-VW)/2;clampCam();renderPick();req();
+  PICK={mode,players:[],cur:-1,diff:-1,opts:{maxR:36,tl:90,hist:true}};setMode('pick');resize();cam.s=minS();cam.x=-(WW*cam.s-VW)/2;clampCam();renderPick();req();
 }
 function renderPick(){
   const P=PICK;const card=$('#pickcard');const n=P.cur;const taken=new Set(P.players.map(p=>p.nation));
@@ -2481,13 +2693,13 @@ function renderPick(){
   if(P.diff<0){h+=`<div class="modes">${MODES.map((m,i)=>`<button class="mode diff${i}" data-m="${i}"><b>${m.nm}</b><span class="note">${m.sub}</span></button>`).join('')}</div>`}
   else{
     const M=MODES[P.diff];
-    if(!P.players.length)h+=`<div class="mtabs">${MODES.map((m,i)=>`<button class="chip diff${i} ${P.diff===i?'on':''}" data-m="${i}">${m.nm}</button>`).join('')}</div>`;
+    if(!P.players.length)h+=`<div class="mtabs">${MODES.map((m,i)=>`<button class="chip diff${i} ${P.diff===i?'on':''}" data-m="${i}">${m.nm}</button>`).join('')}</div><div class="hsrow"><span class="lbl">${$t('Start','Start')}</span>${[[1,histLbl(1)],[0,histLbl(0)]].map(([v,l])=>`<button class="chip ${(P.opts.hist!==false)===!!v?'on':''}" data-hs="${v}">${l}</button>`).join('')}</div>`;
     else h+=`<div class="lbl">${$t('Modus:','Mode:')} ${M.nm}</div>`;
     h+=countryBtns(M.ids,n,taken);
     if(n>=0){const d=NAT[n];
       const nb=new Set();for(const r of natRegions[n])for(const j of R0[r].nb)if(R0[j].n0!==n)nb.add(R0[j].n0);const big=[...nb].sort((a,b)=>NAT[b].mil-NAT[a].mil)[0];
       const ST=M.st||{t:G.N[n].t,tk:kit(n).tk,jt:kit(n).jt};
-      const wrs=ERA&&dip().war[n].size?[...dip().war[n]].slice(0,5):[];
+      const wrs=ERA&&P.opts.hist!==false&&dip().war[n].size?[...dip().war[n]].slice(0,5):[];
       h+=`<div class="grid2"><div class="kv"><small>${$t('Soldaten bij de start','Soldiers at start')}</small><b>${fmtT(ST.t)}</b></div><div class="kv"><small>${$t('Inwoners','Population')}</small><b>${fmtPop(d.pop)}</b></div></div>
        <div class="note">${M.st?$t(`In ${esc(M.nm.toLowerCase())} begint elk land even sterk: ${fmtT(ST.t)} soldaten, ${ST.tk} tanks en ${ST.jt} vliegtuigen.`,`On ${esc(M.nm.toLowerCase())} every country starts equally strong: ${fmtT(ST.t)} soldiers, ${ST.tk} tanks and ${ST.jt} jets.`):$t(`${esc(baseName(d))} begint met ${fmtT(ST.t)} soldaten${unitOK('tk')?`, ${fmtN(ST.tk)} tanks`:''}${unitOK('jt')?` en ${fmtN(ST.jt)} vliegtuigen`:''}.${wrs.length?` In oorlog met ${wrs.map(x=>`<b style="color:var(--amber)">${esc(baseName(NAT[x]))}</b>`).join(', ')}.`:''}`,`${esc(baseName(d))} starts with ${fmtT(ST.t)} soldiers${unitOK('tk')?`, ${fmtN(ST.tk)} tanks`:''}${unitOK('jt')?` and ${fmtN(ST.jt)} jets`:''}.${wrs.length?` At war with ${wrs.map(x=>`<b style="color:var(--amber)">${esc(baseName(NAT[x]))}</b>`).join(', ')}.`:''}`)}${big!=null?$t(` Sterkste buur: <b style="color:var(--ink)">${esc(baseName(NAT[big]))}</b> (${fmtT(NAT[big].mil*1000)} soldaten).`,` Strongest neighbour: <b style="color:var(--ink)">${esc(baseName(NAT[big]))}</b> (${fmtT(NAT[big].mil*1000)} soldiers).`):''}</div>`;
       {const ma=G.N[n].u[U.ma];G.N[n].u[U.ma]=natRegions[n].some(i=>R0[i].coast)?1:0;const rs=[];for(let o=0;o<NN;o++)if(o!==n&&!G.N[o].dead&&canReach(n,o))rs.push(o);G.N[n].u[U.ma]=ma;
@@ -2500,6 +2712,7 @@ function renderPick(){
   }
   card.innerHTML=h;
   card.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{P.diff=+b.dataset.m;P.cur=-1;bordersDirty=true;renderPick();cam.s=minS();clampCam();req()});
+  card.querySelectorAll('[data-hs]').forEach(b=>b.onclick=()=>{P.opts.hist=b.dataset.hs==='1';renderPick();toast(histNote(P.opts.hist))});
   card.querySelectorAll('.cbtn').forEach(b=>b.onclick=()=>{P.cur=+b.dataset.n;bordersDirty=true;renderPick();focusNation(P.cur,-100)});
   const go=$('#pkGo');if(go)go.onclick=()=>{
     if(P.mode==='solo'){beginGame('solo',[{nick:$t('Jij','You'),nation:n,color:PALETTE[0]}]);return}
@@ -2512,12 +2725,16 @@ $('#pkOpts').onclick=()=>pickOptions();
 function pickOptions(){const o=PICK.opts;
   openSheet(`<h3>${$t('Spelopties','Game options')}</h3><div class="opt"><b>${$t('Speelduur','Game length')}</b><div class="note">${$t(`Je begint op ${startD()} en elke beurt is één maand. Na de laatste maand wint het grootste land.`,`You start on ${startD()} and every turn is one month. After the last month the biggest country wins.`)}</div><div class="chips">${DUR_OPTS.map(v=>`<button class="chip ${o.maxR===v?'on':''}" data-r="${v}">${v?fmtMonths(v):$t('Onbeperkt','Unlimited')}</button>`).join('')}</div>${o.maxR?`<div class="note">${$t('Het spel eindigt na','The game ends after')} ${fmtDate(o.maxR)}.</div>`:''}</div>
    <div class="opt"><b>${$t('Tijd per beurt','Time per turn')}</b><div class="note">${$t('Is de tijd op, dan eindigt je beurt vanzelf.','When time runs out, your turn ends.')}</div><div class="chips">${TLO().map(([v,l])=>`<button class="chip ${(o.tl??90)===v?'on':''}" data-tl="${v}">${l}</button>`).join('')}</div></div>
-   <button class="btn pri wide" id="poC">${$t('Klaar','Done')}</button>`,s=>{s.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{o.maxR=+b.dataset.r;pickOptions()});s.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{o.tl=+b.dataset.tl;pickOptions()});s.querySelector('#poC').onclick=closeSheet})}
+   <div class="opt"><b>${$t('Startsituatie','Starting situation')}</b><div class="note">${histNote(o.hist!==false)}</div><div class="chips">${[[1,histLbl(1)],[0,histLbl(0)]].map(([v,l])=>`<button class="chip ${(o.hist!==false)===!!v?'on':''}" data-hs="${v}">${l}</button>`).join('')}</div></div>
+   <button class="btn pri wide" id="poC">${$t('Klaar','Done')}</button>`,s=>{s.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{o.maxR=+b.dataset.r;pickOptions()});s.querySelectorAll('[data-hs]').forEach(b=>b.onclick=()=>{o.hist=b.dataset.hs==='1';pickOptions();if(PICK)renderPick()});s.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{o.tl=+b.dataset.tl;pickOptions()});s.querySelector('#poC').onclick=closeSheet})}
 const DUR_OPTS=[24,36,48,0];
+// starting situation: the real wars and alliances of the moment, or an equal start for everyone
+const histLbl=v=>v?$t('Historisch','Historical'):$t('Gelijke start','Equal start');
+const histNote=v=>v?(ERA?$t(`Zoals het echt was in ${fmtDate(1)}: wie toen in oorlog was, begint in oorlog, met de echte bondgenoten en handelspartners.`,`As it really was in ${fmtDate(1)}: whoever was at war then starts at war, with the real allies and trade partners.`):$t('De echte bondgenootschappen en handelsverdragen van nu.','Today\'s real alliances and trade pacts.')):$t('Iedereen begint gelijk: niemand is in oorlog, niemand heeft bondgenoten of handelsverdragen. Elk land kiest zijn eigen weg.','Everyone starts equal: nobody is at war, nobody has allies or trade pacts. Every country finds its own way.');
 const TLO=()=>[[60,'1 min'],[90,$t('1,5 min','1.5 min')],[150,$t('2,5 min','2.5 min')],[0,$t('Geen','None')]];
 function beginGame(mode,humans){
   const o=PICK.opts;const diff=PICK.diff;PICK=null;
-  G=initialState({mode,humans,maxR:o.maxR,diff,tl:o.tl??90});ME=G.order[0];startTurn(ME);recordHist();addLog($b('Het spel is begonnen!','The game has started!'),[],'info');
+  G=initialState({mode,humans,maxR:o.maxR,diff,tl:o.tl??90,hist:o.hist!==false});ME=G.order[0];startTurn(ME);recordHist();addLog($b('Het spel is begonnen!','The game has started!'),[],'info');
   G.order.forEach(n=>{G.N[n].seen=G.lc;if(n!==ME)G.N[n].ap=apMax(n)});G.N[ME].lastR=0;
   startPlaying();if(mode==='local')handoff();
 }
@@ -2580,7 +2797,8 @@ function enterLobby(code){
     const taken=new Set(NET.players.filter(p=>p.id!==NET.uid&&p.nation>=0).map(p=>p.nation));
     s.querySelector('#lp').innerHTML=NET.players.map((p,i)=>`<div class="pl"><i style="background:${PALETTE[i%PALETTE.length]}"></i><b>${esc(p.nick)}</b>${p.id===g.host?' <span class="note">host</span>':''}<span class="r">${p.nation>=0?esc(baseName(NAT[p.nation])):$t('kiest…','picking…')}</span></div>`).join('');
     const ho=s.querySelector('#hostOpts');
-    ho.innerHTML=`<div class="lbl">${$t('Modus','Mode')}</div><div class="chips">${MODES.map((m,i)=>`<button class="chip diff${i} ${i===(g.diff??1)?'on':''}" data-d="${i}" ${isHost()?'':'disabled'}>${m.nm}</button>`).join('')}</div>${isHost()?`<div class="lbl">${$t('Speelduur','Game length')}</div><div class="chips">${DUR_OPTS.map(v=>`<button class="chip ${g.maxR===v?'on':''}" data-r="${v}">${v?fmtMonths(v):'∞'}</button>`).join('')}</div><div class="lbl">${$t('Tijd per beurt','Time per turn')}</div><div class="chips">${TLO().map(([v,l])=>`<button class="chip ${(g.tl??90)===v?'on':''}" data-tl="${v}">${l}</button>`).join('')}</div>`:''}`;
+    ho.innerHTML=`<div class="lbl">${$t('Modus','Mode')}</div><div class="chips">${MODES.map((m,i)=>`<button class="chip diff${i} ${i===(g.diff??1)?'on':''}" data-d="${i}" ${isHost()?'':'disabled'}>${m.nm}</button>`).join('')}</div>${isHost()?`<div class="lbl">${$t('Speelduur','Game length')}</div><div class="chips">${DUR_OPTS.map(v=>`<button class="chip ${g.maxR===v?'on':''}" data-r="${v}">${v?fmtMonths(v):'∞'}</button>`).join('')}</div><div class="lbl">${$t('Tijd per beurt','Time per turn')}</div><div class="chips">${TLO().map(([v,l])=>`<button class="chip ${(g.tl??90)===v?'on':''}" data-tl="${v}">${l}</button>`).join('')}</div>`:''}<div class="lbl">${$t('Startsituatie','Starting situation')}</div><div class="chips">${[[1,histLbl(1)],[0,histLbl(0)]].map(([v,l])=>`<button class="chip ${(g.hist!==false)===!!v?'on':''}" data-hs="${v}" ${isHost()?'':'disabled'}>${l}</button>`).join('')}</div><div class="note">${histNote(g.hist!==false)}</div>`;
+    ho.querySelectorAll('[data-hs]').forEach(b=>b.onclick=()=>NET.db.doc('games/'+code).update({hist:b.dataset.hs==='1'}).catch(()=>{}));
     ho.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>NET.db.doc('games/'+code).update({tl:+b.dataset.tl}).catch(()=>{}));
     ho.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>NET.db.doc('games/'+code).update({diff:+b.dataset.d}).catch(()=>{}));
     ho.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>NET.db.doc('games/'+code).update({maxR:+b.dataset.r}).catch(()=>{}));
@@ -2593,7 +2811,7 @@ function enterLobby(code){
     const ps=NET.players;const ns=ps.map(p=>p.nation);const M=MODES[NET.game.diff??1];
     if(ps.some(p=>p.nation<0||!M.ids.includes(p.nation))){s.querySelector('#lErr').textContent=$t('Nog niet iedereen heeft een land uit deze modus gekozen.','Not everyone has picked a country from this mode yet.');return}
     if(new Set(ns).size!==ns.length){s.querySelector('#lErr').textContent=$t('Twee spelers hebben hetzelfde land gekozen.','Two players picked the same country.');return}
-    const g=NET.game;G=initialState({mode:'online',code,humans:ps.map((p,i)=>({nick:p.nick,nation:p.nation,uid:p.id,color:PALETTE[i%PALETTE.length]})),maxR:g.maxR,diff:g.diff??1,tl:g.tl??90});
+    const g=NET.game;G=initialState({mode:'online',code,humans:ps.map((p,i)=>({nick:p.nick,nation:p.nation,uid:p.id,color:PALETTE[i%PALETTE.length]})),maxR:g.maxR,diff:g.diff??1,tl:g.tl??90,hist:g.hist!==false});
     startTurn(G.order[0]);recordHist();addLog($b('Het online spel is begonnen!','The online game has started!'),[],'info');G.order.forEach(n=>{G.N[n].seen=G.lc;G.N[n].ap=G.N[n].ap||apMax(n)});
     try{await NET.db.doc('games/'+code).update({status:'playing',state:JSON.stringify(G),rev:G.rev})}catch(e){s.querySelector('#lErr').textContent=$t('Starten lukte niet: ','Could not start: ')+(e.message||e)}
   };

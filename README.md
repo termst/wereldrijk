@@ -10,15 +10,23 @@ Strategiespel in de browser: verover de wereld, alleen, samen op één telefoon 
 - Mobilisatie: in 2026 groeien alle legers (ook van de computer) het eerste jaar nog langzaam
 - Onderzoek: drones, precisiebommen, luchtafweer, kruisraketten, bunkerbrekers, stealthbommenwerpers, EMP-raketten, hypersone raketten en de waterstofbom, met een luchtaanval die al die wapens gebruikt
 - Vertrouwen: wie een bondgenoot of handelspartner aanvalt, of een verse vrede breekt, wordt door de hele wereld minder vertrouwd
+- Computerlanden met karakter: elk land heeft een verborgen karakter van 13 eigenschappen (agressief, vriendelijk, vergevingsgezind, trouw, voorzichtig, hebzuchtig, trots, opportunistisch, achterdochtig, expansief, handelsgericht, woord houden, geduldig). Een eigenschap beslist nooit alleen, maar verschuift de kansen
+- Geheugen en plannen: landen onthouden oorlogen, veroverd land en geweigerde hulp (wrok die langzaam slijt). Een land valt niet zomaar aan: het kiest een doel met een reden, trekt een paar maanden troepen samen aan de grens (zichtbaar in het nieuws, rechtsboven en bij het land), stelt soms een ultimatum en verklaart dan pas de oorlog
+- Wapenstilstand: na een vredesverdrag volgt ongeveer een jaar wapenstilstand; alleen landen die hun woord weinig waard vinden breken die soms, en dan vertrouwt de wereld ze minder
+- Bondgenoten doen echt iets: ze komen je te hulp (hoe zeker staat bij het land), sluiten zich soms aan bij jouw oorlogen, stellen samen aanvallen voor, vragen steun als ze verliezen, sturen geld of soldaten als jij het zwaar hebt en zeggen het verbond op als je ze in de steek laat
+- Startsituatie: kies bij het starten (en in de online lobby) tussen een historische start (de echte oorlogen, bondgenoten en handelsverdragen van dat moment) en een gelijke start (niemand in oorlog of verbonden)
+- Tik op een land: een blauwe lijn om het land, blauwe ringen om kleine of verre stukken land en pijlen aan de rand van het scherm naar land buiten beeld (tik op een pijl om ernaartoe te gaan)
+- Marine: elk niveau reikt verder over zee (ongeveer 600, 1.200, 2.200 en 4.000 km); op niveau 5 bereik je elke kust ter wereld
 - Tik op een land om te zien met wie het samenwerkt en met wie het in oorlog is; echte bondgenootschappen en handelsverdragen bij de start
 - Nieuws onder kopjes: samenvoegingen en verbonden, oorlog, veroverd land, vrede en diplomatie
 - Een kaart met een blauwe gloed om het land heen
 - Echte landen, een front dat over de hele grens opschuift, terrein, moreel en oorlogsmoeheid
 - Legers per continent. Op de kaart staat bij elk land een compact legerlabel met soldaten, tanks en vliegtuigen; het krimpt en laat details weg (een plusje) als je uitzoomt
 - Kernwapens: Kernprogramma, Raketschild, doelwit kiezen op de kaart, radioactieve neerslag en kernmachten die terugslaan
-- Onrust: veroverd land moet wennen en kan in opstand komen; laat troepen achter of handhaaf de orde. Een land dat van de kaart is geveegd blijft weg: zijn land komt niet meer in opstand
+- Onrust: veroverd land moet wennen en kan in opstand komen; laat troepen achter of handhaaf de orde. Alleen zolang je nog in oorlog bent met het oude land gaat het land terug; in vrede wordt een opstand neergeslagen en kost die alleen soldaten. Een land dat van de kaart is geveegd blijft weg: zijn land komt niet meer in opstand
 - Gebeurtenissen met keuzes, doelen met beloningen en spionage (sabotage, opstand stoken, technologie stelen)
 - Diplomatie, coalities (met waarschuwing), overgave en samengaan van landen
+- Op een telefoon staan doelen en oorlogen als twee kleine knoppen in de hoeken; tik erop en de inhoud klapt eronder uit, steeds maar één tegelijk
 - Groeigrafiek, geluidseffecten (aan/uit in het menu), Nederlands en Engels
 
 ## Tijdperken
