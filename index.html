@@ -1347,19 +1347,19 @@ function draw(){
   const relW=n=>G.pv||ME<0?0:n===ME?1:atWar(ME,n)?2:allied(ME,n)?3:0;
   // army markers on the other continents: always for you, your enemies and allies; for others only zoomed in
   const armyPass=mineOnly=>{if(G.pv)return;for(const L of armyLabels){const rw=relW(L.n);if(mineOnly!==(rw===1))continue;if(!rw&&!(s>3&&L.w*s>40))continue;if(rw===3&&s<1.6&&L.w*s<25)continue;
-    const x=L.x*s+cam.x,y=L.y*s+cam.y;if(x<-120||x>VW+120||y<-40||y>VH+40)continue;const N=A(L.n);
-    const box=pillBox(N.a[L.c],N.ka[L.c],x,y-9,true);if(rw!==1&&ov(box))continue;placed.push(box);drawPill(L.n,N.a[L.c],N.ka[L.c],x,y-9,CONTS[L.c],rw)}};
+    const x=L.x*s+cam.x,y=L.y*s+cam.y;if(x<-120||x>VW+120||y<-40||y>VH+40)continue;const N=A(L.n),z=pillZ(s),lv=pillLvl(L.w*s,rw);
+    const box=pillBox(N.a[L.c],N.ka[L.c],0,x,y-9,true,lv,z);if(rw!==1&&ov(box))continue;placed.push(box);drawPill(L.n,N.a[L.c],N.ka[L.c],0,x,y-9,CONTS[L.c],rw,false,lv,z)}};
   armyPass(true);
   const pri=L=>L.n===selN?0:L.n===f?1:isHuman(L.n)?2:(!G.pv&&f>=0&&atWar(f,L.n))?3:4;const LBL=selN>=0||f>=0?[...natLabels].sort((a,b)=>pri(a)-pri(b)):natLabels;
   for(const L of LBL){const w=L.w*s;const important=L.n===f||L.n===selN||isHuman(L.n)||(ps&&ps.has(L.n))||(!G.pv&&f>=0&&atWar(f,L.n))||(BATTLE&&(L.n===BATTLE.def));if(w<60&&!(important&&w>8))continue;if(ps&&!important)continue;
     const nm=natName(L.n).toUpperCase();const fs=clamp(w/Math.max(6,nm.length)*1.3,11,important?28:22);const x=L.x*s+cam.x,y=L.y*s+cam.y;if(x<-200||x>VW+200||y<-50||y>VH+50)continue;
     const showT=!G.pv&&(important||s>3);
     const NF=`700 ${fs}px "Barlow Condensed","Arial Narrow",sans-serif`,LS=(fs*.05).toFixed(1)+'px';ctx.font=NF;ctx.letterSpacing=LS;const tw=ctx.measureText(nm).width;
-    let sd=0,tk=0,multi=false;if(showT){const N=A(L.n);multi=N.a.filter((v,c)=>c!==L.c&&(v>0||N.ka[c]>0)).length>0||armyLabels.some(q=>q.n===L.n);sd=multi?N.a[L.c]:N.t;tk=multi?N.ka[L.c]:kit(L.n).tk}
-    const pb=showT?pillBox(sd,tk,x,y+fs*.55,false):null;
-    const box=[Math.min(x-tw/2-4,pb?pb[0]:1e9),y-fs/2,Math.max(x+tw/2+4,pb?pb[2]:-1e9),y+fs/2+(showT?20:0)];if(ov(box))continue;placed.push(box);
+    let sd=0,tk=0,jt=0,multi=false;if(showT){const N=A(L.n);multi=N.a.filter((v,c)=>c!==L.c&&(v>0||N.ka[c]>0)).length>0||armyLabels.some(q=>q.n===L.n);sd=multi?N.a[L.c]:N.t;tk=multi?N.ka[L.c]:kit(L.n).tk;jt=kit(L.n).jt||0}
+    const z=pillZ(s),lv=pillLvl(w,relW(L.n));const pb=showT?pillBox(sd,tk,jt,x,y+fs*.55,false,lv,z):null;
+    const box=[Math.min(x-tw/2-4,pb?pb[0]:1e9),y-fs/2,Math.max(x+tw/2+4,pb?pb[2]:-1e9),(showT?y+fs*.55+Math.ceil(PILL_H*z)+3:y+fs/2)];if(ov(box))continue;placed.push(box);
     ctx.font=NF;ctx.letterSpacing=LS;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.55)';ctx.fillStyle=important?'#fff':'rgba(235,240,244,.75)';ctx.strokeText(nm,x,y);ctx.fillText(nm,x,y);
-    if(showT)drawPill(L.n,sd,tk,x,y+fs*.55,multi?CONTS[L.c]:null,relW(L.n),true)}
+    if(showT)drawPill(L.n,sd,tk,jt,x,y+fs*.55,multi?CONTS[L.c]:null,relW(L.n),true,lv,z)}
   ctx.letterSpacing='0px';armyPass(false);
   if(!G.pv)drawCaps(s,vx0,vy0,vx1,vy1);
   drawFx(s,now);
@@ -1493,20 +1493,31 @@ function compCenter(comp,km){let sx=0,sy=0;const bb=[1e9,1e9,-1e9,-1e9];
   const inside=comp.some(x=>{const b=R0[x].bb;return cx>=b[0]&&cx<=b[2]&&cy>=b[1]&&cy<=b[3]&&hit.isPointInPath(R0[x].path,cx,cy,'evenodd')});
   if(!inside){let bd=1e18,bx=cx,by=cy;for(const x of comp){const R=R0[x];const d=((R.lx-cx)**2+(R.ly-cy)**2)/Math.sqrt(R.km+500);if(d<bd){bd=d;bx=R.lx;by=R.ly}}cx=bx;cy=by}
   return {x:cx,y:cy,bb}}
-// a small army marker: helmet + soldiers, tank + tanks; coloured by your relation to that country
-const PILL_F='700 12.5px "Barlow Semi Condensed",sans-serif';
-function pillTxt(sd,tk){return [sd<1?$t('geen leger','no army'):fmtT(sd),tk>=1?fmtN(tk):'']}
-function pillBox(sd,tk,x,y,sub){ctx.font=PILL_F;ctx.letterSpacing='0px';const [a,b]=pillTxt(sd,tk);let w=24+ctx.measureText(a).width;if(b)w+=22+ctx.measureText(b).width;return [x-w/2,y-(sub?11:0),x+w/2,y+19]}
-function drawPill(n,sd,tk,x,y,sub,rel,inline){
-  ctx.font=PILL_F;ctx.letterSpacing='0px';const [a,b]=pillTxt(sd,tk);const wa=ctx.measureText(a).width,wb=b?ctx.measureText(b).width:0;const w=24+wa+(b?22+wb:0),h=19,x0=x-w/2;
-  const bc=rel===1?'#ff4a36':rel===2?'#ffa53a':rel===3?'#5acdfa':'rgba(255,255,255,.28)';
-  ctx.fillStyle=rel===1?'rgba(64,14,9,.92)':'rgba(14,15,17,.86)';rr(x0,y,w,h,2);ctx.fill();ctx.strokeStyle=bc;ctx.lineWidth=rel?1.6:1.1;ctx.stroke();
-  ctx.fillStyle=natColor(n);ctx.beginPath();ctx.arc(x0+9,y+h/2,3.6,0,7);ctx.fill();
-  const icon=(id,ix)=>{ctx.save();ctx.translate(ix,y+3.5);ctx.scale(.5,.5);ctx.lineWidth=2.6;ctx.lineJoin='round';ctx.lineCap='round';ctx.strokeStyle=rel===1?'#ffb3a8':'#ffd27a';ctx.stroke(ipath(id));ctx.restore()};
-  let cx=x0+15;icon('helm',cx);cx+=14;ctx.fillStyle='#ecebe6';ctx.textAlign='left';ctx.fillText(a,cx,y+h/2+.5);cx+=wa+8;
-  if(b){icon('tank',cx);cx+=14;ctx.fillStyle='#ecebe6';ctx.fillText(b,cx,y+h/2+.5)}
-  ctx.textAlign='center';
-  if(sub&&!inline){ctx.font='700 9.5px "Barlow Condensed",sans-serif';const tt=sub.toUpperCase();ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.7)';ctx.strokeText(tt,x,y-5);ctx.fillStyle=rel===1?'#ff9a8c':'rgba(235,240,244,.85)';ctx.fillText(tt,x,y-5)}}
+// Army marker: nation colour strip, then soldiers, tanks and (nation wide) jets. It sizes itself to its content,
+// scales a little with the zoom and drops detail (a "+" shows there is more) when the country is small on screen.
+const PILL_F='700 12.5px "Barlow Semi Condensed",sans-serif',PILL_H=18;
+const pillZ=s=>clamp(.84+.045*s,.84,1.12);
+const pillLvl=(wpx,rel)=>{const k=wpx+(rel===1?80:0);return k<70?0:k<130?1:2};
+function pillLay(sd,tk,jt,lvl){
+  ctx.font=PILL_F;ctx.letterSpacing='0px';
+  const all=[['helm',sd<1?(tk>=1||jt>=1?'0':$t('geen leger','no army')):fmtT(sd)]];if(tk>=1)all.push(['tank',fmtT(tk)]);if(jt>=1)all.push(['jet',fmtT(jt)]);
+  const it=all.slice(0,lvl+1),hid=all.length>it.length;let cx=9;const pos=[];
+  for(const [ic,t] of it){pos.push([ic,t,cx,cx+15]);cx+=15+ctx.measureText(t).width+8}
+  cx-=8;if(hid)cx+=11;
+  return {w:Math.ceil(cx+7),pos,hid,end:cx-(hid?11:0)}}
+function pillBox(sd,tk,jt,x,y,sub,lvl,z){const w=pillLay(sd,tk,jt,lvl).w*z;return [x-w/2,y-(sub?11:0)*z,x+w/2,y+(PILL_H+1)*z]}
+function drawPill(n,sd,tk,jt,x,y,sub,rel,inline,lvl,z){
+  const L=pillLay(sd,tk,jt,lvl),w=L.w,h=PILL_H,x0=-w/2;
+  const bc=rel===1?'#ff4a36':rel===2?'#ffa53a':rel===3?'#5acdfa':'rgba(255,255,255,.24)';
+  ctx.save();ctx.translate(x,y);ctx.scale(z,z);ctx.font=PILL_F;ctx.letterSpacing='0px';ctx.textAlign='left';
+  ctx.fillStyle=rel===1?'rgba(64,14,9,.92)':'rgba(14,15,17,.88)';rr(x0,0,w,h,3);ctx.fill();ctx.strokeStyle=bc;ctx.lineWidth=rel?1.4:1;ctx.stroke();
+  ctx.save();rr(x0,0,w,h,3);ctx.clip();ctx.fillStyle=natColor(n);ctx.fillRect(x0,0,3,h);ctx.restore();
+  const tint=rel===1?'#ffb3a8':'#ffd27a';
+  for(const [ic,t,ix,tx] of L.pos){ctx.save();ctx.translate(x0+ix,3);ctx.scale(.5,.5);ctx.lineWidth=2.6;ctx.lineJoin='round';ctx.lineCap='round';ctx.strokeStyle=tint;ctx.stroke(ipath(ic));ctx.restore();
+    ctx.fillStyle='#ecebe6';ctx.fillText(t,x0+tx,h/2+.5)}
+  if(L.hid){ctx.fillStyle='#9a9d9f';ctx.fillText('+',x0+L.end+4,h/2+.5)}
+  if(sub&&!inline){ctx.textAlign='center';ctx.font='700 9.5px "Barlow Condensed",sans-serif';const tt=sub.toUpperCase();ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.7)';ctx.strokeText(tt,0,-5);ctx.fillStyle=rel===1?'#ff9a8c':'rgba(235,240,244,.85)';ctx.fillText(tt,0,-5)}
+  ctx.restore()}
 // faint terrain textures: snow flecks, sand dots, jungle leaves, mountain chevrons
 const TPAT={};function terrPat(t){if(TPAT[t])return TPAT[t];const n=t==='mnt'?18:t==='jun'?12:14;const c=document.createElement('canvas');c.width=c.height=n;const g=c.getContext('2d');
   if(t==='cold'){g.fillStyle='rgba(255,255,255,.55)';[[3,3],[10,8],[6,12]].forEach(([x,y])=>{g.beginPath();g.arc(x,y,1.1,0,7);g.fill()})}

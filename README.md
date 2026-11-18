@@ -6,7 +6,7 @@ Strategiespel in de browser: verover de wereld, alleen, samen op één telefoon 
 
 ## Wat zit erin
 - Echte landen, een front dat over de hele grens opschuift, terrein, moreel en oorlogsmoeheid
-- Legers per continent, met op de kaart bij elk continent hoeveel soldaten en tanks er staan
+- Legers per continent. Op de kaart staat bij elk land een compact legerlabel met soldaten, tanks en vliegtuigen; het krimpt en laat details weg (een plusje) als je uitzoomt
 - Kernwapens: Kernprogramma, Raketschild, doelwit kiezen op de kaart, radioactieve neerslag en kernmachten die terugslaan
 - Onrust: veroverd land moet wennen en kan in opstand komen; laat troepen achter of handhaaf de orde. Een land dat van de kaart is geveegd blijft weg: zijn land komt niet meer in opstand
 - Gebeurtenissen met keuzes, doelen met beloningen en spionage (sabotage, opstand stoken, technologie stelen)
