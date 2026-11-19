@@ -454,6 +454,44 @@ input[type=range]::-moz-range-thumb{width:12px;height:22px;background:var(--ink)
 .mode b{display:flex;align-items:center;gap:9px}.mode .dbar,.mtabs .dbar{width:18px;height:18px;flex:none}.mtabs .dbar{width:14px;height:14px;vertical-align:-2px;margin-right:5px}
 .opt b svg{width:18px;height:18px;vertical-align:-2px;margin-right:7px;color:var(--mute)}
 .eraB{grid-template-columns:24px 1fr auto}.eraB>svg{grid-row:1/3;width:22px;height:22px;color:var(--brass2);margin-top:1px}.eraB .note{grid-column:2/-1}
+/* ---- section themes: every kind of sheet has one accent (--tc) and one quiet motif (--tp).
+   They show up in the same places everywhere: a 2px top edge with a faint wash, the title and tab icons,
+   a square before labels, a corner bracket on cards, pips and progress, and the motif faded into the top right of each card.
+   Accents are muted so red, amber, blue and green keep their meaning on the map and in the lists.
+   Build: copper, blueprint grid. Army: olive drab, stencil stripes. Research: teal, graph-paper dots.
+   Diplomacy: periwinkle, ruled letter paper. War: brick, crosshatch. Spy: violet, scanlines.
+   Ranking and events: brass, fine diagonals. Nuclear: lime, rings. Name & colour: your own country colour. ---- */
+:root{--brass2:#cfae62;--t-buy:#d38b52;--t-army:#aeb06a;--t-res:#5cbdb4;--t-dip:#8fa5ec;--t-war:#de6a55;--t-spy:#b391e0;--t-gold:var(--brass2);--t-nuke:#c8ff46}
+.th-buy{--tc:var(--t-buy)}.th-army{--tc:var(--t-army)}.th-res{--tc:var(--t-res)}.th-dip{--tc:var(--t-dip)}.th-war{--tc:var(--t-war)}.th-spy{--tc:var(--t-spy)}.th-gold{--tc:var(--t-gold)}.th-nuke{--tc:var(--t-nuke)}.th-name{--tc:var(--ink)}
+.sheet.th{--tm:color-mix(in srgb,var(--tc) 15%,transparent);--tl:color-mix(in srgb,var(--tc) 30%,var(--line));
+  border-top:2px solid var(--tc);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 8%,transparent),transparent 120px) var(--panel)}
+.sheet.th-buy{--tp:linear-gradient(var(--tm) 1px,transparent 1px) 0 0/9px 9px,linear-gradient(90deg,var(--tm) 1px,transparent 1px) 0 0/9px 9px}
+.sheet.th-army{--tp:repeating-linear-gradient(-45deg,var(--tm) 0 2px,transparent 2px 7px)}
+.sheet.th-res{--tp:radial-gradient(var(--tm) 1.2px,transparent 1.6px) 0 0/7px 7px}
+.sheet.th-dip{--tp:repeating-linear-gradient(180deg,transparent 0 6px,var(--tm) 6px 7px)}
+.sheet.th-war{--tp:repeating-linear-gradient(45deg,var(--tm) 0 1px,transparent 1px 6px),repeating-linear-gradient(-45deg,var(--tm) 0 1px,transparent 1px 6px)}
+.sheet.th-spy{--tp:repeating-linear-gradient(90deg,var(--tm) 0 1px,transparent 1px 4px)}
+.sheet.th-gold{--tp:repeating-linear-gradient(60deg,var(--tm) 0 1px,transparent 1px 8px)}
+.sheet.th-nuke{--tp:repeating-radial-gradient(circle at 100% 0,var(--tm) 0 1px,transparent 1px 7px)}
+.th h3>svg,.th .opt b svg,.th .lbl.li svg,.th .tab.on svg{color:var(--tc)}
+.th .tab.on{box-shadow:inset 0 -2px 0 var(--tc)}
+.tab[data-tab=buy]{--ti:var(--t-buy)}.tab[data-tab=army]{--ti:var(--t-army)}.tab[data-tab=res]{--ti:var(--t-res)}.tab[data-tab=dip]{--ti:var(--t-dip)}
+.tab[data-tab]:not(.on) svg{color:var(--ti,var(--mute));opacity:.6}
+.th .lbl:not(.li)::before{content:"";display:inline-block;width:7px;height:7px;background:var(--tc);margin-right:7px;vertical-align:1px}
+.th .kv,.th .up,.th .vs .side{outline-color:var(--tl)}
+.th .up,.th .vs .side{position:relative;isolation:isolate}
+.th .up::before,.th .vs .side::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--tp,none);-webkit-mask-image:radial-gradient(140% 100% at 100% 0,#000,transparent 58%);mask-image:radial-gradient(140% 100% at 100% 0,#000,transparent 58%)}
+.th .up::after,.th .vs .side::after{content:"";position:absolute;left:-1px;top:-1px;width:11px;height:11px;border:solid var(--tc);border-width:2px 0 0 2px;pointer-events:none}
+.th .up.upn{--tc:var(--t-nuke)}.th .up.rdone{--tc:var(--green)}.th .up.locked{--tc:var(--mute)}
+.th .up>.t>svg{color:var(--tc)}
+.th .pips i.on,.th .gbar i{background:var(--tc)}
+.th .up.resnow{outline-color:var(--tc);background:color-mix(in srgb,var(--tc) 6%,transparent)}
+.th :is(.up,.drow,.dipbtns,.urow) .btn:not(.pri):not(.red):not(.nuke):not([disabled]){border-color:color-mix(in srgb,var(--tc) 45%,var(--line2))}
+.th .chip.on,.th .pq button.on{background:var(--tc);border-color:var(--tc);color:var(--on-ink)}
+/* diplomacy lists keep the meaning colours: war amber, allies blue, trade green */
+.lbl.li.s-war svg{color:var(--amber)}.lbl.li.s-al svg{color:var(--blue)}.lbl.li.s-tr svg{color:var(--green)}
+.dlist.s-war{--sc:var(--amber)}.dlist.s-al{--sc:var(--blue)}.dlist.s-tr{--sc:var(--green)}
+.dlist[class*=s-] .drow{box-shadow:inset 2px 0 var(--sc);padding-left:10px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -1583,7 +1621,7 @@ function rollEvent(n){if(G.round<2||rnd()>.33)return null;const ws=EVENTS.map(e=
 function showEvent(then){const N=G.N[ME];const ev=N.ev;if(!ev){then&&then();return}N.ev=null;const E=EVENTS.find(e=>e.id===ev.id);if(!E){then&&then();return}
   sfx('turn');
   openSheet(`<div class="evcard"><div class="lbl" style="color:var(--brass2)">${$t('Gebeurtenis','Event')} · ${$t('ronde','round')} ${G.round}</div><h3 style="font-size:24px">${E.t}</h3><div class="note" style="font-size:15px;color:var(--ink)">${E.d(ev.p)}</div>
-    <div class="evch">${E.ch.map((c,i)=>{const ok=!c.ok||c.ok(ME,ev.p);return `<button class="btn ${i?'':'pri'}" data-ec="${i}" ${ok?'':'disabled'}>${c.l(ev.p)}${ok?'':` <small>(${$t('te weinig geld','not enough money')})</small>`}</button>`}).join('')}</div></div>`,s=>{
+    <div class="evch">${E.ch.map((c,i)=>{const ok=!c.ok||c.ok(ME,ev.p);return `<button class="btn ${i?'':'pri'}" data-ec="${i}" ${ok?'':'disabled'}>${c.l(ev.p)}${ok?'':` <small>(${$t('te weinig geld','not enough money')})</small>`}</button>`}).join('')}</div></div>`,s=>{thm(s,'gold');
     s.lock=true;s.querySelectorAll('[data-ec]').forEach(b=>b.onclick=()=>{const c=E.ch[+b.dataset.ec];const msg=c.f(ME,ev.p);closeSheet();STATS=null;dirty();G.rev++;addLog(`${natName(ME)}: ${E.t.replace(/!$/,'')}. ${msg}`,[ME],'info');markSeen();toast(`<b>${E.t}</b> ${esc(msg)}`,'win');afterAction();then&&then()})});}
 
 // Missions: three goals at a time, from five groups (expand, military, economy, diplomacy, tech) so the set is varied.
@@ -1690,7 +1728,7 @@ function spyRun(o,id){const op=SPY.find(x=>x.id===id);const ok=rnd()<op.ch;let m
 function openSpy(o){if(!myTurn()||BATTLE)return;if(!apLeft()){toast($t('Je bevelen voor deze maand zijn op.','No orders left this month.'),'lose');return}const c=spyCost();
   openSheet(`<h3>${svgI('spy')} ${$t('Geheime operatie in','Secret operation in')} ${esc(natName(o))}</h3><div class="note">${$t(`Kost ${fmtMoney(c)} en 1 bevel. Mislukt het, dan worden je spionnen betrapt: ${esc(natName(o))} gaat je haten en kan je de oorlog verklaren.`,`Costs ${fmtMoney(c)} and 1 order. If it fails your spies are caught: ${esc(natName(o))} will hate you and may declare war.`)}</div>
    <div class="dlist">${SPY.map(x=>`<button class="spyop" data-sp="${x.id}" ${G.N[ME].m<c?'disabled':''}><b>${x.nm}</b><span class="note">${x.d}</span><span class="pct">${Math.round(x.ch*100)}% ${$t('kans','chance')}</span></button>`).join('')}</div>
-   <button class="btn ghost wide" id="spC">${$t('Annuleer','Cancel')}</button>`,s=>{s.querySelector('#spC').onclick=closeSheet;
+   <button class="btn ghost wide" id="spC">${$t('Annuleer','Cancel')}</button>`,s=>{thm(s,'spy');s.querySelector('#spC').onclick=closeSheet;
     s.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{if(G.N[ME].m<c||!useAP())return;G.N[ME].m-=c;closeSheet();const r=spyRun(o,b.dataset.sp);sfx(r.ok?'coin':'lose');toast(`<b>${r.ok?$t('Geslaagd!','Success!'):$t('Mislukt.','Failed.')}</b> ${esc(r.msg)}`,r.ok?'win':'lose');markSeen();G.rev++;afterAction()})})}
 
 /* ================= research ================= */
@@ -2326,7 +2364,7 @@ function openOffer(o,type,bribe){
    <div class="lbl">${$t('Geld aanbieden','Offer money')}</div>
    <div class="chips">${pays.map(v=>`<button class="chip ${v===bribe?'on':''}" data-pay="${v}">${v?fmtMoney(v):$t('Niets','Nothing')}</button>`).join('')}</div>
    ${money>=.1?`<div class="urow" style="margin-top:6px">${svgI('fact')}<span class="un">${$t('Bedrag','Amount')}</span><input type="range" id="u_br" min="0" max="${money}" step="0.1" value="${bribe}" aria-label="${$t('Geld','Money')}"><b class="num" id="u_brV">${bribe?fmtMoney(bribe):$t('Niets','Nothing')}</b></div>`:''}
-   <div class="row" style="margin-top:8px"><button class="btn ghost" id="ofC">${$t('Annuleer','Cancel')}</button><button class="btn pri big" style="flex:1" id="ofGo">${$t('Voorstellen','Propose')}</button></div>`,sh=>{
+   <div class="row" style="margin-top:8px"><button class="btn ghost" id="ofC">${$t('Annuleer','Cancel')}</button><button class="btn pri big" style="flex:1" id="ofGo">${$t('Voorstellen','Propose')}</button></div>`,sh=>{thm(sh,'dip');
     const sl=sh.querySelector('#u_br');const vl=sh.querySelector('#u_brV');
     const upd=()=>{const v=sl?+sl.value:bribe;if(vl)vl.textContent=v?fmtMoney(v):$t('Niets','Nothing')};
     if(sl)sl.oninput=upd;
@@ -2358,7 +2396,7 @@ function openNukeConfirm(r){const o=G.R.o[r],E=nukeEst(ME,r);const cap=R0[r].cap
    ${!atWar(ME,o)?`<div class="warn">${svgI('warn')}${$t('Dit is een oorlogsverklaring.','This is a declaration of war.')}</div>`:''}
    <div class="warn danger">${$t(`De hele wereld zal je haten. Alle landen denken veel slechter over je, en buren en bondgenoten van ${esc(natName(o))} kunnen je de oorlog verklaren.`,`The whole world will hate you. All countries think much worse of you, and neighbours and allies of ${esc(natName(o))} may declare war on you.`)}${E.ret?` <b>${$t(`${esc(natName(o))} heeft zelf ${fmtN(kit(o).nk)} kernbommen en slaat vrijwel zeker terug.`,`${esc(natName(o))} has ${fmtN(kit(o).nk)} nuclear bombs itself and will almost certainly strike back.`)}</b>`:''}</div>
    <div class="note">${$t('Het gebied wordt radioactief: het verliest het grootste deel van zijn inwoners en economie en blijft een paar maanden besmet. Kost 1 bevel en 1 kernbom.','The area becomes radioactive: it loses most of its people and economy and stays contaminated for a few months. Costs 1 order and 1 nuclear bomb.')}</div>
-   <div class="row"><button class="btn ghost" id="nC">${$t('Ander doelwit','Other target')}</button><button class="btn red big" style="flex:1" id="nGo">${svgI('rad')} ${$t('LANCEREN','LAUNCH')}</button></div>`,s=>{
+   <div class="row"><button class="btn ghost" id="nC">${$t('Ander doelwit','Other target')}</button><button class="btn red big" style="flex:1" id="nGo">${svgI('rad')} ${$t('LANCEREN','LAUNCH')}</button></div>`,s=>{thm(s,'nuke');
     s.querySelector('#nC').onclick=closeSheet;
     s.querySelector('#nGo').onclick=()=>{if(!useAP())return;closeSheet();endNukeT();launchNuke(r)}})}
 function launchNuke(r){const o=G.R.o[r];const res=nukeStrike(ME,r);if(!res)return;const b=R0[r].bb;focusBox([Math.min(b[0],R0[r].lx-40),Math.min(b[1],R0[r].ly-40),Math.max(b[2],R0[r].lx+40),Math.max(b[3],R0[r].ly+40)],0,5);
@@ -2380,6 +2418,8 @@ const TIPS=[['Tik op een land om het aan te vallen','Tap a country to attack it'
 let sheet=null;
 function openSheet(html,onMount,wide){closeSheet();sheet=el('div',{class:'scrim'});sheet.innerHTML=`<div class="sheet${wide?' wide':''}" role="dialog">${html}</div>`;sheet.addEventListener('pointerdown',e=>{if(e.target===sheet&&!sheet.lock){const f=sheet.onclose;closeSheet();f&&f()}});$('#app').appendChild(sheet);onMount&&onMount(sheet);if(sheet&&sheet.querySelector('.pq'))pqMount(sheet);return sheet}
 function closeSheet(){if(sheet){sheet.remove();sheet=null}}
+// Theme of the open sheet: one accent and one motif per kind of sheet (see 'section themes' in the CSS). col overrides the accent.
+function thm(s,t,col){const d=s&&s.querySelector('.sheet');if(!d)return;d.classList.add('th','th-'+t);if(col)d.style.setProperty('--tc',col)}
 function urow(id,lbl,ic,max,val){return max>0?`<div class="urow">${svgI(ic)}<span class="un">${lbl}</span><input type="range" id="u_${id}" min="0" max="${max}" value="${val}" aria-label="${lbl}"><b class="num" id="u_${id}V"></b>${pqBtns('u_'+id)}</div>`:''}
 const PQ=[0,25,50,75,100];
 function pqBtns(f){return `<div class="pq" data-for="${f}">${PQ.map(p=>`<button type="button" data-p="${p}">${p===100?'Max':p+'%'}</button>`).join('')}</div>`}
@@ -2412,7 +2452,7 @@ function openAttack(o,c){
    <div class="ulist">${urow('sd',$t('Soldaten','Soldiers'),'helm',mine,Math.round(mine*.7))}${urow('tk','Tanks','tank',mtk,Math.round(mtk*.7))}${urow('jt',$t('Vliegtuigen','Jets'),'jet',K.jt,Math.round(K.jt*.6))}${urow('dr','Drones','drone',K.dr,Math.round(K.dr*.7))}${urow('sh',$t('Schepen','Ships'),'ship',K.sh,naval?K.sh:0)}${urow('bm',$t('Bommen vooraf','Bombs first'),'bomb',K.bm,0)}${urow('kr',$t('Kruisraketten vooraf','Cruise missiles first'),'msl',K.kr,0)}</div>
    <div class="row" style="justify-content:space-between;flex-wrap:wrap"><b id="oddsT"></b><span class="note">${$t('Wat je niet stuurt, blijft thuis om te verdedigen.','What you do not send stays home to defend.')}</span></div>
    <div class="note">${$t(`Kracht telt in soldaten: een tank telt als 40, een vliegtuig als 250${K.dr?', een drone als 60':''}${naval?', een schip als 300 (over zee)':''}. Vliegtuigen en tanks laten het front sneller opschuiven; vijandelijke vliegtuigen remmen dat af. Bommen vallen vóór de aanval. Je kunt op elk moment stoppen.`,`Strength is counted in soldiers: a tank counts as 40, a jet as 250${K.dr?', a drone as 60':''}${naval?', a ship as 300 (across the sea)':''}. Jets and tanks move the front faster; enemy jets slow it down. Bombs fall before the attack. You can stop at any time.`)}</div>
-   <div class="row"><button class="btn ghost" id="aC">${$t('Annuleer','Cancel')}</button><button class="btn red big" style="flex:1" id="aGo">${$t('Ten aanval','Attack')}</button></div>`,s=>{
+   <div class="row"><button class="btn ghost" id="aC">${$t('Annuleer','Cancel')}</button><button class="btn red big" style="flex:1" id="aGo">${$t('Ten aanval','Attack')}</button></div>`,s=>{thm(s,'war');
     const v=id=>{const e=s.querySelector('#u_'+id);return e?+e.value:0};
     const upd=()=>{s.querySelectorAll('.urow input').forEach(e=>{e.style.setProperty('--p',(+e.max?+e.value/+e.max*100:0)+'%');s.querySelector('#'+e.id+'V').innerHTML=`${fmtN(+e.value)}<small> / ${fmtN(+e.max)}</small>`});
       const es=attackEst(ME,o,c,{sd:v('sd'),tk:v('tk'),jt:v('jt'),sh:v('sh'),bm:v('bm'),dr:v('dr'),kr:v('kr')});const p=es.raw;
@@ -2430,7 +2470,7 @@ function openBomb(o,c){
    <div class="ulist">${AIRW.map(([id,nm,ic])=>urow(id,nm(),ic,K[id],id==='bm'?Math.max(K.bm?1:0,Math.round(K.bm*.5)):0)).join('')}</div>
    <div class="note">${$t('Hun verdediging:','Their defence:')} ${fmtN(KD.jt)} ${$t('vliegtuigen','jets')}${ul(o,'rs')?$t(`, raketschild niveau ${ul(o,'rs')}`,`, missile shield level ${ul(o,'rs')}`):''}${hasRes(o,'ad')?$t(', luchtafweer',', air defence'):''}.${hasRes(ME,'st')?$t(' Je stealthbommenwerpers blijven onzichtbaar voor hun vliegtuigen.',' Your stealth bombers stay invisible to their jets.'):''}</div>
    <div class="dlist note">${K.bm?'<div>'+$t('<b>Bommen</b> doden soldaten en vernielen tanks; vliegtuigen schieten er veel neer.','<b>Bombs</b> kill soldiers and destroy tanks; jets shoot many of them down.')+'</div>':''}${K.kr?'<div>'+$t('<b>Kruisraketten</b> worden zelden neergeschoten en verwoesten fabrieken.','<b>Cruise missiles</b> are rarely shot down and destroy factories.')+'</div>':''}${K.bb?'<div>'+$t('<b>Bunkerbrekers</b>: elke 4 treffers breken een niveau Forten af.','<b>Bunker busters</b>: every 4 hits tear down one level of Forts.')+'</div>':''}${K.emp?'<div>'+$t('<b>EMP</b> legt tanks, vliegtuigen en drones op dat continent plat.','<b>EMP</b> knocks out tanks, jets and drones on that continent.')+'</div>':''}</div>
-   <div class="row"><button class="btn ghost" id="bC">${$t('Annuleer','Cancel')}</button><button class="btn red big" style="flex:1" id="bGo">${$t('Aanvallen','Attack')}</button></div>`,s=>{
+   <div class="row"><button class="btn ghost" id="bC">${$t('Annuleer','Cancel')}</button><button class="btn red big" style="flex:1" id="bGo">${$t('Aanvallen','Attack')}</button></div>`,s=>{thm(s,'war');
     const v=id=>{const e=s.querySelector('#u_'+id);return e?+e.value:0};
     const upd=()=>{s.querySelectorAll('.urow input').forEach(e=>{e.style.setProperty('--p',(+e.max?+e.value/+e.max*100:0)+'%');s.querySelector('#'+e.id+'V').innerHTML=`${fmtN(+e.value)}<small> / ${fmtN(+e.max)}</small>`});s.querySelector('#bGo').disabled=AIRW.every(([id])=>v(id)<1)};
     s.querySelectorAll('.urow input').forEach(e=>e.oninput=upd);upd();
@@ -2449,7 +2489,7 @@ function openAsk(o,pay){
   openSheet(`<h3>${natFlag(o)} ${$t(`${esc(natName(o))} vragen om aan te vallen`,`Ask ${esc(natName(o))} to attack`)}</h3><div class="note">${$t(`Kies een land dat ${esc(natName(o))} kan bereiken. Ze zeggen eerder ja als ze je mogen, sterker zijn dan het doelwit, of als je betaalt.`,`Pick a country ${esc(natName(o))} can reach. They say yes sooner if they like you, are stronger than the target, or if you pay.`)}</div>
    <div class="lbl">${$t('Betaling','Payment')}</div><div class="chips">${pays.map((v,i)=>`<button class="chip ${v===pay?'on':''}" data-pay="${v}">${i?fmtMoney(v):$t('Niets','Nothing')}</button>`).join('')}</div>
    <div class="lbl">${$t('Doelwit','Target')}</div><div class="dlist">${ts.slice(0,14).map(t=>`<button class="drow" style="border:0;color:inherit;font:inherit;text-align:left" data-t="${t}">${natFlag(t)}<span>${esc(natName(t))}</span><span class="note" style="margin-left:auto">${atWar(ME,t)?$t('jouw vijand · ','your enemy · '):''}${fmtT(s[t].troops)}</span></button>`).join('')||'<div class="note">'+$t('Dit land kan niemand bereiken.','This country cannot reach anyone.')+'</div>'}</div>
-   <button class="btn ghost wide" id="akC">${$t('Annuleer','Cancel')}</button>`,sh=>{
+   <button class="btn ghost wide" id="akC">${$t('Annuleer','Cancel')}</button>`,sh=>{thm(sh,'dip');
     sh.querySelector('#akC').onclick=closeSheet;
     sh.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>openAsk(o,+b.dataset.pay));
     sh.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const t=+b.dataset.t;if(!useAP())return;const N=G.N[ME];N.asked=N.asked||{};N.asked[o+'ask']=G.round;closeSheet();
@@ -2466,7 +2506,7 @@ function openGive(o,c){
   openSheet(`<h3>${natFlag(o)} ${$t(`Steun geven aan ${esc(natName(o))}`,`Give aid to ${esc(natName(o))}`)}</h3><div class="note">${$t('Geef troepen, wapens of geld. Ze vinden je daarna aardiger, en een sterke bondgenoot vecht beter mee.','Give troops, weapons or money. They like you more afterwards, and a strong ally fights better.')}</div>
    ${cs.length>1?`<div class="lbl">${$t('Troepen uit','Troops from')}</div><div class="chips">${cs.map(x=>`<button class="chip ${x===c?'on':''}" data-gc="${x}">${CONTS[x]} · ${fmtT(NA.a[x])}</button>`).join('')}</div>`:''}
    <div class="ulist">${urow('sd',$t('Soldaten','Soldiers'),'helm',NA.a[c],0)}${urow('tk','Tanks','tank',NA.ka[c],0)}${urow('jt',$t('Vliegtuigen','Jets'),'jet',K.jt,0)}${money>=.1?`<div class="urow">${svgI('fact')}<span class="un">${$t('Geld','Money')}</span><input type="range" id="u_mo" min="0" max="${money}" step="0.1" value="0" aria-label="${$t('Geld','Money')}"><b class="num" id="u_moV"></b>${pqBtns('u_mo')}</div>`:''}</div>
-   <div class="row"><button class="btn ghost" id="gC">${$t('Annuleer','Cancel')}</button><button class="btn pri big" style="flex:1" id="gGo">${$t('Geven','Give')}</button></div>`,sh=>{
+   <div class="row"><button class="btn ghost" id="gC">${$t('Annuleer','Cancel')}</button><button class="btn pri big" style="flex:1" id="gGo">${$t('Geven','Give')}</button></div>`,sh=>{thm(sh,'dip');
     const v=id=>{const e=sh.querySelector('#u_'+id);return e?+e.value:0};
     const upd=()=>{sh.querySelectorAll('.urow input').forEach(e=>{sh.querySelector('#'+e.id+'V').innerHTML=e.id==='u_mo'?fmtMoney(+e.value):`${fmtN(+e.value)}<small> / ${fmtN(+e.max)}</small>`});sh.querySelector('#gGo').disabled=v('sd')+v('tk')+v('jt')+v('mo')<=0};
     sh.querySelectorAll('.urow input').forEach(e=>e.oninput=upd);upd();
@@ -2488,7 +2528,7 @@ function openMove(from,to){
    ${pqAll($t('Alles','All'))}<div class="ulist">${urow('sd',$t('Soldaten','Soldiers'),'helm',NA.a[from],Math.round(NA.a[from]*.5))}${urow('tk','Tanks','tank',NA.ka[from],Math.round(NA.ka[from]*.5))}</div>
    ${NA.a[from]+NA.ka[from]<1?`<div class="note">${$t(`Er staan geen troepen in ${CONTS[from]}.`,`There are no troops in ${CONTS[from]}.`)}</div>`:''}
    <div class="note">${$t('Kost 1 bevel. De troepen komen meteen aan.','Costs 1 order. The troops arrive at once.')}</div>
-   <div class="row"><button class="btn ghost" id="mC">${$t('Annuleer','Cancel')}</button><button class="btn pri big" style="flex:1" id="mGo">${$t('Verplaatsen','Move')}</button></div>`,s=>{
+   <div class="row"><button class="btn ghost" id="mC">${$t('Annuleer','Cancel')}</button><button class="btn pri big" style="flex:1" id="mGo">${$t('Verplaatsen','Move')}</button></div>`,s=>{thm(s,'army');
     const v=id=>{const e=s.querySelector('#u_'+id);return e?+e.value:0};
     const upd=()=>{s.querySelectorAll('.urow input').forEach(e=>{s.querySelector('#'+e.id+'V').innerHTML=`${fmtN(+e.value)}<small> / ${fmtN(+e.max)}</small>`});s.querySelector('#mGo').disabled=v('sd')+v('tk')<1};
     s.querySelectorAll('.urow input').forEach(e=>e.oninput=upd);upd();
@@ -2605,7 +2645,7 @@ function welcome(then){let seen=false;try{seen=localStorage.getItem('wr-tut')===
     ${tip('house',$t('Bouwen en kopen','Build and buy'),$t('Met de knop <b>Rijk</b> bouw je industrie, kazernes en forten en koop je tanks, vliegtuigen en bommen.','With the <b>Rijk</b> button you build industry, barracks and forts and buy tanks, jets and bombs.'))}
     ${tip('fist',$t('Houd je land vast','Hold your land'),$t('Veroverd land is eerst rood gestreept en kan in opstand komen. Laat genoeg soldaten achter.','Conquered land is striped red at first and can rise up. Leave enough soldiers behind.'))}
     ${tip('list',$t('Bevelen en beurten','Orders and turns'),$t(`Elke maand heb je een paar bevelen. Elke beurt is één maand; je begint op ${startD()}. Klaar? Tik op <b>Einde beurt</b>. De klok loopt rechtsonder.`,`Each month you have a few orders. Every turn is one month; you start on ${startD()}. Done? Tap <b>End turn</b>. The clock runs at the bottom right.`))}
-  </div><div class="note">${$t('Alles staat ook onder Menu › Hoe werkt het?','Everything is also under Menu › How to play')}</div><button class="btn pri big wide" id="wcGo">${$t('Aan de slag!','Let us go!')}</button>`,s=>{s.onclose=then;s.querySelector('#wcGo').onclick=()=>{closeSheet();sfx('click');then()}})}
+  </div><div class="note">${$t('Alles staat ook onder Menu › Hoe werkt het?','Everything is also under Menu › How to play')}</div><button class="btn pri big wide" id="wcGo">${$t('Aan de slag!','Let us go!')}</button>`,s=>{thm(s,'gold');s.onclose=then;s.querySelector('#wcGo').onclick=()=>{closeSheet();sfx('click');then()}})}
 function startClock(){if(G&&!G.over&&ME>=0&&myTurn()&&G.N[ME].thrW!==G.round&&threatOf(ME).lvl===2){G.N[ME].thrW=G.round;toast($t(`<b>Coalitiegevaar!</b> ${esc(threatOf(ME).mem.slice(0,3).map(natName).join(', '))} zijn bang van je en kunnen samen aanvallen.`,`<b>Coalition danger!</b> ${esc(threatOf(ME).mem.slice(0,3).map(natName).join(', '))} fear you and may attack together.`),'war')}
   if(!TURN_DL&&G&&G.tl&&!G.over&&myTurn()&&ME>=0){TURN_DL=Date.now()+G.tl*1000;timerWarned=false;updTimer()}}
 let clockTO=0;
@@ -2616,7 +2656,7 @@ function beginMyTurn(){if(!G||G.over||ME<0||!myTurn())return;roundBanner();sfx('
   const nb=G.N[ME].nb||[];G.N[ME].nb=[];if(nb.length){sfx('alarm');toast($t(`<b>Kernaanval op je land!</b> ${nb.length>1?nb.length+' gebieden zijn':'Een gebied is'} getroffen.`,`<b>Nuclear attack on your country!</b> ${nb.length>1?nb.length+' areas were':'An area was'} hit.`),'lose');nb.forEach((r,i)=>setTimeout(()=>{const t=performance.now(),b=R0[r].bb;FX.push({k:'blast',x:R0[r].lx,y:R0[r].ly,R:clamp(Math.max(b[2]-b[0],b[3]-b[1])*.6,6,40),t0:t,d:2600});nukeFlash();sfx('nuke');req()},900+i*1600));focusBox(bboxOf(nb),0,5)}
   setTimeout(()=>{if(!G||G.over||!myTurn())return;welcome(()=>showNews(()=>{const N=G.N[ME];
   const next=()=>showEvent(showOffers);
-  if(N.rkUp!=null){const rk=N.rkUp;N.rkUp=null;sfx('win');openSheet(`<div class="lbl">${$t('Je land groeit','Your country grows')}</div><h3 style="font-size:26px">${$t(`Je bent nu een ${RANKS[rk].nl}!`,`New rank: ${RANKS[rk].en}!`)}</h3><div class="note" style="font-size:15px;color:var(--ink)">${$t(`Je krijgt voortaan ${apMax(ME)} bevelen per maand en 10% meer nieuwe soldaten.`,`From now on you get ${apMax(ME)} orders per month and 10% more new soldiers.`)}</div><button class="btn pri wide" id="rkOk">${$t('Verder','Continue')}</button>`,s=>{s.onclose=next;s.querySelector('#rkOk').onclick=()=>{closeSheet();next()}});}
+  if(N.rkUp!=null){const rk=N.rkUp;N.rkUp=null;sfx('win');openSheet(`<div class="lbl">${$t('Je land groeit','Your country grows')}</div><h3 style="font-size:26px">${$t(`Je bent nu een ${RANKS[rk].nl}!`,`New rank: ${RANKS[rk].en}!`)}</h3><div class="note" style="font-size:15px;color:var(--ink)">${$t(`Je krijgt voortaan ${apMax(ME)} bevelen per maand en 10% meer nieuwe soldaten.`,`From now on you get ${apMax(ME)} orders per month and 10% more new soldiers.`)}</div><button class="btn pri wide" id="rkOk">${$t('Verder','Continue')}</button>`,s=>{thm(s,'gold');s.onclose=next;s.querySelector('#rkOk').onclick=()=>{closeSheet();next()}});}
   else next();
   if(N.lastR)toast($t(`<b>+${fmtT(N.lastR)}</b> nieuwe soldaten uit je bevolking`,`<b>+${fmtT(N.lastR)}</b> new soldiers from your population`),'win');
   if(N.rsNew){const x=RI[N.rsNew];N.rsNew=null;sfx('win');toast($t(`<b>Onderzoek klaar: ${x.nm}!</b> ${esc(x.d)}`,`<b>Research done: ${x.nm}!</b> ${esc(x.d)}`),'win')}}))},nb.length?1200+nb.length*1600:0)}
@@ -2688,7 +2728,7 @@ function showOffers(){
   if(off.type==='ult'){const W=WHY_TXT[off.why]||WHY_TXT.exp;txt=$t(`${esc(natName(f))} heeft troepen aan je grens (${W[0]}) en stelt een ultimatum: betaal <b>${fmtMoney(off.amt)}</b>, anders volgt oorlog.`,`${esc(natName(f))} has troops on your border (${W[1]}) and issues an ultimatum: pay <b>${fmtMoney(off.amt)}</b>, or there will be war.`);yes=G.N[ME].m>=off.amt?$t('Betalen','Pay'):$t(`Betaal wat je hebt (${fmtMoney(G.N[ME].m)})`,`Pay what you have (${fmtMoney(G.N[ME].m)})`)}
   if(off.type==='aid'){txt=$t(`Je bondgenoot ${esc(natName(f))} heeft het zwaar in de oorlog tegen ${esc([...dip().war[f]].slice(0,2).map(natName).join(', '))} en vraagt <b>${fmtMoney(off.amt)}</b> steun.`,`Your ally ${esc(natName(f))} is struggling in the war against ${esc([...dip().war[f]].slice(0,2).map(natName).join(', '))} and asks for <b>${fmtMoney(off.amt)}</b> in aid.`);yes=$t('Steun sturen','Send aid')}
   if(off.type==='joint'){txt=$t(`Je bondgenoot ${esc(natName(f))} wil samen met jou ${esc(natName(off.vs))} aanvallen. Doe je mee? Dan verklaren jullie allebei de oorlog.`,`Your ally ${esc(natName(f))} wants to attack ${esc(natName(off.vs))} together with you. Will you join? Then you both declare war.`);yes=$t('Samen aanvallen','Attack together')}
-  openSheet(`<h3>${natFlag(f)} ${$t('Bericht van','Message from')} ${esc(natName(f))}</h3><div class="note" style="font-size:15px;color:var(--ink)">${txt}</div><div class="row"><button class="btn ghost" id="oN">${$t('Weigeren','Decline')}</button><button class="btn pri" style="flex:1" id="oY">${yes}</button></div>`,s=>{s.onclose=showOffers;
+  openSheet(`<h3>${natFlag(f)} ${$t('Bericht van','Message from')} ${esc(natName(f))}</h3><div class="note" style="font-size:15px;color:var(--ink)">${txt}</div><div class="row"><button class="btn ghost" id="oN">${$t('Weigeren','Decline')}</button><button class="btn pri" style="flex:1" id="oY">${yes}</button></div>`,s=>{thm(s,'dip');s.onclose=showOffers;
     s.querySelector('#oN').onclick=()=>{closeSheet();if(off.type==='ult')answerUlt(off,false);else if(!isHuman(f)){addOp(f,ME,off.type==='help'?-25:off.type==='aid'?-10:-5);if(off.type==='help')addGr(f,ME,15)}G.rev++;afterAction();showOffers()};
     s.querySelector('#oY').onclick=()=>{closeSheet();if(off.type==='peace')makePeace(f,ME);if(off.type==='help'&&!G.N[off.vs].dead){declareWar(ME,off.vs);addOp(f,ME,20)}if(off.type==='ally'){makeAlliance(f,ME);addOp(f,ME,10)}if(off.type==='trade'){makeTrade(f,ME);addOp(f,ME,5)}
       if(off.type==='ult')answerUlt(off,true);
@@ -2732,12 +2772,12 @@ function openRijk(tab){
     body=`<div class="grid2" ${g5}><div class="kv"><small>${$t('Betrouwbaarheid','Reliability')}</small><b style="color:${rc}">${rl}</b></div></div>
      <div class="note">${$t('Val je een bondgenoot of handelspartner aan, of breek je binnen 3 maanden een vrede, dan vertrouwen alle landen je minder: bondgenootschappen en handel worden moeilijker en je andere bondgenoten kunnen je laten vallen. Dat herstelt langzaam.','If you attack an ally or trade partner, or break a peace within 3 months, all countries trust you less: alliances and trade get harder and your other allies may drop you. This recovers slowly.')}</div>
      <div class="note">${$t('Tik op een land op de kaart om een bondgenootschap, handel of vrede voor te stellen.','Tap a country on the map to propose an alliance, trade or peace.')}</div>
-     <div class="lbl li">${svgI('swords')}${$t('In oorlog met','At war with')}</div><div class="dlist">${[...D.war[n]].map(o=>row(o,can&&ap?`<button class="btn" data-pd="${o}">${svgI('olive')} ${$t('Vrede vragen','Ask for peace')}</button>`:'')).join('')||'<div class="note">'+$t('Je bent met niemand in oorlog.','You are at war with nobody.')+'</div>'}</div>
-     <div class="lbl li">${svgI('ally')}${$t('Bondgenoten','Allies')}</div><div class="dlist">${[...D.al[n]].map(o=>row(o,'')).join('')||'<div class="note">'+$t('Nog geen bondgenoten.','No allies yet.')+'</div>'}</div>
-     <div class="lbl li">${svgI('trade')}${$t('Handelspartners','Trade partners')}</div><div class="dlist">${[...D.tr[n]].map(o=>row(o,'')).join('')||'<div class="note">'+$t('Nog geen handelsverdragen.','No trade deals yet.')+'</div>'}</div>`}
+     <div class="lbl li s-war">${svgI('swords')}${$t('In oorlog met','At war with')}</div><div class="dlist s-war">${[...D.war[n]].map(o=>row(o,can&&ap?`<button class="btn" data-pd="${o}">${svgI('olive')} ${$t('Vrede vragen','Ask for peace')}</button>`:'')).join('')||'<div class="note">'+$t('Je bent met niemand in oorlog.','You are at war with nobody.')+'</div>'}</div>
+     <div class="lbl li s-al">${svgI('ally')}${$t('Bondgenoten','Allies')}</div><div class="dlist s-al">${[...D.al[n]].map(o=>row(o,'')).join('')||'<div class="note">'+$t('Nog geen bondgenoten.','No allies yet.')+'</div>'}</div>
+     <div class="lbl li s-tr">${svgI('trade')}${$t('Handelspartners','Trade partners')}</div><div class="dlist s-tr">${[...D.tr[n]].map(o=>row(o,'')).join('')||'<div class="note">'+$t('Nog geen handelsverdragen.','No trade deals yet.')+'</div>'}</div>`}
   if(tab==='name'){body=`<input type="text" id="rnI" maxlength="32" value="${esc(natName(n))}" aria-label="${$t('Naam van je rijk','Name of your empire')}"><div class="lbl">${$t('Ideeën','Ideas')}</div><div class="chips">${EMPIRE_NAMES.map(x=>`<button class="chip" data-n="${esc(x)}">${esc(x)}</button>`).join('')}</div><div class="lbl">${$t('Kleur van je land','Colour of your country')}</div><div class="swatches" id="sw">${SWATCHES.map((c,i)=>`<button data-c="${c}" style="background:${c}" class="${N.col===c?'on':''}${i>=17?' xtra':''}" aria-label="${$t('Kleur','Colour')}"></button>`).join('').replace('<button data-c="'+SWATCHES[17]+'"','<button class="more" id="swMore" aria-label="'+$t('Meer kleuren','More colours')+'" aria-expanded="false">+</button><button data-c="'+SWATCHES[17]+'"')}</div><button class="btn pri" id="rnGo" ${can||G.mode!=='online'?'':'disabled'}>${$t('Opslaan','Save')}</button>`}
-  openSheet(`<h3>${natFlag(n)} ${esc(natName(n))} <span class="note" style="font-weight:500">${RANKS[rk].nm} · ${$t(`${ap} ${ap===1?'bevel':'bevelen'} over`,`${ap} ${ap===1?'order':'orders'} left`)}</span></h3><div class="tabs">${tabs.map(([k,l])=>`<button class="tab ${k===tab?'on':''}" data-tab="${k}">${svgI(TIC[k])}${l}</button>`).join('')}</div>${body}<button class="btn ghost wide" id="rkC">${$t('Terug naar de kaart','Back to the map')}</button>`,sh=>{
-    sh.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>openRijk(b.dataset.tab));
+  openSheet(`<h3>${natFlag(n)} ${esc(natName(n))} <span class="note" style="font-weight:500">${RANKS[rk].nm} · ${$t(`${ap} ${ap===1?'bevel':'bevelen'} over`,`${ap} ${ap===1?'order':'orders'} left`)}</span></h3><div class="tabs">${tabs.map(([k,l])=>`<button class="tab ${k===tab?'on':''}" data-tab="${k}"${k==='name'?` style="--ti:${N.col}"`:''}>${svgI(TIC[k])}${l}</button>`).join('')}</div>${body}<button class="btn ghost wide" id="rkC">${$t('Terug naar de kaart','Back to the map')}</button>`,sh=>{
+    thm(sh,tab,tab==='name'&&N.col);sh.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>openRijk(b.dataset.tab));
     sh.querySelector('#rkC').onclick=closeSheet;
     sh.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const i=+b.dataset.u;if(upCost(n,i)>N.m)return;const rq=UPG[i].req;if(rq&&ul(n,rq[0])<rq[1])return;if(!useAP())return;if(buyUpg(n,i)){sfx('coin');toast($t(`<b>${UPG[i].nm}</b> nu op niveau ${N.u[i]}`,`<b>${UPG[i].nm}</b> now at level ${N.u[i]}`),'win');afterAction();openRijk('buy')}});
     sh.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const id=b.dataset.b,u=UI[id];const packs=b.dataset.p==='max'?Math.ceil(unitLeft(n,id)/u.pack):1;const got=buyUnit(n,id,packs);
@@ -2748,7 +2788,7 @@ function openRijk(tab){
     sh.querySelectorAll('[data-pd]').forEach(b=>b.onclick=()=>{closeSheet();dipAction('peace',+b.dataset.pd)});
       {const sw=sh.querySelector('#sw'),mb=sh.querySelector('#swMore');if(sw&&mb){const t=o=>{sw.classList.toggle('open',o);mb.textContent=o?'−':'+';mb.setAttribute('aria-expanded',o)};mb.onclick=()=>t(!sw.classList.contains('open'));if(SWATCHES.indexOf(N.col)>=17)t(true)}}
     if(tab==='name'){let col=N.col;sh.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{sh.querySelector('#rnI').value=b.dataset.n});
-      sh.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{col=b.dataset.c;sh.querySelectorAll('[data-c]').forEach(x=>x.classList.toggle('on',x===b))});
+      sh.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{col=b.dataset.c;thm(sh,'name',col);sh.querySelectorAll('[data-c]').forEach(x=>x.classList.toggle('on',x===b))});
       sh.querySelector('#rnGo').onclick=()=>{const v=sh.querySelector('#rnI').value.trim().slice(0,32);const old=natName(n);if(v&&v!==old){N.nm=v;addLog($b(`${old} heet voortaan ${v}`,`${old} is now called ${v}`),[n],'ally')}N.col=col;G.rev++;closeSheet();dirty();afterAction()}}
   },true);
 }
@@ -2766,7 +2806,7 @@ function openBoard(tab){tab=tab||'now';
     ${show.map(n=>`<tr class="${n===ME?'me':''}"><td>${rows.indexOf(n)+1}</td><td>${natFlag(n)} ${esc(natName(n))}${G.hum[n]?` <span class="nick">(${esc(G.hum[n].nick)})</span>`:''}${(kit(n).nk||0)>0?` <span title="${$t('Kernmacht','Nuclear power')}" class="nukei">${svgI('rad')}</span>`:''}</td><td>${km(s[n].km)}</td><td>${nl(s[n].km/WORLD_KM*100,1)}%</td><td>${fmtT(s[n].troops)}</td></tr>`).join('')}</table></div>`
     :`<div class="hchart" id="hChart"></div>`;
   openSheet(`<h3>${$t('Grootste landen','Biggest countries')}</h3><div class="note">${$t('Wie aan het eind het grootste land heeft, wint.','Whoever has the biggest country at the end wins.')} ${G.maxR?$t(`Het spel eindigt na ${fmtDate(G.maxR)}: nog ${fmtMonths(Math.max(0,G.maxR-G.round+1))}.`,`The game ends after ${fmtDate(G.maxR)}: ${fmtMonths(Math.max(0,G.maxR-G.round+1))} left.`):''} ${$t('Wie 35% van de wereld verovert, wint direct.','Whoever conquers 35% of the world wins at once.')}</div>
-    <div class="tabs two" role="tablist"><button class="tab${tab==='now'?' on':''}" role="tab" aria-selected="${tab==='now'}" data-bt="now">${svgI('rank')}${$t('Ranglijst','Ranking')}</button><button class="tab${tab==='hist'?' on':''}" role="tab" aria-selected="${tab==='hist'}" data-bt="hist">${svgI('chart')}${$t('Verloop','Progress')}</button></div>${body}<button class="btn wide" id="bC">${$t('Sluiten','Close')}</button>`,sh=>{
+    <div class="tabs two" role="tablist"><button class="tab${tab==='now'?' on':''}" role="tab" aria-selected="${tab==='now'}" data-bt="now">${svgI('rank')}${$t('Ranglijst','Ranking')}</button><button class="tab${tab==='hist'?' on':''}" role="tab" aria-selected="${tab==='hist'}" data-bt="hist">${svgI('chart')}${$t('Verloop','Progress')}</button></div>${body}<button class="btn wide" id="bC">${$t('Sluiten','Close')}</button>`,sh=>{thm(sh,'gold');
     sh.querySelector('#bC').onclick=closeSheet;sh.querySelectorAll('[data-bt]').forEach(b=>b.onclick=()=>openBoard(b.dataset.bt));
     const c=sh.querySelector('#hChart');if(c)histChart(c)},true)}
 // 'Verloop': summary strip plus two small line charts (your size, your place in the ranking), one line per player.
