@@ -6,7 +6,9 @@ Strategiespel in de browser: verover de wereld, alleen, samen op één telefoon 
 
 ## Wat zit erin
 - Een kalender: je begint op 1 januari 2026 en elke beurt is één maand; in de winter is oorlog in koude landen zwaarder, in de zomer lichter
-- Een leger dat bij je bevolking past: werving per maand, maximale legergrootte, tankbemanning en piloten hangen af van je inwoners; wapens zijn duur en kosten onderhoud
+- Een leger dat bij je bevolking past: soldaten koop je niet, ze komen elke maand vanzelf uit je bevolking (meer met Kazernes en Woningbouw). Het maximum groeit mee met je inwoners; tankbemanning en piloten hangen ook af van je inwoners. Wapens kosten onderhoud, maar je houdt altijd minstens 40% van je inkomen over om te bouwen
+- Upgrades (Bouwen, kost geen bevel): Woningbouw, Industrie, Kazernes, Bewapening (elke soldaat vecht per niveau 10% sterker, dus meer doen met minder soldaten), Forten, Legertechnologie, Tankfabriek, Vliegtuigfabriek, Scheepswerf, Munitiefabriek (elk per niveau 50-60% meer van dat wapen per maand), Marine, Kernprogramma en Raketschild. In de tijdperken hebben ze passende namen (Stoeterij, Ridderorde, Gieterij, Wapensmeden...)
+- Vaste prijzen: een upgrade kost voor elke speler hetzelfde startbedrag (gebaseerd op het startinkomen van die moeilijkheid), elk niveau 35% meer, en iets meer naarmate je economie groter wordt
 - Mobilisatie: in 2026 groeien alle legers (ook van de computer) het eerste jaar nog langzaam
 - Onderzoek: drones, precisiebommen, luchtafweer, kruisraketten, bunkerbrekers, stealthbommenwerpers, EMP-raketten, hypersone raketten en de waterstofbom, met een luchtaanval die al die wapens gebruikt
 - Vertrouwen: wie een bondgenoot of handelspartner aanvalt, of een verse vrede breekt, wordt door de hele wereld minder vertrouwd
@@ -16,16 +18,16 @@ Strategiespel in de browser: verover de wereld, alleen, samen op één telefoon 
 - Bondgenoten doen echt iets: ze komen je te hulp (hoe zeker staat bij het land), sluiten zich soms aan bij jouw oorlogen, stellen samen aanvallen voor, vragen steun als ze verliezen, sturen geld of soldaten als jij het zwaar hebt en zeggen het verbond op als je ze in de steek laat
 - Startsituatie: kies bij het starten (en in de online lobby) tussen een historische start (de echte oorlogen, bondgenoten en handelsverdragen van dat moment) en een gelijke start (niemand in oorlog of verbonden)
 - Tik op een land: een blauwe lijn om het land, blauwe ringen om kleine of verre stukken land en pijlen aan de rand van het scherm naar land buiten beeld (tik op een pijl om ernaartoe te gaan)
-- Marine: elk niveau reikt verder over zee (ongeveer 600, 1.200, 2.200 en 4.000 km); op niveau 5 bereik je elke kust ter wereld
+- Marine: elk niveau reikt verder over zee (ongeveer 600, 1.200, 2.200 en 4.000 km); op niveau 5 bereik je elke kust ter wereld. Voor een aanval over zee stuur je minstens één oorlogsschip mee
 - Tik op een land om te zien met wie het samenwerkt en met wie het in oorlog is; echte bondgenootschappen en handelsverdragen bij de start
 - Nieuws als een krant: de grootste berichten als kaarten bovenaan, dan jouw land, dan kopjes (oorlog, veroverd land, samenvoegingen en verbonden, vrede en diplomatie) in twee kolommen op een breed scherm. In Wereldnieuws is elk kopje ook een tab, en tik je op een land om het op de kaart te zien
 - Een kaart met een blauwe gloed om het land heen
 - Echte landen, een front dat over de hele grens opschuift, terrein, moreel en oorlogsmoeheid
-- Legers per continent. Op de kaart staat bij elk land een compact legerlabel met soldaten, tanks en vliegtuigen; het krimpt en laat details weg (een plusje) als je uitzoomt
+- Legers per continent. Op de kaart staat bij elk land een compact legerlabel met soldaten, tanks en vliegtuigen; het krimpt en laat details weg (een plusje) als je uitzoomt. Land op een continent verover je alleen met troepen die daar staan: een leger loopt niet over een landgrens naar een ander continent, en een nieuw continent bereik je alleen over zee (Marine plus minstens één oorlogsschip). Een tegenaanval neemt ook alleen land langs dat front
 - Kernwapens: Kernprogramma, Raketschild, doelwit kiezen op de kaart, radioactieve neerslag en kernmachten die terugslaan
 - Onrust: veroverd land moet wennen en kan in opstand komen; laat troepen achter of handhaaf de orde. Alleen zolang je nog in oorlog bent met het oude land gaat het land terug; in vrede wordt een opstand neergeslagen en kost die alleen soldaten. Een land dat van de kaart is geveegd blijft weg: zijn land komt niet meer in opstand
 - Doelen uit vijf groepen (uitbreiden, leger, economie, diplomatie, techniek) met ruim twintig soorten; doel en beloning schalen mee met de moeilijkheid
-- Eerlijke start: een land naast veel grotere legers krijgt een begrensde bonus (makkelijk +20%, gemiddeld +35%, moeilijk +50%); in een tijdperk krijgt een piepklein land ook een minimumleger
+- Eerlijke start: een land naast veel grotere legers krijgt een begrensde bonus (makkelijk +20%, gemiddeld +35%, moeilijk +50%). In een tijdperk worden leger, wapens, geld, economie en mankracht van je land naar het midden van die moeilijkheid getrokken (het ene land mag wat meer soldaten hebben, het andere meer land of geld, maar nooit tien keer zoveel), en je leger is nooit kleiner dan 50% / 35% / 22% (makkelijk / gemiddeld / moeilijk) van dat van je sterkste buur
 - Kaartranden: bondgenoten groen met gloed, echte spelers (geen computer) dun geel
 - Balans die zich aan elke kaart aanpast (geen instellingen per tijdperk):
   - Directe winst: ongeveer 2,5 keer het land van de grootste staat bij de start (minstens 15 punten meer), tussen 25% en 60%. In 2026 is dat 31%; het spel noemt de grens zelf
@@ -48,7 +50,8 @@ Verovering van Gallië (58 v.Chr.), Byzantijns-Perzische oorlog (622), Arabische
 Honderdjarige Oorlog (1429), Dertigjarige Oorlog (1629), Zevenjarige Oorlog (1756), Napoleontische oorlogen (1812), Eerste Wereldoorlog (1918) en Tweede Wereldoorlog (1942).
 
 - Elk tijdperk heeft de landen, namen en grenzen van toen (bezet gebied hoort bij de bezetter, dus bijvoorbeeld het grootste Duitsland in 1942), met de bondgenootschappen en oorlogen van die maand
-- Je speelt elk land met zijn echte leger en economie; de kalender loopt vanaf die maand verder
+- De computerlanden spelen met hun echte leger en economie; jouw land krijgt een eerlijke start (zie hierboven). De kalender loopt vanaf die maand verder
+- De kaarten van de tijdperken hebben een eigen kleurenpalet waarin buren altijd duidelijk verschillende kleuren krijgen; op de kaart staan de namen zonder de heerser tussen haakjes
 - Per moeilijkheid krijg je elk spel een nieuwe willekeurige selectie landen, passend bij hun echte sterkte: Makkelijk de grootmachten, Gemiddeld middelgrote landen, Moeilijk kleine en zwakke landen
 - In het menu staan de tijdperken van nieuw naar oud
 - Wapens passen bij de tijd: strijdwagens, ruiters, olifanten, ridders, katapulten, kanonnen, Grieks vuur; tanks en vliegtuigen pas in de wereldoorlogen. In het Engels krijgen ze ook de passende namen
