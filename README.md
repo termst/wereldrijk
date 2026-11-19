@@ -19,6 +19,7 @@ Strategiespel in de browser: verover de wereld, alleen, samen op één telefoon 
 - Marine: elk niveau reikt verder over zee (ongeveer 600, 1.200, 2.200 en 4.000 km); op niveau 5 bereik je elke kust ter wereld
 - Tik op een land om te zien met wie het samenwerkt en met wie het in oorlog is; echte bondgenootschappen en handelsverdragen bij de start
 - Nieuws als een krant: de grootste berichten als kaarten bovenaan, dan jouw land, dan kopjes (oorlog, veroverd land, samenvoegingen en verbonden, vrede en diplomatie) in twee kolommen op een breed scherm. In Wereldnieuws is elk kopje ook een tab, en tik je op een land om het op de kaart te zien
+- Elk scherm heeft een eigen accentkleur en patroon: Bouwen amber, Leger & wapens rood, Onderzoek cyaan, Diplomatie blauw, Naam & kleur violet, de ranglijst goud, Verloop groen, het nieuws krantenbeige. Een nieuw scherm krijgt zijn thema door de html te laten beginnen met `<!--th:naam-->` (zie `openSheet`)
 - Een kaart met een blauwe gloed om het land heen
 - Echte landen, een front dat over de hele grens opschuift, terrein, moreel en oorlogsmoeheid
 - Legers per continent. Op de kaart staat bij elk land een compact legerlabel met soldaten, tanks en vliegtuigen; het krimpt en laat details weg (een plusje) als je uitzoomt
