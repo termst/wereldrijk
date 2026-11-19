@@ -2834,7 +2834,7 @@ function gameOver(){
   openSheet(`<div class="lbl">${G.over.reason==='wereld'?$t('Wereldheerschappij','World domination'):G.over.reason==='dood'?$t('Je rijk is gevallen','Your empire has fallen'):$t('De tijd is om','Time is up')+' · '+fmtDate(G.maxR||G.round-1)}</div>${meDead?`<h3 style="font-size:26px">${$t(`${esc(natName(ME))} bestaat niet meer`,`${esc(natName(ME))} no longer exists`)}</h3><div class="note">${$t(`In ${fmtDate(G.N[ME].dr||G.round)} veroverde`,`In ${fmtDate(G.N[ME].dr||G.round)}`)} <b style="color:${by!=null?natColor(by):'inherit'}">${by!=null?esc(natName(by)):$t('de vijand','the enemy')}</b> ${$t('je laatste land. De grootste macht ter wereld is nu','conquered your last land. The biggest power in the world is now')} <b style="color:${natColor(w)}">${esc(natName(w))}</b>.</div>`:`<h3 style="font-size:28px">${natFlag(w)} ${$t(`${esc(natName(w))} wint`,`${esc(natName(w))} wins`)}</h3><div class="note">${w===ME&&G.order.length===1?$t('Gefeliciteerd! Je hebt het grootste land ter wereld gebouwd.','Congratulations! You built the biggest country in the world.'):G.hum[w]?esc(G.hum[w].nick)+$t(' heeft het grootste land ter wereld gebouwd.',' built the biggest country in the world.'):$t('Een computerland is de grootste macht ter wereld geworden.','A computer country became the biggest power in the world.')}</div>`}
    <div class="tw"><table class="board num"><tr><th>#</th><th>${$t('Land','Country')}</th><th>${$t('Grootte','Size')}</th><th>${$t('% wereld','% world')}</th></tr>${rows.slice(0,8).map((n,i)=>`<tr class="${n===ME?'me':''}"><td>${i+1}</td><td>${natFlag(n)} ${esc(natName(n))}${G.hum[n]?' ('+esc(G.hum[n].nick)+')':''}</td><td>${fmtKm(s[n].km)}</td><td>${nl(s[n].km/WORLD_KM*100,1)}%</td></tr>`).join('')}</table></div>
    ${ME>=0&&G.N[ME]?`<div class="lbl">${$t('Jouw rijk','Your empire')}: ${esc(natName(ME))}</div><div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))"><div class="kv"><small>${$t('Grootste omvang','Largest size')}</small><b class="num">${fmtKm(Math.max(G.N[ME].pk||0,s[ME].km))}</b></div><div class="kv"><small>${$t('Deel van de wereld','Share of the world')}</small><b class="num">${nl(s[ME].km/WORLD_KM*100,1)}%</b></div><div class="kv"><small>${$t('Doelen gehaald','Goals done')}</small><b class="num">${G.N[ME].msDone||0}</b></div><div class="kv"><small>${$t('Kernbommen gebruikt','Nuclear bombs used')}</small><b class="num">${G.N[ME].nkU||0}</b></div><div class="kv"><small>${$t('Rang','Rank')}</small><b>${RANKS[G.N[ME].rk||0].nm}</b></div></div>`:''}
-   <div class="row"><button class="btn ghost" id="goMap">${bi('map',$t('Bekijk kaart','View map'))}</button><button class="btn pri" style="flex:1" id="goNew">${bi('play',$t('Nieuw spel','New game'))}</button></div>`,sh=>{sh.querySelector('#goMap').onclick=closeSheet;sh.querySelector('#goNew').onclick=()=>{closeSheet();leaveOnline();clearSave();showMenu()}})}
+   <div class="row"><button class="btn ghost" id="goMap">${bi('map',$t('Bekijk kaart','View map'))}</button><button class="btn pri" style="flex:1" id="goNew">${bi('play',$t('Nieuw spel','New game'))}</button></div>`,sh=>{sh.querySelector('#goMap').onclick=closeSheet;sh.querySelector('#goNew').onclick=()=>{closeSheet();activeClear();leaveOnline();clearSave();showMenu()}})}
 
 /* ================= persistence ================= */
 const SAVEKEY='wereldrijk-save-v8'+(ERA?'-'+ERA.id:'');let saveT=0;
@@ -2855,6 +2855,7 @@ function showMenu(){
   const s=setScreen(`<div class="menuWrap">${langSwitch()}<div><div class="logo">Wereld<br>rijk</div><div class="mmeta"><span>${ERA?esc(eraInfo().nm):$t('Strategiespel','Strategy game')}</span>${ERA?`<span>${esc(fmtDate(1))}</span>`:''}<span>${LIVE_N} ${$t('landen','countries')}</span></div><div class="tag">${ERA?esc(eraInfo().sides)+'. '+$t('Speel elk land van toen, met de grenzen van toen, en schrijf de geschiedenis opnieuw.','Play any country of that time, with the borders of that time, and rewrite history.'):$t('Kies een land, laat je bevolking en leger groeien en verover je buren. Alle landen spelen mee en elk land kan de grootste worden.','Pick a country, grow your population and army and conquer your neighbours. Every country plays and any country can become the biggest.')}</div></div>
    <div class="menuBtns">
     ${save?`<button class="btn pri" id="mCont">${bi('play',$t('Doorgaan','Continue'))} <small>${esc(save.G.N[save.ME]?.nm||(NAT[save.ME]?baseName(NAT[save.ME]):''))} · ${fmtDate(save.G.round)}</small></button>`:''}
+    <button class="btn pri" id="mRejoin" hidden></button>
     <button class="btn" id="mEra">${bi('hglass',$t('Tijdperk','Era')+': '+esc(eraInfo().nm))} <small>${esc(eraInfo().when)} · ${$t('tik om te wisselen','tap to change')}</small></button>
     <button class="btn ${save?'':'pri'}" id="mSolo">${bi('user','Solo')} <small>${$t('tegen de hele wereld','vs the world')}</small></button>
     <button class="btn" id="mLocal">${bi('phone',$t('Samen op 1 telefoon','Local'))} <small>${$t('2–4 spelers','2–4 players')}</small></button>
@@ -2867,6 +2868,7 @@ function showMenu(){
   s.querySelector('#mLocal').onclick=()=>startPick('local');
   s.querySelector('#mOnline').onclick=()=>showOnline();
   s.querySelector('#mHelp').onclick=()=>showHelp();
+  checkRejoin(s);
 }
 const eraInfo=()=>{const x=(window.ERA_LIST||[]).find(x=>x.id===(ERA?ERA.id:''))||window.ERA_LIST[0];return {id:x.id,nm:$t(x.nm[0],x.nm[1]),when:$t(x.when[0],x.when[1]),sides:$t(x.sides[0],x.sides[1])}};
 const eraUrl=(id,extra)=>{const q=new URLSearchParams(location.search);q.delete('tijd');q.delete('join');if(id)q.set('tijd',id);if(extra)for(const k in extra)q.set(k,extra[k]);const t=q.toString();return location.pathname+(t?'?'+t:'')};
@@ -2952,6 +2954,37 @@ async function netInit(){
     if(!NET.db)NET.ready=null;
   })();return NET.ready;
 }
+const ACTKEY='wr-active';
+function activeGet(){try{const a=JSON.parse(localStorage.getItem(ACTKEY)||'null');if(a&&a.code&&Date.now()-a.ts<2*864e5)return a}catch(e){}return null}
+function activeSet(code){try{localStorage.setItem(ACTKEY,JSON.stringify({code,era:ERA?ERA.id:'',ts:Date.now()}))}catch(e){}}
+function activeClear(){try{localStorage.removeItem(ACTKEY)}catch(e){}}
+// Offer to rejoin an online game this browser was in (closed tab, crash, reload).
+async function checkRejoin(s){
+  const a=activeGet();if(!a)return;
+  const b=s.querySelector('#mRejoin');if(!b)return;
+  try{
+    await netInit();if(!NET.db)return;
+    const g=await NET.db.doc('games/'+a.code).get();
+    if(!g.exists){activeClear();return}
+    const d=g.data();let ok=false,lab='';
+    if(d.status==='playing'&&d.state){
+      let st;try{st=JSON.parse(d.state)}catch(e){}
+      if(!st||st.over){activeClear();return}
+      ok=Object.values(st.hum||{}).some(h=>h&&h.uid===NET.uid);
+      lab=$t('Spel bezig','Game in progress');
+    }else if(d.status==='lobby'){
+      const p=await NET.db.doc(`games/${a.code}/players/${NET.uid}`).get();
+      ok=p.exists;lab='Lobby';
+    }
+    if(!ok){activeClear();return}
+    if(screen!==s)return;
+    b.innerHTML=`${bi('enter',$t('Terug naar online spel','Rejoin online game'))} <small>${esc(a.code)} · ${lab}</small>`;
+    b.hidden=false;
+    b.onclick=()=>{
+      if((d.era||'')!==(ERA?ERA.id:'')){location.href=eraUrl(d.era||'',{join:a.code});return}
+      enterLobby(a.code)};
+  }catch(e){}
+}
 function nickGet(){try{return localStorage.getItem('wr-nick')||''}catch(e){return ''}}
 function nickSet(v){try{localStorage.setItem('wr-nick',v)}catch(e){}}
 async function showOnline(){
@@ -2980,12 +3013,12 @@ async function showOnline(){
 }
 function leaveOnline(){NET.playing=false;if(NET.unsubG){NET.unsubG();NET.unsubG=null}if(NET.unsubP){NET.unsubP();NET.unsubP=null}NET.code=null;NET.game=null}
 function enterLobby(code){
-  leaveOnline();NET.code=code;NET.players=[];
+  leaveOnline();NET.code=code;NET.players=[];activeSet(code);
   {let h=0;for(let i=0;i<code.length;i++)h=(h*31+code.charCodeAt(i))|0;shuffleModes(h)}
   const s=setScreen(`<div class="setup"><div class="col"><div class="lbl">${$t('Spelcode, deel deze met je vrienden','Game code, share it with your friends')}</div><div class="code">${code}</div>
      <div id="hostOpts"></div><div class="lbl">${$t('Spelers','Players')}</div><div class="plist" id="lp"></div><div style="flex:1"></div><div class="err" id="lErr"></div>
      <div class="row"><button class="btn ghost" id="lBack">${bi('exit',$t('Verlaten','Leave'))}</button><button class="btn pri" style="flex:1" id="lGo" hidden>${bi('play',$t('Start spel','Start game'))}</button></div><div class="note" id="lWait"></div></div><div class="col" id="lpick"></div></div>`,true);
-  s.querySelector('#lBack').onclick=()=>{leaveOnline();showOnline()};
+  s.querySelector('#lBack').onclick=()=>{activeClear();leaveOnline();showOnline()};
   let myPick=-1;
   const isHost=()=>NET.game&&NET.game.host===NET.uid;
   const renderLobby=()=>{
