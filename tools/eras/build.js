@@ -5,6 +5,7 @@ const fs=require('fs');const path=require('path');
 const G=require('./geo.js');const pc=G.pc;
 const ERAS=require('./eras.js');
 const NAMES=require('./names_nl.js');
+const isWild=require('./wild.js');
 
 const id=process.argv[2];const outDir=process.argv[3]||path.join(__dirname,'../../eras');
 const E=ERAS.find(e=>e.id===id);if(!E){console.error('unknown era',id);process.exit(1)}
@@ -155,7 +156,7 @@ const caps=nations.map((d,n)=>capR[n]);
 const pk=(a,b)=>[nIdx[a],nIdx[b]];
 const pairs=list=>(list||[]).map(([a,b])=>{if(nIdx[a]==null||nIdx[b]==null){console.warn('pair skipped',a,b);return null}return pk(a,b)}).filter(Boolean);
 const ERA={id:E.id,nm:E.nm,y:E.y,m:E.m||1,tier:E.tier,
-  nations:nations.map(d=>{const o={k:d.k,name:d.name,gdp:d.gdp,pop:d.pop,mil:d.mil,bud:d.bud,ag:d.ag};const c=(ND[d.k]||{}).col;if(c)o.col=c;return o}),own,mod,add,caps,
+  nations:nations.map(d=>{const o={k:d.k,name:d.name,gdp:d.gdp,pop:d.pop,mil:d.mil,bud:d.bud,ag:d.ag};const c=(ND[d.k]||{}).col;if(c)o.col=c;if(isWild(d.k,d.name))o.w=1;return o}),own,mod,add,caps,
   al:pairs(E.al),war:pairs(E.war),tr:pairs(E.tr),nukes:(E.nukes||[]).map(([k,...v])=>[nIdx[k],...v]).filter(x=>x[0]!=null),
   res0:(E.res0||[]).map(([k,...v])=>[nIdx[k],...v]).filter(x=>x[0]!=null),lead:(E.lead||[]).map(k=>nIdx[k]).filter(x=>x!=null),mob:E.mob,upk:UPKv,cost:COSTv,mf:MFv,names:E.names};
 fs.mkdirSync(outDir,{recursive:true});

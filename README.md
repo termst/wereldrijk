@@ -27,6 +27,15 @@ Strategiespel in de browser: verover de wereld, alleen, samen op één telefoon 
 - Doelen uit vijf groepen (uitbreiden, leger, economie, diplomatie, techniek) met ruim twintig soorten; doel en beloning schalen mee met de moeilijkheid
 - Eerlijke start: een land naast veel grotere legers krijgt een begrensde bonus (makkelijk +20%, gemiddeld +35%, moeilijk +50%); in een tijdperk krijgt een piepklein land ook een minimumleger
 - Kaartranden: bondgenoten groen met gloed, echte spelers (geen computer) dun geel
+- Balans die zich aan elke kaart aanpast (geen instellingen per tijdperk):
+  - Directe winst: ongeveer 2,5 keer het land van de grootste staat bij de start (minstens 15 punten meer), tussen 25% en 60%. In 2026 is dat 31%; het spel noemt de grens zelf
+  - Dominantie: niet alleen snelle groei maakt de buren bang. Een land met veel meer macht dan de nummer twee, of met de helft van de winstgrens, krijgt coalities, angstige buren en sterkere tegenbondgenootschappen tegen zich
+  - Overstrekking: hoe verder een land vanaf zijn eigen start naar de winstgrens groeit, hoe trager veroverd land went, hoe vaker het in opstand komt en hoe minder nieuwe soldaten erbij komen
+  - Geen ophoping: een land dat al veel oorlogen voert, wordt minder snel nog door anderen aangevallen (behalve als het dominant is)
+  - Consolidatierem: zijn een kwart van de staten van de start verdwenen, dan geven de overgebleven landen zich minder snel over en gaan ze minder vaak samen
+  - Eerlijke start telt ook de vijanden waarmee je land bij een historische start al in oorlog is
+- Volken zonder staat (jagers-verzamelaars, nomaden, boerenculturen in de tijdperken) beginnen geen veroveringsoorlogen, sluiten geen verbonden en kunnen niet winnen. Hun land telt pas mee voor de winst als een staat het heeft; staten zien het als open land. Bij het land staat "volk zonder staat"
+- Kaart: diepe oceaan met een ondiepe kustrand, licht van linksboven, fijne korrel en een vignet; landsgrenzen met schaduw, panelen met diepte. Alleen tekenwerk: het spel en de toevalsreeks veranderen er niet door
 - Gebeurtenissen met keuzes, doelen met beloningen en spionage (sabotage, opstand stoken, technologie stelen)
 - Diplomatie, coalities (met waarschuwing), overgave en samengaan van landen
 - Op een telefoon staan doelen en oorlogen als twee kleine knoppen in de hoeken; tik erop en de inhoud klapt eronder uit, steeds maar één tegelijk
@@ -47,6 +56,7 @@ Honderdjarige Oorlog (1429), Dertigjarige Oorlog (1629), Zevenjarige Oorlog (175
 - Online spelen blijft in hetzelfde tijdperk: wie met een code meedoet, wordt naar het tijdperk van het spel gestuurd
 - De kaarten staan in `eras/`; ze worden gemaakt met de scripts in `tools/eras/` uit de historische grenzen van
   [historical-basemaps](https://github.com/aourednik/historical-basemaps) plus eigen correcties per oorlog (`tools/eras/prepare.sh`, daarna `./build_all.sh`)
+- Volken zonder staat krijgen `w:1` in `eras/*.js`. Welke dat zijn staat in `tools/eras/wild.js` (op naam: jagers, nomaden, culturen, stammen); `build.js` schrijft de vlag, `node tools/eras/flag_wild.js` zet hem in de bestaande kaarten zonder alles opnieuw te bouwen
 
 ## Online spelen
 Online spelen loopt via gratis openbare MQTT-servers (EMQX, HiveMQ, Mosquitto), die over WebSocket bereikt worden.
@@ -69,22 +79,30 @@ Let op: dit zijn openbare servers. Iedereen die de spelcode kent, kan meekijken.
 ## Simulatie
 Met `tools/sim.js` laat je de NPC's herhaalbaar tegen elkaar spelen en meet je hun gedrag. Het script laadt `index.html` in
 headless Chromium (Node + `playwright`), start `beginGame('local', [Nederland])` met `maxR:99`, `diff:0` en roept daarna
-`roundEnd()` N keer aan. De speler doet niets. De spelcode wordt niet aangepast: `declareWar` en `makePeace` worden in de pagina gewrapt.
+`roundEnd()` N keer aan. Zoals in het echte spel krijgt de speler elke maand zijn beurt (`startTurn`: geld en nieuwe soldaten); verder doet hij niets,
+tenzij je `--bot` meegeeft. De spelcode wordt niet aangepast: `declareWar` en `makePeace` worden in de pagina gewrapt.
 
 ```
 node tools/sim.js --runs 50 --rounds 40 --seed-start 1 --file index.html
 node tools/sim.js --runs 50 --rounds 40 --file oud/index.html --file index.html   # vergelijking, zelfde seeds
+node tools/sim.js --era ww1 --bot --runs 30 --rounds 36                          # tijdperk, speler speelt met de computer-AI
 ```
-Opties: `--runs`, `--rounds`, `--seed-start`, `--file` (herhaalbaar, maximaal 2 voor een vergelijking), `--out` (standaard `sim-out/`, staat in `.gitignore`), `--quiet`.
+Opties: `--runs`, `--rounds`, `--seed-start`, `--file` (herhaalbaar, maximaal 2 voor een vergelijking), `--out` (standaard `sim-out/`, staat in `.gitignore`), `--quiet`,
+`--era <id>` (tijdperk), `--nation <key>` (speler; standaard Nederland, in een tijdperk het land met het grootste leger), `--diff 0|1|2` (standaard 0) en
+`--bot`: de speler laat de computer-AI zijn leger, wapens en aanvallen in lopende oorlogen doen, neemt vrede aan en vraagt om vrede als hij verliest of oorlogsmoe is (hij begint zelf geen oorlogen).
 
 **Uitvoer.** Per run een JSON (`sim-out/fileN/run-<seed>.json`) met per ronde: lopende oorlogen, oorlogsverklaringen, nieuwe oorlogen
 (ook bondgenoten en coalities, die `declareWar` omzeilen), vredesverdragen, bondgenootschappen, handelsverdragen, landen in leven,
-grootste land en zijn aandeel van `WORLD_KM`. Per run ook de gemiddelde oorlogsduur (alleen beeindigde oorlogen, in rondes), de ronde waarin
-35% gehaald wordt en het aantal doelwitwissels (zelfde land verklaart binnen 3 rondes aan een ander land). `summary.json` en de
+grootste staat en zijn aandeel van de georganiseerde wereld (`WORLD_KM` min het land dat volken zonder staat nog hebben; die meting staat los van
+de spelcode, zodat oude en nieuwe versies met dezelfde `eras/` vergelijkbaar zijn), het aandeel van volken zonder staat en van de speler.
+Per run ook de gemiddelde oorlogsduur (alleen beeindigde oorlogen, in rondes), de ronde waarin de winstgrens van het spel gehaald wordt (`round35`),
+het aantal doelwitwissels (zelfde land verklaart binnen 3 rondes aan een ander land), het deel van de staten dat nog leeft (`statesAliveFrac`),
+de rangcorrelatie tussen grootte bij de start en aan het eind (`rankCorr`, Spearman), of de grootste van de start de grootste blijft
+(`startBigStaysBig`) en of de speler leeft. `summary.json` noemt ook de winstgrens en het land dat het vaakst de grootste is. `summary.json` en de
 tabel op het scherm geven gemiddelde, mediaan en standaarddeviatie over alle runs. Met twee bestanden komt er een vergelijkingstabel en
 het aantal runs met identieke uitkomst.
 
-Een run stopt vroeg als het spel eindigt (35% van de wereld of de speler is verslagen). `round35` telt alleen runs die 35% haalden (kolom `n`).
+Een run stopt vroeg als het spel eindigt (winstgrens gehaald of de speler is verslagen). `round35` telt alleen runs die de winstgrens haalden (kolom `n`).
 
 **Seed.** `rnd()` is een seedbare PRNG (mulberry32). De toestand staat in `G.rs`, dus een opgeslagen of online spel gaat verder met dezelfde reeks.
 Standaard komt de seed uit `Date.now()` (willekeurig). Vastzetten kan met `index.html?seed=123` of `setSeed(123)` in de console.
