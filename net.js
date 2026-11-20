@@ -21,9 +21,11 @@
   const PFX = 'wereldrijk-mp/v1/';
 
   const clients = [];          // connected mqtt clients
+  const made = [];             // every client made, also the ones still trying to connect
   const cache = new Map();     // path -> {v, d}   (d === null means deleted)
   const subs = new Map();      // filter -> refcount
   const listeners = new Set(); // {test(path), fn(path)}
+  const mine = new Map();      // path -> the last record this page wrote (sent again to a broker that (re)connects)
   let readyP = null;
 
   const topic = p => PFX + p;
@@ -57,6 +59,7 @@
           protocolVersion: 4
         });
       } catch (e) { res(null); return; }
+      made.push(c);
       let first = true;
       c.on('message', onMessage);
       c.on('connect', () => {
@@ -64,9 +67,17 @@
         const f = [...subs.keys()].map(topic);
         if (f.length) c.subscribe(f, { qos: 1 });
         if (first) { first = false; res(c); }
+        // This broker may have missed what we wrote while it was away: once its retained copies are in,
+        // send it our own latest writes that are still the newest version we know of.
+        setTimeout(() => {
+          if (!c.connected) return;
+          for (const [path, rec] of mine) if (cache.get(path) === rec) c.publish(topic(path), JSON.stringify(rec), { qos: 1, retain: true }, () => {});
+        }, 2500);
       });
       c.on('error', () => {});
-      setTimeout(() => { if (first) { first = false; try { c.end(true); } catch (e) {} res(null); } }, 9000);
+      // A broker that is slow at the start is not given up: it keeps reconnecting in the background
+      // and joins as soon as it is up, so every player ends up on the same brokers.
+      setTimeout(() => { if (first) { first = false; res(null); } }, 9000);
     });
   }
 
@@ -78,7 +89,11 @@
       BROKERS.forEach(u => connectOne(u).then(c => {
         pending--;
         if (c && !done) { done = true; res(true); }
-        else if (!pending && !done) { done = true; readyP = null; res(false); }
+        else if (!pending && !done) { // no broker at all: stop trying, a later ready() starts over
+          done = true; readyP = null;
+          made.splice(0).forEach(x => { try { x.end(true); } catch (e) {} });
+          res(false);
+        }
       }));
     });
     return readyP;
@@ -104,9 +119,12 @@
     const msg = JSON.stringify(rec);
     // Apply locally right away so the writer sees its own change instantly.
     onMessage(topic(path), new TextEncoder().encode(msg));
-    return Promise.any(cs.map(c => new Promise((res, rej) =>
-      c.publish(topic(path), msg, { qos: 1, retain: true }, e => e ? rej(e) : res())
-    ))).catch(() => { throw new Error(tt('versturen mislukt', 'sending failed')); });
+    const r = cache.get(path); if (r && r.v === rec.v) mine.set(path, r);
+    // A connection can look alive while it is dead (phone switched network): never wait forever.
+    return Promise.any(cs.map(c => new Promise((res, rej) => {
+      const to = setTimeout(() => rej(new Error('timeout')), 10000);
+      c.publish(topic(path), msg, { qos: 1, retain: true }, e => { clearTimeout(to); e ? rej(e) : res(); });
+    }))).catch(() => { throw new Error(tt('versturen mislukt', 'sending failed')); });
   }
 
   const snap = path => {
@@ -144,6 +162,7 @@
         if (!cur || cur.d == null) throw new Error(tt('document bestaat niet', 'document does not exist'));
         return publish(path, { v: nextV(path), d: Object.assign({}, cur.d, part) });
       },
+      async delete() { await ready(); return publish(path, { v: nextV(path), d: null }); },
       onSnapshot(fn, err) {
         let on = true;
         const l = { test: p => p === path, fn: () => on && fn(snap(path)) };
