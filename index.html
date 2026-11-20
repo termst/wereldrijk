@@ -2465,6 +2465,7 @@ function renderPanel(){
   const P=$('#panel');if(NUKE_T||selN<0||!G||G.pv||G.N[selN].dead){P.classList.remove('open');$('#app').classList.remove('pnl');updateHint();return}
   const o=selN,st=stats()[o];const can=myTurn();const [rc,rl]=relOf(o);const ap=apLeft();
     let h=`<div class="ph"><span class="fl">${natFlag(o)}</span><div style="min-width:0"><h2>${esc(natName(o))}</h2><div class="own"><span class="rel ${rc}">${rl}</span>${G.hum[o]&&o!==ME?$t('speler ','player ')+esc(G.hum[o].nick):''}</div></div><button class="x" id="pClose" aria-label="${$t('Sluiten','Close')}">${svgI('close')}</button></div><div class="pb">`;
+  const pTop=h.length;
   h+=`<div class="grid2"><div class="kv"><small>${$t('Soldaten (totaal)','Soldiers (total)')}</small><b class="num">${fmtT(st.troops)}</b></div><div class="kv"><small>${$t('Inwoners','Population')}</small><b class="num">${fmtPop(st.pop)}</b></div><div class="kv"><small>${$t('Grootte','Size')}</small><b class="num">${fmtKm(st.km)}</b></div><div class="kv"><small>${$t('Economie','Economy')}</small><b class="num">${fmtMoney(st.gdp)}</b></div></div>`+kitChips(o);
   {const cs=natComps(o);if(cs.length>1){const far=cs.filter(c=>c.km>=200).length;h+=`<div class="selhint note"><span>${$t(`${esc(natName(o))} heeft land op ${far>1?far:cs.length} plekken, blauw gemarkeerd op de kaart.`,`${esc(natName(o))} has land in ${far>1?far:cs.length} places, marked in blue on the map.`)}</span><button class="chip" id="selAll">${$t('Toon al het land','Show all land')}</button></div>`}}
   {const tc={};let tt=0;for(let r=0;r<NR;r++)if(G.R.o[r]===o){tt+=R0[r].km;if(TER[r])tc[TER[r]]=(tc[TER[r]]||0)+R0[r].km}
@@ -2476,7 +2477,8 @@ function renderPanel(){
   if(G.N[o].last)h+=`<div class="warn">${$t(`${esc(natName(o))} vecht tot het bittere einde: +30% verdediging.`,`${esc(natName(o))} fights to the bitter end: +30% defence.`)}</div>`;
   if(o!==ME)h+=relBlock(o);
   if(o!==ME&&((kit(o).nk||0)>0||ul(o,'rs')))h+=`<div class="nukeinfo">${svgI('rad')}<span>${kit(o).nk?`<b>${$t('Kernmacht','Nuclear power')}:</b> ${fmtN(kit(o).nk)} ${$t('kernbommen','nuclear bombs')}`:$t('Geen kernbommen','No nuclear bombs')}${ul(o,'rs')?` · ${$t('raketschild niveau','missile shield level')} ${ul(o,'rs')}`:''}</span></div>`;
-  if(o===ME){h+=`<div class="dipbtns"><button class="btn" id="rkB">${svgI('hammer')} ${$t('Bouwen','Build')}</button><button class="btn" id="rkA">${svgI('helm')} ${$t('Leger &amp; wapens','Army &amp; weapons')}</button></div>`;
+  let act='';
+  if(o===ME){act=`<div class="dipbtns"><button class="btn" id="rkB">${svgI('hammer')} ${$t('Bouwen','Build')}</button><button class="btn" id="rkA">${svgI('helm')} ${$t('Leger &amp; wapens','Army &amp; weapons')}</button></div>`;
     {const we=G.N[ME].we||0;if(we>5)h+=`<div class="sec"><span>${$t('Oorlogsmoeheid van je volk','War weariness of your people')}</span><span>${Math.round(we)}%</span></div><div class="webar"><i style="width:${we}%;background:${we>45?'var(--red)':'var(--amber)'}"></i></div>`}
     const NA=A(ME),cs=myConts(ME);
     if(cs.length>1){h+=`<div class="lbl li">${svgI('globe')}${$t('Leger per continent','Army per continent')}</div><div class="dlist">${cs.map(c=>`<div class="drow"><span>${CONTS[c]}</span><span class="r num" style="margin-left:auto">${fmtT(NA.a[c])} ${$t('soldaten','soldiers')} · ${fmtN(NA.ka[c])} tanks</span></div>`).join('')}</div>
@@ -2488,7 +2490,15 @@ function renderPanel(){
       <button class="btn wide" id="calmB" ${can&&ap&&!cc&&G.N[ME].m>=calmCost()?'':'disabled'}>${cc?$t('Orde wordt deze maand gehandhaafd','Order is kept this month'):`${svgI('shield')} ${$t('Orde handhaven','Keep order')} <small>· ${fmtMoney(calmCost())}, ${$t('1 bevel','1 order')}</small>`}</button>`}
     h+=`<div class="note">${$t('Tik op een buurland om het aan te vallen of om samen te werken.','Tap a neighbour to attack it or work with it.')}</div>`}
   else if(can&&ME>=0){
-    const reach=canReach(ME,o),war=atWar(ME,o);
+    const reach=canReach(ME,o),war=atWar(ME,o),mk=h.length;
+    const dis=ap?'':'disabled';let d='<div class="dipbtns">';
+    if(war){d+=`<button class="btn" data-dip="peace" ${dis}>${svgI('olive')} ${$t('Vrede voorstellen','Propose peace')}</button>`;if(!isHuman(o))d+=`<button class="btn" data-dip="surr" ${dis}>${svgI('flag')} ${$t('Overgave eisen','Demand surrender')}</button>`}
+    else if(allied(ME,o))d+=`<button class="btn ghost" data-dip="breakAl" ${dis}>${svgI('unlink')} ${$t('Bondgenoot­schap opzeggen','End alliance')}</button>`;
+    else d+=`<button class="btn" data-dip="ally" ${dis}>${svgI('ally')} ${$t('Bondgenoot­schap','Alliance')}</button>`;
+    if(!war&&!trading(ME,o))d+=`<button class="btn" data-dip="trade" ${dis}>${svgI('trade')} ${$t('Handel (+5% geld)','Trade (+5% money)')}</button>`;
+    if(!isHuman(o))d+=`<button class="btn" data-dip="spy" ${dis}>${svgI('spy')} ${$t('Spionage','Espionage')}</button>`;
+    if(!war){if(!isHuman(o))d+=`<button class="btn" data-dip="ask" ${dis}>${svgI('target')} ${$t('Vraag om aan te vallen','Ask to attack')}</button>`;d+=`<button class="btn" data-dip="give" ${dis}>${svgI('gift')} ${$t('Steun geven','Give aid')}</button>`;if(!isHuman(o))d+=`<button class="btn" data-dip="join" ${dis}>${svgI('merge')} ${$t('Vraag om bij je te horen','Ask to join you')}</button>`}
+    d+='</div>';
     if(allied(ME,o))h+=`<div class="note">${$t('Dit is je bondgenoot. Val je een bondgenoot aan, dan vertrouwen andere landen je minder.','This is your ally. If you attack an ally, other countries trust you less.')}</div>`;
     if(!reach)h+=`<div class="note">${$t(`Je kunt ${esc(natName(o))} niet bereiken. Je hebt een gezamenlijke grens nodig, of een sterkere marine (Marine bij Bouwen).`,`You cannot reach ${esc(natName(o))}. You need a shared border, or a stronger navy (Navy under Build).`)}</div>`;
     else{const ths=theaters(ME,o);const c=ths.includes(selC)?selC:bestTheater(ME,o);selC=c;const src=srcCont(ME,o,c);
@@ -2498,21 +2508,16 @@ function renderPanel(){
       if(ths.length>1)h+=`<div class="lbl li">${svgI('map')}${$t('Kies het front','Pick the front')}</div><div class="chips" style="margin-bottom:6px">${ths.map(t=>`<button class="chip ${t===c?'on':''}" data-th="${t}">${CONTS[t]}</button>`).join('')}</div>`;
       h+=`<div class="note">${$t('Front in','Front in')} <b style="color:var(--ink)">${CONTS[c]}</b>${src!==c?$t(`, je troepen vertrekken vanuit ${CONTS[src]}`,`, your troops leave from ${CONTS[src]}`):''}. ${$t(`Je hebt daar ${fmtT(NA.a[src])} soldaten en ${fmtN(NA.ka[src])} tanks.`,`You have ${fmtT(NA.a[src])} soldiers and ${fmtN(NA.ka[src])} tanks there.`)}</div>`;
       if(E.mil)h+=`<div class="note" style="color:var(--green)">${$t(`${esc(natName(o))} heeft hier bijna geen leger, alleen een burgerwacht. Dit gebied verover je snel.`,`${esc(natName(o))} has almost no army here, only a militia. You will take this area fast.`)}</div>`;
-      h+=`<button class="btn red big wide" id="attB" ${ap&&!done?'':'disabled'}>${svgI('swords')} ${done?$t('Deze maand al aangevallen','Already attacked this month'):allied(ME,o)?$t('Bondgenoot aanvallen','Attack ally'):$t('Aanvallen','Attack')}</button><div class="note">${$t('Aan jouw grens: ongeveer','At your border: about')} <b style="color:var(--ink)">${fmtT(E.s)}</b> ${$t('soldaten','soldiers')}${E.tk>=1?`, ${fmtN(E.tk)} tanks`:''}${E.jt>=1?`, ${fmtN(E.jt)} ${$t('vliegtuigen','jets')}`:''}. ${$t('Met 70% van je leger:','With 70% of your army:')} <b style="color:${cc}">${cl}</b>.${est.T.main?` ${TERR[est.T.main].nm}: ${$t('moeilijker','harder')}.`:''}${naval?$t(' Dit is een aanval over zee: neem schepen mee.',' This is an attack across the sea: bring ships.'):''}</div>`;
+      h+=`<button class="btn red big wide" id="attB" ${ap&&!done?'':'disabled'}>${svgI('swords')} ${done?$t('Deze maand al aangevallen','Already attacked this month'):allied(ME,o)?$t('Bondgenoot aanvallen','Attack ally'):$t('Aanvallen','Attack')}</button><div class="note">${$t('Aan jouw grens: ongeveer','At your border: about')} <b style="color:var(--ink)">${fmtT(E.s)}</b> ${$t('soldaten','soldiers')}${E.tk>=1?`, ${fmtN(E.tk)} tanks`:''}${E.jt>=1?`, ${fmtN(E.jt)} ${$t('vliegtuigen','jets')}`:''}. ${$t('Met 70% van je leger:','With 70% of your army:')} <b style="color:${cc}">${cl}</b>.${est.T.main?` ${TERR[est.T.main].nm}: ${$t('moeilijker','harder')}.`:''}${naval?$t(' Dit is een aanval over zee: neem schepen mee.',' This is an attack across the sea: bring ships.'):''}</div>`+d;d='';
       const air=K.bm+K.kr+K.bb+K.emp;if(air>0)h+=`<button class="btn wide" id="bombB" ${ap?'':'disabled'}>${svgI('bomb')} ${$t('Luchtaanval','Air strike')} <small>· ${[K.bm?fmtN(K.bm)+' '+$t('bommen','bombs'):'',K.kr?fmtN(K.kr)+' '+$t('raketten','missiles'):'',K.bb?fmtN(K.bb)+' '+$t('bunkerbr.','bunkerb.'):'',K.emp?fmtN(K.emp)+' EMP':''].filter(Boolean).join(', ')}</small></button>`}
     if((kit(ME).nk||0)>0&&!allied(ME,o))h+=`<button class="btn nuke wide" id="nukeB" ${ap?'':'disabled'}>${svgI('rad')} ${$t('Kernaanval','Nuclear strike')} <small>· ${fmtN(kit(ME).nk)} ${$t(kit(ME).nk===1?'kernbom':'kernbommen',kit(ME).nk===1?'nuclear bomb':'nuclear bombs')}</small></button>`;
     {const we=G.N[o].we||0;if(we>5)h+=`<div class="sec"><span>${$t('Oorlogsmoeheid','War weariness')}</span><span>${we>70?$t('op instorten','about to collapse'):we>45?$t('hoog','high'):we>20?$t('merkbaar','noticeable'):$t('laag','low')}</span></div><div class="webar"><i style="width:${we}%;background:${we>45?'var(--red)':'var(--amber)'}"></i></div>`}
     if(!isHuman(o)){const op=opinion(o,ME);h+=`<div class="sec"><span>${$t('Mening over jou','Opinion of you')}</span><span>${op>40?$t('vriendelijk','friendly'):op>5?$t('positief','positive'):op>-20?$t('neutraal','neutral'):op>-60?$t('wantrouwig','distrustful'):$t('vijandig','hostile')}</span></div><div class="opbar"><i style="${op>=0?`left:50%;width:${op/2}%;background:var(--green)`:`left:${50+op/2}%;width:${-op/2}%;background:var(--red)`}"></i></div>`
       h+=relMemo(o)}
-    const dis=ap?'':'disabled';h+='<div class="dipbtns">';
-    if(war){h+=`<button class="btn" data-dip="peace" ${dis}>${svgI('olive')} ${$t('Vrede voorstellen','Propose peace')}</button>`;if(!isHuman(o))h+=`<button class="btn" data-dip="surr" ${dis}>${svgI('flag')} ${$t('Overgave eisen','Demand surrender')}</button>`}
-    else if(allied(ME,o))h+=`<button class="btn ghost" data-dip="breakAl" ${dis}>${svgI('unlink')} ${$t('Bondgenoot­schap opzeggen','End alliance')}</button>`;
-    else h+=`<button class="btn" data-dip="ally" ${dis}>${svgI('ally')} ${$t('Bondgenoot­schap','Alliance')}</button>`;
-    if(!war&&!trading(ME,o))h+=`<button class="btn" data-dip="trade" ${dis}>${svgI('trade')} ${$t('Handel (+5% geld)','Trade (+5% money)')}</button>`;
-    if(!isHuman(o))h+=`<button class="btn" data-dip="spy" ${dis}>${svgI('spy')} ${$t('Spionage','Espionage')}</button>`;
-    if(!war){if(!isHuman(o))h+=`<button class="btn" data-dip="ask" ${dis}>${svgI('target')} ${$t('Vraag om aan te vallen','Ask to attack')}</button>`;h+=`<button class="btn" data-dip="give" ${dis}>${svgI('gift')} ${$t('Steun geven','Give aid')}</button>`;if(!isHuman(o))h+=`<button class="btn" data-dip="join" ${dis}>${svgI('merge')} ${$t('Vraag om bij je te horen','Ask to join you')}</button>`}
-    h+='</div><div class="note">'+$t('Aanvallen, bombarderen, steun en voorstellen kosten 1 bevel.','Attacks, bombing, aid and proposals cost 1 order.')+'</div>';
+    h+=d+'<div class="note">'+$t('Aanvallen, bombarderen, steun en voorstellen kosten 1 bevel.','Attacks, bombing, aid and proposals cost 1 order.')+'</div>';
+    act=h.slice(mk);h=h.slice(0,mk);
   }
+  if(act)h=h.slice(0,pTop)+act+h.slice(pTop);
   if(o===ME){const [rl,rc]=repLbl(G.N[ME].rep||0);h+=`<div class="sec"><span>${$t('Je betrouwbaarheid','Your reliability')}</span><span style="color:${rc}">${rl}</span></div>`}
   h+='</div>';P.innerHTML=h;P.classList.add('open');$('#app').classList.add('pnl');
   $('#pClose').onclick=()=>selectNation(-1);
