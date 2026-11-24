@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mikado's 63 Games</title>
+<meta name="description" content="Alle games van Mikado op één plek: Wereldrijk en Bloop Bash.">
+<meta name="theme-color" content="#14112b">
+<link rel="icon" type="image/png" href="wereldrijk.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#14112b;--card:#221d45;--text:#f4f1ff;--muted:#b6add9;--gold:#ffcf3a;--pink:#ff4f9a;--cyan:#3ad8ff}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:Nunito,system-ui,sans-serif;overflow-x:hidden;
+  background-image:radial-gradient(circle at 15% 10%,#3b2a7a 0,transparent 40%),radial-gradient(circle at 90% 80%,#5a1f4f 0,transparent 45%)}
+.wrap{max-width:980px;margin:0 auto;padding:48px 16px 40px}
+header{text-align:center;margin-bottom:44px}
+h1{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:clamp(44px,11vw,96px);line-height:.95;margin:0;letter-spacing:1px;
+  text-shadow:0 5px 0 #0007}
+h1 .n{display:inline-block;color:var(--gold);transform:rotate(-6deg);margin:0 .08em}
+h1 .g{background:linear-gradient(90deg,var(--pink),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+header p{color:var(--muted);font-size:clamp(16px,3.6vw,20px);margin:16px 0 0}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.game{display:flex;flex-direction:column;background:var(--card);border-radius:24px;padding:24px;text-decoration:none;color:inherit;
+  border:3px solid transparent;box-shadow:0 10px 0 #0005;transition:transform .15s,border-color .15s,box-shadow .15s}
+.game:hover,.game:focus-visible{transform:translateY(-6px) rotate(-.5deg);box-shadow:0 16px 0 #0005;outline:none}
+.game.wr:hover,.game.wr:focus-visible{border-color:var(--gold)}
+.game.bb:hover,.game.bb:focus-visible{border-color:var(--pink)}
+.top{display:flex;align-items:center;gap:16px}
+.top img{width:84px;height:84px;border-radius:20px;flex:none;box-shadow:0 6px 0 #0006}
+h2{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:34px;margin:0;line-height:1}
+.tag{display:inline-block;margin-top:6px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:99px}
+.wr .tag{background:#ffcf3a26;color:var(--gold)}
+.bb .tag{background:#ff4f9a26;color:var(--pink)}
+.game p{color:var(--muted);font-size:16px;line-height:1.5;margin:18px 0 22px;flex:1}
+.play{display:block;text-align:center;font-family:"Lilita One",system-ui,sans-serif;font-size:24px;padding:14px;border-radius:16px;color:#1a1433;box-shadow:0 5px 0 #0006}
+.wr .play{background:var(--gold)}
+.bb .play{background:var(--pink);color:#fff}
+footer{text-align:center;color:var(--muted);font-size:14px;margin-top:48px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Mikado's <span class="n">63</span> <span class="g">Games</span></h1>
+    <p>Kies een game en speel meteen in je browser.</p>
+  </header>
+  <main class="games">
+    <a class="game wr" href="../">
+      <div class="top"><img src="wereldrijk.png" alt=""><div><h2>Wereldrijk</h2><span class="tag">Strategie</span></div></div>
+      <p>Verover de wereld met echte landen. Bouw je leger, sluit verbonden en voer oorlog: alleen, samen op één telefoon of online met vrienden.</p>
+      <span class="play">▶ Speel Wereldrijk</span>
+    </a>
+    <a class="game bb" href="https://konijnmika-hash.github.io/partygame/">
+      <div class="top"><img src="bloop-bash.png" alt=""><div><h2>Bloop Bash</h2><span class="tag">Partygame</span></div></div>
+      <p>Een kleurrijke partygame met meer dan 100 minigames. Maak een kamer, deel de code en speel samen, iedereen op z'n eigen telefoon.</p>
+      <span class="play">▶ Speel Bloop Bash</span>
+    </a>
+  </main>
+  <footer>Gemaakt door Mikado</footer>
+</div>
+</body>
+</html>
